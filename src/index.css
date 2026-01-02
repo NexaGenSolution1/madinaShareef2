@@ -1,1 +1,43 @@
 @import "tailwindcss";
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: bold;
+}
+
+button {
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+input {
+    outline: none;
+}
+
+textarea {
+    outline: none;
+    resize: none;
+}
+
+.main-container {
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding-inline: 16px;
+}
+
+@media screen and (max-width: 767px) {
+    .main-container {
+        padding-inline: 12px;
+    }
+}
+
+@media screen and (max-width: 499px) {
+    .main-container {
+        padding-inline: 8px;
+    }
+}
