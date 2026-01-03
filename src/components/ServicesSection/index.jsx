@@ -5,6 +5,7 @@ import service3 from '../../assets/images/service3.jpg'
 import service4 from '../../assets/images/service4.webp'
 import service5 from '../../assets/images/service5.webp'
 import service6 from '../../assets/images/service6.webp'
+import mosque from '../../assets/images/mosque.png'
 
 const services = [
     {
@@ -47,9 +48,14 @@ const services = [
 
 export default function ServicesSection() {
     return (
-        <section className='min-h-[90vh] bg-linear-to-br from-[#fffffc] to-[#fffee0] py-18 sm:py-24'>
-            <div className='main-container'>
-                <h2 className='text-center text-[#2A166D] text-3xl sm:text-4xl md:text-5xl mb-16'>Our Services</h2>
+        <section className='relative min-h-[90vh] bg-linear-to-br from-[#fffffc] to-[#fffee0] py-18 sm:py-24'>
+            <div className='relative main-container z-1'>
+                <div className='flex justify-center mb-10 sm:mb-16'>
+                    <div className='relative w-fit'>
+                        <h2 className='relative text-center text-[#2A166D] text-3xl sm:text-4xl md:text-5xl z-1'>Our Services</h2>
+                        <div className='absolute bottom-0 left-0 w-full h-[35%] bg-[#d6d30b]/50 rounded-md z-0'></div>
+                    </div>
+                </div>
 
                 <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6'>
                     {services.map(service => (
@@ -58,14 +64,16 @@ export default function ServicesSection() {
                                 <img src={service.image} alt={service.title} className='w-full h-60 object-cover object-center transition-all duration-300 ease-in-out group-hover:scale-110' />
                             </div>
 
-                            <div className='rounded-bl-2xl rounded-br-2xl sm:rounded-bl-3xl sm:rounded-br-3xl px-2 sm:px-4 md:px-6 py-6 text-center border-l border-r border-b border-[#ffffff33] bg-black/5 backdrop-blur-sm hover:backdrop-blur-md transition-all duration-300 ease-in-out'>
-                                <h2 className='text-2xl text-[#2A166D]'>{service.title}</h2>
-                                <p className='text-neutral-700 mt-4'>{service.description}</p>
+                            <div className='rounded-bl-2xl rounded-br-2xl sm:rounded-bl-3xl sm:rounded-br-3xl px-2 sm:px-4 md:px-6 py-6 text-center border-l border-r border-b border-[#ffffff33] bg-black/5 backdrop-blur-sm group-hover:backdrop-blur-md transition-all duration-300 ease-in-out'>
+                                <h2 className='text-xl sm:text-2xl text-[#2A166D] transition-all duration-300 ease-in-out'>{service.title}</h2>
+                                <p className='text-neutral-700 mt-2 sm:mt-4'>{service.description}</p>
                             </div>
                         </div>
                     ))}
                 </div>
             </div>
+
+            <img src={mosque} alt="hanging-lights" className='absolute bottom-0 right-0 w-full sm:w-1/2 object-contain opacity-20 z-0' />
         </section>
     )
 }
