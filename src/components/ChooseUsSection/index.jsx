@@ -8,10 +8,10 @@ export default function ChooseUsSection() {
     return (
         <section className='main-container py-18 sm:py-24'>
             <div className='flex flex-col items-center'>
-                <h3 className='text-center text-[#2A166D]'>WHY CHOOSE US?</h3>
+                <h3 className='text-center text-[#2A166D] font-semibold!'>WHY CHOOSE US?</h3>
                 <div className='flex justify-center mt-2 mb-6'>
                     <div className='relative w-fit'>
-                        <h2 className='relative text-center text-[#2A166D] text-3xl sm:text-4xl md:text-5xl z-1'>Why Choose Brother International</h2>
+                        <h2 className='relative text-center text-[#2A166D] text-3xl sm:text-4xl md:text-5xl z-1'>Why Choose Brothers International</h2>
                         <div className='absolute bottom-0 left-0 w-full h-[35%] bg-[#d6d30b]/50 rounded-md z-0'></div>
                     </div>
                 </div>

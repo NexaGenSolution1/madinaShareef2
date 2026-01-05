@@ -32,12 +32,12 @@ textarea {
 
 @media screen and (max-width: 767px) {
     .main-container {
-        padding-inline: 12px;
+        padding-inline: 14px;
     }
 }
 
 @media screen and (max-width: 499px) {
     .main-container {
-        padding-inline: 8px;
+        padding-inline: 12px;
     }
 }

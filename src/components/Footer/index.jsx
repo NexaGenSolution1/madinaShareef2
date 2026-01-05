@@ -16,7 +16,7 @@ export default function Footer() {
                         <IoMail className='text-6xl sm:text-7xl text-neutral-200' />
                         <div className='space-y-2'>
                             <h2 className='text-2xl sm:text-3xl text-[#d6d30b] font-semibold!'>Your Travel Journey Starts Here</h2>
-                            <p className='text-neutral-200'>Sign up to have best deals with Brother International</p>
+                            <p className='text-neutral-200'>Sign up to have best deals with Brothers International</p>
                         </div>
                     </div>
 
@@ -37,8 +37,7 @@ export default function Footer() {
                         <div>
                             <img src={logo} alt="logo" className='w-22 object-contain' />
                             <div className='text-xl mt-6'>
-                                <h2>Brother International Services</h2>
-                                <h2>(IATA #27349361 | License #PR-3794)</h2>
+                                <h2>Brothers International Travel</h2>
                             </div>
                         </div>
 
@@ -72,7 +71,7 @@ export default function Footer() {
                                     <FaPhoneAlt /> 0345 9370824
                                 </a>
                                 <a href="#" target='_blank' className='flex items-center gap-3 font-semibold break-all transition-all duration-300 ease-in-out hover:text-[#d6d30b]'>
-                                    <IoMail /> info@brotherinternational.com
+                                    <IoMail /> info@brothersinternational.com
                                 </a>
                                 <a href="#" target='_blank' className='flex items-start gap-3 font-semibold break-all transition-all duration-300 ease-in-out hover:text-[#d6d30b]'>
                                     <IoLocationSharp className='mt-1' /> First Floor, ABC Plaza, Office # 100, XYZ.
@@ -83,8 +82,8 @@ export default function Footer() {
                 </div>
 
                 <div className='main-container flex flex-col md:flex-row justify-between gap-2 py-6 sm:py-10 text-sm sm:text-base text-neutral-300 border-t border-neutral-600'>
-                    <p>&copy; Brother International. All Rights Reserved {dayjs().year()}.</p>
-                    <p><span className='text-neutral-100 font-semibold'>Designed & Developed By</span> Nexagen Solution</p>
+                    <p>&copy; Brothers International. All Rights Reserved {dayjs().year()}.</p>
+                    <p><span className='text-neutral-100 font-semibold'>Designed & Developed By</span> <a href="https://nexagensolution.com/" target='_blank'>Nexagen Solution</a></p>
                 </div>
 
                 <div className='absolute inset-0 bg-black/70 -z-1'></div>

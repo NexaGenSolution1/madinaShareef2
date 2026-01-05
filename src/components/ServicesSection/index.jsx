@@ -1,7 +1,7 @@
 import React from 'react'
 import service1 from '../../assets/images/service1.webp'
 import service2 from '../../assets/images/service2.webp'
-import service3 from '../../assets/images/service3.jpg'
+import service3 from '../../assets/images/service3.webp'
 import service4 from '../../assets/images/service4.webp'
 import service5 from '../../assets/images/service5.webp'
 import service6 from '../../assets/images/service6.webp'
@@ -61,7 +61,7 @@ export default function ServicesSection() {
                     {services.map(service => (
                         <div key={service.id} className='group rounded-2xl sm:rounded-3xl shadow overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-1.5'>
                             <div>
-                                <img src={service.image} alt={service.title} className='w-full h-60 object-cover object-center transition-all duration-300 ease-in-out group-hover:scale-110' />
+                                <img src={service.image} alt={service.title} loading='lazy' className='w-full h-60 object-cover object-center transition-all duration-300 ease-in-out group-hover:scale-110' />
                             </div>
 
                             <div className='rounded-bl-2xl rounded-br-2xl sm:rounded-bl-3xl sm:rounded-br-3xl px-2 sm:px-4 md:px-6 py-6 text-center border-l border-r border-b border-[#ffffff33] bg-black/5 backdrop-blur-sm group-hover:backdrop-blur-md transition-all duration-300 ease-in-out'>
