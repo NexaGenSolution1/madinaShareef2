@@ -36,8 +36,9 @@ export default function Footer() {
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-12'>
                         <div>
                             <img src={logo} alt="logo" className='w-22 object-contain' />
-                            <div className='text-xl mt-6'>
-                                <h2>Brothers International Travel</h2>
+                            <div>
+                                <h2 className='text-xl mt-6'>Brother's International Travels</h2>
+                                <p className='mt-4'>We offer a variety of travel packages tailored to your needs, Join us and explore the world with Brothers International.</p>
                             </div>
                         </div>
 
@@ -64,17 +65,23 @@ export default function Footer() {
                         <div>
                             <h2 className='text-2xl sm:text-3xl mb-6'>Contact</h2>
                             <div className='flex flex-col items-start gap-3'>
-                                <a href="#" target='_blank' className='flex items-center gap-3 font-semibold transition-all duration-300 ease-in-out hover:text-[#d6d30b]'>
-                                    <FaWhatsapp /> 0345 9370824
+                                <a href="https://wa.me/+923478885551" target='_blank' className='flex items-center gap-3 font-semibold transition-all duration-300 ease-in-out hover:text-[#d6d30b]'>
+                                    <FaWhatsapp /> 0347 8885551
                                 </a>
-                                <a href="#" target='_blank' className='flex items-center gap-3 font-semibold transition-all duration-300 ease-in-out hover:text-[#d6d30b]'>
-                                    <FaPhoneAlt /> 0345 9370824
+                                <a href="/" target='_blank' className='flex items-center gap-3 font-semibold transition-all duration-300 ease-in-out hover:text-[#d6d30b]'>
+                                    <FaPhoneAlt /> 0932 412499
                                 </a>
-                                <a href="#" target='_blank' className='flex items-center gap-3 font-semibold break-all transition-all duration-300 ease-in-out hover:text-[#d6d30b]'>
-                                    <IoMail /> info@brothersinternational.com
+                                <a href="/" target='_blank' className='flex items-center gap-3 font-semibold transition-all duration-300 ease-in-out hover:text-[#d6d30b]'>
+                                    <FaPhoneAlt /> 0932 414499
                                 </a>
-                                <a href="#" target='_blank' className='flex items-start gap-3 font-semibold break-all transition-all duration-300 ease-in-out hover:text-[#d6d30b]'>
-                                    <IoLocationSharp className='mt-1' /> First Floor, ABC Plaza, Office # 100, XYZ.
+                                <a href="/" target='_blank' className='flex items-center gap-3 font-semibold break-all transition-all duration-300 ease-in-out hover:text-[#d6d30b]'>
+                                    <IoMail /> brothersit369@gmail.com
+                                </a>
+                                <a href="/" target='_blank' className='flex items-center gap-3 font-semibold break-all transition-all duration-300 ease-in-out hover:text-[#d6d30b]'>
+                                    <IoMail /> aizazbtk@gmail.com
+                                </a>
+                                <a href="https://maps.app.goo.gl/GZ4C6ZMPfg758iV29" target='_blank' className='flex items-start gap-3 font-semibold break-all transition-all duration-300 ease-in-out hover:text-[#d6d30b]'>
+                                    <IoLocationSharp className='mt-1' /> Main Bazaar Batkhela Distt, Malakand.
                                 </a>
                             </div>
                         </div>

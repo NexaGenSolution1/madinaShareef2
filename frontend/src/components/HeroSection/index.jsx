@@ -18,7 +18,7 @@ export default function HeroSection() {
             <div className='realtive main-container min-h-[60vh] text-white py-18 sm:py-24 z-10'>
                 <div className='flex justify-center'>
                     <div className='relative w-fit'>
-                        <h1 className='relative text-[#2A166D] text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-center font-semibold! z-1'>Brothers International Travel</h1>
+                        <h1 className='relative text-[#2A166D] text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-center font-semibold! z-1'>Brother's International Travels</h1>
                         {/* <div className='absolute bottom-0 left-0 w-full h-[35%] bg-[#d6d30b] rounded-md z-0'></div> */}
                     </div>
                 </div>
