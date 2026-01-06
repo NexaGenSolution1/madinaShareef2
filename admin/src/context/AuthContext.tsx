@@ -9,15 +9,12 @@ import axiosInstance from "../Api/axios";
 
 interface User {
   id: string;
-  fullName: string;
+  name: string;
   email: string;
   password: string;
-  phoneNumber: string;
-  countryCode: string;
-  userType: string;
-  isAgency: boolean;
-  agencyName: string;
-  agencyNumber: string;
+  phone: string;
+  role: string;
+  companyName: string;
 }
 
 interface AuthContextType {
@@ -38,21 +35,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const storedToken = localStorage.getItem("token");
     if (storedToken) {
       axiosInstance
-        .post(
-          "/verifyToken",
-          { token: storedToken },
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        )
+        .get("/auth/profile", {
+          headers: {
+            Authorization: `Bearer ${storedToken}`,
+          },
+        })
         .then((res) => {
-          const userData = res.data.user;
-          setUser(userData);
+          setUser(res.data);
         })
         .catch(() => {
-          logout(); // Invalid token
+          logout();
         })
         .finally(() => setLoading(false));
     } else {

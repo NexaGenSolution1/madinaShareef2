@@ -12,14 +12,21 @@ dotenv.config();
 // Connect to the database
 dbConnection();
 
-app.use(cors());
+app.use(
+    cors({
+        origin: ["http://localhost:5173", "http://localhost:5174"],
+        credentials: true,
+    })
+);
 app.use(express.json());
-app.use('/', (req, res) => {
-    res.send('Brother International API is running');
-});
+
 
 app.use("/api/group-ticketing", groupTicketingRoutes);
 app.use("/api/auth", authRoutes);
+
+app.get('/', (req, res) => {
+    res.send('Brother International API is running');
+});
 
 const PORT = process.env.PORT || 8007;
 app.listen(PORT, () => {
