@@ -128,9 +128,6 @@ export default function Header() {
                     </div>
                 </div>
 
-                {/* Background Effect */}
-                <div className='absolute top-0 right-0 w-[20%] h-full bg-linear-to-r from-[#f1ee473b] to-white rotate-12 sm:rotate-45 scale-200 sm:scale-400'></div>
-
                 {/* Sub Header */}
                 <div className={`block xl:hidden fixed w-full h-[calc(100vh-68px)] md:h-[calc(100vh-84px)] top-17 md:top-20.5 left-0 bg-white overflow-y-auto z-999 transition-all duration-300 ease-in-out
                 ${open ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
