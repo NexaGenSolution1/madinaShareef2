@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import logo from '../../assets/images/logo.webp'
 import { CiMenuFries } from "react-icons/ci";
 import { AiOutlineClose } from "react-icons/ai";
@@ -10,6 +10,7 @@ export default function Header() {
     const [open, setOpen] = useState(false);
     const [user, setUser] = useState(null);
     const [profileOpen, setProfileOpen] = useState(false);
+    const profileRef = useRef(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -22,6 +23,29 @@ export default function Header() {
             }
         }
     }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (!profileOpen || !profileRef.current) return;
+            if (!profileRef.current.contains(event.target)) {
+                setProfileOpen(false);
+            }
+        };
+
+        const handleEscape = (event) => {
+            if (event.key === 'Escape') {
+                setProfileOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('keydown', handleEscape);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleEscape);
+        };
+    }, [profileOpen]);
 
     const handleLogout = () => {
         localStorage.removeItem("token");
@@ -57,7 +81,7 @@ export default function Header() {
                 {/* Right Part */}
                 <div className='relative flex items-center gap-2 md:gap-4 z-1'>
                     {user ? (
-                        <div className='relative hidden md:flex items-center gap-2'>
+                        <div ref={profileRef} className='relative hidden md:flex items-center gap-2'>
                             <button
                                 className='flex items-center gap-2 rounded-full border border-[#2A166D] px-3 py-2 text-sm text-[#2A166D] hover:bg-[#2A166D] hover:text-white'
                                 onClick={() => setProfileOpen((p) => !p)}

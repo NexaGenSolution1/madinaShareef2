@@ -5,6 +5,7 @@ import { CiLogin } from 'react-icons/ci';
 import { FaWhatsapp, FaPhoneAlt } from "react-icons/fa";
 import { IoMail, IoLocationSharp } from "react-icons/io5";
 import dayjs from 'dayjs'
+import { Link } from 'react-router-dom';
 
 export default function Footer() {
     return (
@@ -21,12 +22,12 @@ export default function Footer() {
                     </div>
 
                     <div className='flex gap-2'>
-                        <button className='bg-[#d6d30b] text-[#2A166D] border border-[#d6d30b] px-6 sm:px-8 py-2 sm:py-3 rounded-xl hover:bg-[#d6d30b] hover:opacity-70'>
+                        <Link to="/auth/register" className='bg-[#d6d30b] text-[#2A166D] border border-[#d6d30b] px-6 sm:px-8 py-2 sm:py-3 rounded-xl hover:bg-[#d6d30b] hover:opacity-70'>
                             Signup
-                        </button>
-                        <button className='flex items-center gap-1 text-[#d6d30b] px-6 sm:px-8 py-2 sm:py-3 border border-[#d6d30b] rounded-xl hover:bg-[#d6d30b] hover:text-[#2A166D]'>
+                        </Link>
+                        <Link to="/auth/login" className='flex items-center gap-1 text-[#d6d30b] px-6 sm:px-8 py-2 sm:py-3 border border-[#d6d30b] rounded-xl hover:bg-[#d6d30b] hover:text-[#2A166D]'>
                             Login <CiLogin />
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </div>
