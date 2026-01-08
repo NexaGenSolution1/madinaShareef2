@@ -115,28 +115,28 @@ const RegisteredAgencies = () => {
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case "Active":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
       case "Inactive":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400";
       case "Suspended":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400";
     }
   };
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case "Admin":
-        return "bg-purple-100 text-purple-800";
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400";
       case "Agency":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
       case "SubAgent":
-        return "bg-indigo-100 text-indigo-800";
+        return "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400";
       case "User":
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400";
     }
   };
 
@@ -145,10 +145,10 @@ const RegisteredAgencies = () => {
       <PageMeta title="Registered Agencies" description="Manage and approve registered agencies and users" />
       <PageBreadCrumb pageTitle="Registered Agencies" />
 
-      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="px-4 py-6 md:px-6 xl:px-7.5">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="text-xl font-semibold text-black dark:text-white">
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-white/90">
               Manage Agencies
             </h3>
           </div>
@@ -160,12 +160,12 @@ const RegisteredAgencies = () => {
               placeholder="Search by name, email, company, or agency code..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded border border-stroke bg-transparent px-4 py-2 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary sm:flex-1"
+              className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 outline-none transition focus:outline-hidden focus:ring-3 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 sm:flex-1"
             />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="rounded border border-stroke bg-transparent px-4 py-2 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+              className="h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs outline-none transition focus:outline-hidden focus:ring-3 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
             >
               <option value="All">All Status</option>
               <option value="Active">Active</option>
@@ -177,18 +177,18 @@ const RegisteredAgencies = () => {
           {/* Table */}
           {loading ? (
             <div className="flex justify-center py-10">
-              <div className="text-gray-500">Loading agencies...</div>
+              <div className="text-gray-500 dark:text-gray-400">Loading agencies...</div>
             </div>
           ) : filteredUsers.length === 0 ? (
             <div className="flex justify-center py-10">
-              <div className="text-gray-500">No agencies found</div>
+              <div className="text-gray-500 dark:text-gray-400">No agencies found</div>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full table-auto">
                 <thead>
-                  <tr className="border-b border-stroke dark:border-strokedark text-left">
-                    <th className="px-4 py-5 font-medium text-black dark:text-white">
+                  <tr className="border-b border-gray-100 dark:border-gray-800 text-left">
+                    <th className="px-4 py-5 font-medium text-gray-800 dark:text-white/90">
                       Name
                     </th>
                     <th className="px-4 py-5 font-medium text-black dark:text-white">
@@ -197,22 +197,22 @@ const RegisteredAgencies = () => {
                     <th className="px-4 py-5 font-medium text-black dark:text-white">
                       Company
                     </th>
-                    <th className="px-4 py-5 font-medium text-black dark:text-white">
+                    <th className="px-4 py-5 font-medium text-gray-800 dark:text-white/90">
                       Agency Code
                     </th>
-                    <th className="px-4 py-5 font-medium text-black dark:text-white">
+                    <th className="px-4 py-5 font-medium text-gray-800 dark:text-white/90">
                       Phone
                     </th>
-                    <th className="px-4 py-5 font-medium text-black dark:text-white">
+                    <th className="px-4 py-5 font-medium text-gray-800 dark:text-white/90">
                       Role
                     </th>
-                    <th className="px-4 py-5 font-medium text-black dark:text-white">
+                    <th className="px-4 py-5 font-medium text-gray-800 dark:text-white/90">
                       Status
                     </th>
-                    <th className="px-4 py-5 font-medium text-black dark:text-white">
+                    <th className="px-4 py-5 font-medium text-gray-800 dark:text-white/90">
                       Joined Date
                     </th>
-                    <th className="px-4 py-5 font-medium text-black dark:text-white">
+                    <th className="px-4 py-5 font-medium text-gray-800 dark:text-white/90">
                       Actions
                     </th>
                   </tr>
@@ -221,10 +221,10 @@ const RegisteredAgencies = () => {
                   {filteredUsers.map((user) => (
                     <tr
                       key={user._id}
-                      className="border-b border-stroke dark:border-strokedark"
+                      className="border-b border-gray-100 dark:border-gray-800"
                     >
                       <td className="px-4 py-5">
-                        <div className="text-black dark:text-white">
+                        <div className="text-gray-800 dark:text-white/90">
                           {user.name}
                         </div>
                       </td>
@@ -281,7 +281,7 @@ const RegisteredAgencies = () => {
                             )
                           }
                           disabled={approvalLoading === user._id}
-                          className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none transition focus:border-primary disabled:opacity-50 dark:border-form-strokedark dark:bg-form-input"
+                          className="rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 shadow-theme-xs outline-none transition focus:outline-hidden focus:ring-3 focus:border-brand-300 focus:ring-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
                         >
                           <option value="Active">Active</option>
                           <option value="Inactive">Inactive</option>
