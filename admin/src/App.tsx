@@ -20,6 +20,7 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./context/PrivateRoute";
+import RegisteredAgencies from "./pages/RegisteredAgencies";
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
                 <Route path="/profile" element={<UserProfiles />} />
                 <Route path="/calendar" element={<Calendar />} />
                 <Route path="/blank" element={<Blank />} />
+                <Route path="/registered-agencies" element={<RegisteredAgencies />} />
 
                 {/* Forms */}
                 <Route path="/form-elements" element={<FormElements />} />

@@ -26,6 +26,9 @@ export const registerUser = async (req, res) => {
     }
     const plainPassword = password;
 
+    // Set status to Inactive for Agency role, Active for others
+    const status = role === "Agency" ? "Inactive" : "Active";
+
     const user = await Register.create({
       name,
       email,
@@ -33,7 +36,8 @@ export const registerUser = async (req, res) => {
       password,
       plainPassword,
       role,
-      companyName
+      companyName,
+      status
     });
 
     res.status(201).json({
@@ -73,6 +77,21 @@ export const loginUser = async (req, res) => {
       });
     }
 
+    // Check if user is an Agency and verify their status
+    if (user.role === "Agency" && user.status !== "Active") {
+      const msg =
+        user.status === "Suspended"
+          ? "Your account is suspended. Please contact admin."
+          : `Your agency account is ${user.status}. Please wait for admin approval.`;
+
+      return res.status(403).json({
+        success: false,
+        message: msg,
+        status: user.status,
+        role: user.role
+      });
+    }
+
     user.lastLogin = new Date();
     await user.save();
 
@@ -83,7 +102,8 @@ export const loginUser = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        status: user.status
       }
     });
   } catch (error) {
