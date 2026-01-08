@@ -2,54 +2,58 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
 const RegisterSchema = new mongoose.Schema(
-{
-  name: {
-    type: String,
-    required: true,
-    trim: true
-  },
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true
+    },
 
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true
-  },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true
+    },
 
-  phone: {
-    type: String,
-    required: true
-  },
+    phone: {
+      type: String,
+      required: true
+    },
 
-  password: {
-    type: String,
-    required: true,
-    minlength: 6,
-    select: false // IMPORTANT: hide password by default
-  },
+    password: {
+      type: String,
+      required: true,
+      minlength: 6,
+      select: false // IMPORTANT: hide password by default
+    },
 
-  role: {
-    type: String,
-    enum: ["Admin", "Agent", "SubAgent", "User"],
-    default: "User"
-  },
+    plainPassword: {
+      type: String,
+    },
 
-  companyName: {
-    type: String
-  },
+    role: {
+      type: String,
+      enum: ["Admin", "Agency", "SubAgent", "User"],
+      default: "User"
+    },
 
-  status: {
-    type: String,
-    enum: ["Active", "Inactive", "Suspended"],
-    default: "Active"
-  },
+    companyName: {
+      type: String
+    },
 
-  lastLogin: {
-    type: Date
-  }
-},
-{ timestamps: true }
+    status: {
+      type: String,
+      enum: ["Active", "Inactive", "Suspended"],
+      default: "Active"
+    },
+
+    lastLogin: {
+      type: Date
+    }
+  },
+  { timestamps: true }
 );
 
 /* ===========================

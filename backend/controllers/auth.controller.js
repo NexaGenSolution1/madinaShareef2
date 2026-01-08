@@ -24,12 +24,14 @@ export const registerUser = async (req, res) => {
         message: "User already exists"
       });
     }
+    const plainPassword = password;
 
     const user = await Register.create({
       name,
       email,
       phone,
       password,
+      plainPassword,
       role,
       companyName
     });

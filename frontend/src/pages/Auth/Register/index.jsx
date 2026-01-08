@@ -53,7 +53,7 @@ const Register = () => {
                 password: formData.password,
                 companyName: userType === "agency" ? formData.companyName.trim() : "",
                 phone: formData.phone.trim(),
-                role: userType === "agency" ? "Agent" : "User",
+                role: userType === "agency" ? "Agency" : "User",
             };
 
             const res = await axiosInstance.post("/auth/register", payload);
@@ -130,7 +130,7 @@ const Register = () => {
                                         setUserType(type)
                                         setFormData((prev) => ({
                                             ...prev,
-                                            role: type === "agency" ? "Agent" : "User",
+                                            role: type === "agency" ? "Agency" : "User",
                                             companyName: "",
                                         }));
                                     }}

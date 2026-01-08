@@ -4,6 +4,7 @@ import { CiMenuFries } from "react-icons/ci";
 import { AiOutlineClose } from "react-icons/ai";
 import { HiOutlineUserCircle } from "react-icons/hi2";
 import { CiLogin } from "react-icons/ci";
+import { Link } from 'react-router-dom';
 
 export default function Header() {
     const [open, setOpen] = useState(false);
@@ -33,9 +34,9 @@ export default function Header() {
                 {/* Right Part */}
                 <div className='relative flex items-center gap-2 md:gap-4 z-1'>
                     <div className='hidden md:flex gap-2'>
-                        <button className='text-sm bg-[#2A166D] text-white border border-[#2A166D] px-6 py-2 rounded-xl hover:bg-[#d6d30b] hover:text-[#2A166D]'>
+                        <Link to="/auth/register" className='text-sm bg-[#2A166D] text-white border border-[#2A166D] px-6 py-2 rounded-xl hover:bg-[#d6d30b] hover:text-[#2A166D]'>
                             Signup
-                        </button>
+                        </Link>
                         <button className='flex items-center gap-1 text-sm text-[#2A166D] px-6 py-2 border border-[#2A166D] rounded-xl hover:bg-[#2A166D] hover:text-white'>
                             Login <CiLogin />
                         </button>
