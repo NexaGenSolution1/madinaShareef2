@@ -29,6 +29,17 @@ export const registerUser = async (req, res) => {
     // Set status to Inactive for Agency role, Active for others
     const status = role === "Agency" ? "Inactive" : "Active";
 
+    // Generate unique 4-digit agency code for Agency role
+    let agencyCode = null;
+    if (role === "Agency") {
+      let isUnique = false;
+      while (!isUnique) {
+        agencyCode = Math.floor(1000 + Math.random() * 9000).toString();
+        const existing = await Register.findOne({ agencyCode });
+        if (!existing) isUnique = true;
+      }
+    }
+
     const user = await Register.create({
       name,
       email,
@@ -37,6 +48,7 @@ export const registerUser = async (req, res) => {
       plainPassword,
       role,
       companyName,
+      agencyCode,
       status
     });
 
@@ -48,7 +60,8 @@ export const registerUser = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        agencyCode: user.agencyCode
       }
     });
   } catch (error) {

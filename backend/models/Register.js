@@ -43,6 +43,12 @@ const RegisterSchema = new mongoose.Schema(
       type: String
     },
 
+    agencyCode: {
+      type: String,
+      unique: true,
+      sparse: true
+    },
+
     status: {
       type: String,
       enum: ["Active", "Inactive", "Suspended"],

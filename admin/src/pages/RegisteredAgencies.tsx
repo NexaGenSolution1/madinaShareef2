@@ -9,6 +9,7 @@ interface User {
   email: string;
   phone: string;
   companyName: string;
+  agencyCode?: string;
   role: string;
   status: "Active" | "Inactive" | "Suspended";
   createdAt: string;
@@ -61,7 +62,8 @@ const RegisteredAgencies = () => {
         (user) =>
           user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.companyName?.toLowerCase().includes(searchTerm.toLowerCase())
+          user.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.agencyCode?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -155,7 +157,7 @@ const RegisteredAgencies = () => {
           <div className="mb-6 flex flex-col gap-4 sm:flex-row">
             <input
               type="text"
-              placeholder="Search by name, email, or company..."
+              placeholder="Search by name, email, company, or agency code..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded border border-stroke bg-transparent px-4 py-2 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary sm:flex-1"
@@ -196,6 +198,9 @@ const RegisteredAgencies = () => {
                       Company
                     </th>
                     <th className="px-4 py-5 font-medium text-black dark:text-white">
+                      Agency Code
+                    </th>
+                    <th className="px-4 py-5 font-medium text-black dark:text-white">
                       Phone
                     </th>
                     <th className="px-4 py-5 font-medium text-black dark:text-white">
@@ -231,6 +236,11 @@ const RegisteredAgencies = () => {
                       <td className="px-4 py-5">
                         <div className="text-sm text-gray-600 dark:text-gray-400">
                           {user.companyName || "N/A"}
+                        </div>
+                      </td>
+                      <td className="px-4 py-5">
+                        <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                          {user.agencyCode || "N/A"}
                         </div>
                       </td>
                       <td className="px-4 py-5">
