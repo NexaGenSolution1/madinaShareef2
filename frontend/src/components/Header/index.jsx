@@ -36,11 +36,12 @@ export default function Header() {
             <div className='relative flex items-center justify-between gap-6 px-2.5 bg-white sm:px-4 py-2.5 overflow-visible'>
                 {/* Left Part */}
                 <div className='relative flex items-center gap-6 z-1'>
-                    <div className='w-12 md:w-16'>
+                    <Link to='/' className='w-12 md:w-16 block'>
                         <img src={logo} alt="logo" className='w-full h-full object-contain' />
-                    </div>
+                    </Link>
 
                     <div className='hidden xl:block space-x-5'>
+                        <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>Home</Link>
                         <button className='text-sm font-semibold hover:text-[#d6d30b]'>Umrah Groups</button>
                         <button className='text-sm font-semibold hover:text-[#d6d30b]'>UAE Groups</button>
                         <button className='text-sm font-semibold hover:text-[#d6d30b]'>KSA Groups</button>
@@ -135,6 +136,7 @@ export default function Header() {
                 ${open ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
                 >
                     <div className='flex flex-col items-start gap-6 px-8 py-6 font-semibold'>
+                        <Link to='/' className='hover:text-[#d6d30b]'>Home</Link>
                         <button className='hover:text-[#d6d30b]'>Umrah Groups</button>
                         <button className='hover:text-[#d6d30b]'>UAE Groups</button>
                         <button className='hover:text-[#d6d30b]'>KSA Groups</button>
