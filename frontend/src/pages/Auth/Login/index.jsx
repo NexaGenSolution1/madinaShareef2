@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import axiosInstance from "../../../api/axios";
 import { toast } from "react-toastify";
+import Header from "../../../components/Header";
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -70,7 +71,9 @@ const Login = () => {
     };
 
     return (
-        <div
+        <>
+            <Header />
+            <div
             className="min-h-screen w-full flex flex-col items-center justify-start 
              bg-no-repeat bg-cover bg-center bg-fixed relative"
             style={{
@@ -83,7 +86,7 @@ const Login = () => {
 
             {/* Top Text Section */}
             <div className="relative z-10 text-center mb-10">
-                <span className="text-2xl md:text-3xl mt-20 font-bold mb-2 tracking-widest text-yellow-300 block leading-tight animate-pulse">
+                <span className="text-2xl md:text-3xl mt-20 font-bold mb-2 tracking-widest text-[#fff] block leading-tight animate-pulse">
                     WELCOME BACK
                 </span>
                 <p className="text-lg md:text-xl max-w-2xl mx-auto text-white">
@@ -121,7 +124,7 @@ const Login = () => {
                                 value={formData.email}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                                className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2A166D]"
                             />
                         </div>
 
@@ -138,7 +141,7 @@ const Login = () => {
                                 value={formData.password}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                                className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2A166D]"
                             />
                             <button
                                 type="button"
@@ -160,7 +163,7 @@ const Login = () => {
                             className={`w-full py-3 rounded-full text-lg font-semibold transition-all duration-300 
                                 ${loading
                                     ? "bg-gray-400 cursor-not-allowed"
-                                    : "bg-yellow-500 hover:bg-yellow-600 text-black"
+                                    : "bg-[#2A166D] text-white hover:bg-[#3a1c9a]"
                                 }`}
                         >
                             {loading ? "Logging in..." : "Login"}
@@ -171,7 +174,7 @@ const Login = () => {
                             Don't have an account?{" "}
                             <Link
                                 to="/auth/register"
-                                className="text-yellow-600 font-semibold hover:underline"
+                                className="text-[#2A166D] font-semibold hover:underline"
                             >
                                 Register here
                             </Link>
@@ -179,7 +182,8 @@ const Login = () => {
                     </form>
                 </div>
             </div>
-        </div>
+            </div>
+        </>
     );
 };
 

@@ -5,6 +5,7 @@ import axiosInstance from "../../../api/axios";
 import { toast } from "react-toastify";
 import countryCodes from "../../../data/countryCodes.json"; // adjust path
 import Select from "react-select";
+import Header from "../../../components/Header";
 
 const Register = () => {
     const [userType, setUserType] = useState("normal");
@@ -86,7 +87,9 @@ const Register = () => {
     );
 
     return (
-        <div
+        <>
+            <Header />
+            <div
             className="min-h-screen w-full flex flex-col items-center justify-start 
              bg-no-repeat bg-cover bg-center bg-fixed relative"
             style={{
@@ -99,7 +102,7 @@ const Register = () => {
 
             {/* ---- Top Text Section ---- */}
             <div className="relative z-10 text-center mb-10">
-                <span className="text-2xl md:text-3xl mt-20 font-bold mb-2 tracking-widest text-yellow-300 block leading-tight animate-pulse">
+                    <span className="text-2xl md:text-3xl mt-20 font-bold mb-2 tracking-widest text-[#fff] block leading-tight animate-pulse">
                     JOIN US
                 </span>
                 <p className="text-lg md:text-xl max-w-2xl mx-auto text-white">
@@ -134,10 +137,10 @@ const Register = () => {
                                             companyName: "",
                                         }));
                                     }}
-                                    className={`px-6 py-2 rounded-full font-semibold transition-colors duration-200
+                                    className={`px-6 py-2 rounded-full font-semibold transition-colors duration-200 border
                     ${userType === type
-                                            ? "bg-yellow-500 text-black"
-                                            : "bg-white/70 text-gray-800 hover:bg-yellow-400"
+                                            ? "bg-[#2A166D] text-white border-[#2A166D]"
+                                            : "bg-white/70 text-[#2A166D] border-[#2A166D] hover:bg-[#ede9ff]"
                                         }`}
                                 >
                                     {type === "normal" ? "User" : "Agency"}
@@ -160,7 +163,7 @@ const Register = () => {
                                     value={formData.name}
                                     onChange={handleChange}
                                     required
-                                    className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2"
+                                    className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2A166D]"
                                 />
                             </div>
 
@@ -177,7 +180,7 @@ const Register = () => {
                                     value={formData.email}
                                     onChange={handleChange}
                                     required
-                                    className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 "
+                                    className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2A166D] "
                                 />
                             </div>
 
@@ -193,7 +196,7 @@ const Register = () => {
                                     value={formData.password}
                                     onChange={handleChange}
                                     required
-                                    className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 "
+                                    className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2A166D] "
                                 />
                                 {/* Eye icon inside input */}
                                 <button
@@ -267,7 +270,7 @@ const Register = () => {
                                         value={formData.phone}
                                         onChange={handleChange}
                                         required
-                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2"
+                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2A166D]"
                                     />
                                 </div>
                             </div>
@@ -286,7 +289,7 @@ const Register = () => {
                                         value={formData.companyName}
                                         onChange={handleChange}
                                         required
-                                        className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2"
+                                        className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2A166D]"
                                     />
                                 </div>
                             )}
@@ -296,10 +299,10 @@ const Register = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`w-full py-3 rounded-md text-lg font-semibold text-black mt-4 
+                            className={`w-full py-3 rounded-md text-lg font-semibold mt-4 
                 ${loading
-                                    ? "bg-yellow-300"
-                                    : "bg-yellow-500 hover:bg-yellow-600 shadow-md"
+                                    ? "bg-gray-400 text-white cursor-not-allowed"
+                                    : "bg-[#2A166D] text-white hover:bg-[#3a1c9a] shadow-md"
                                 } 
                 transition-all duration-200`}
                         >
@@ -312,14 +315,15 @@ const Register = () => {
                         Already have an account?{" "}
                         <Link
                             to="/auth/login"
-                            className="text-black font-semibold hover:underline"
+                            className="text-[#2A166D] font-semibold hover:underline"
                         >
                             Sign In
                         </Link>
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
+        </>
     );
 };
 
