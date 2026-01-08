@@ -90,7 +90,7 @@ export default function SignInForm() {
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
                             touched={formik.touched.email}
-                            error={formik.errors.email}
+                            error={!!formik.errors.email}
                         />
                     </div>
 
@@ -107,7 +107,7 @@ export default function SignInForm() {
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 touched={formik.touched.password}
-                                error={formik.errors.password}
+                                error={!!formik.errors.password}
                             />
                             <span
                                 onClick={() => setShowPassword(!showPassword)}
