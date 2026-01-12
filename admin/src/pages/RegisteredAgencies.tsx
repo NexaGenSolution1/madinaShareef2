@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import axiosInstance from "../Api/axios";
 import PageMeta from "../components/common/PageMeta";
 import PageBreadCrumb from "../components/common/PageBreadCrumb";
@@ -11,17 +12,39 @@ interface User {
   companyName: string;
   agencyCode?: string;
   role: string;
-  status: "Active" | "Inactive" | "Suspended";
+  status: "Active" | "Inactive" | "Pending";
+  plainPassword?: string;
+  city?: string;
+  accountId?: string;
+  accountName?: string;
+  consultant?: string;
+  country?: string;
+  marginType?: "Percentage" | "Amount";
+  flightMarginPercent?: number;
+  flightMarginAmount?: number;
+  registeredFrom?: {
+    ipAddress?: string;
+    userAgent?: string;
+  };
+  margin?: string;
+  activatedBy?: string;
+  deactivatedBy?: string;
+  deactivatedAt?: string;
   createdAt: string;
 }
 
 const RegisteredAgencies = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"All" | "Active" | "Inactive" | "Suspended">("All");
+  const [cityFilter, setCityFilter] = useState<string>("All");
+  const [statusFilter, setStatusFilter] = useState<string>("All");
   const [approvalLoading, setApprovalLoading] = useState<string | null>(null);
+  const [sendingCredentials, setSendingCredentials] = useState<string | null>(null);
+  const [entriesPerPage, setEntriesPerPage] = useState(50);
+  const frontendUrl = import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173";
 
   useEffect(() => {
     fetchUsers();
@@ -29,7 +52,7 @@ const RegisteredAgencies = () => {
 
   useEffect(() => {
     filterUsers();
-  }, [users, searchTerm, statusFilter]);
+  }, [users, searchTerm, cityFilter, statusFilter]);
 
   const fetchUsers = async () => {
     try {
@@ -63,8 +86,14 @@ const RegisteredAgencies = () => {
           user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
           user.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.agencyCode?.toLowerCase().includes(searchTerm.toLowerCase())
+          user.agencyCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.city?.toLowerCase().includes(searchTerm.toLowerCase())
       );
+    }
+
+    // Filter by city
+    if (cityFilter !== "All") {
+      filtered = filtered.filter((user) => user.city === cityFilter);
     }
 
     // Filter by status
@@ -75,7 +104,7 @@ const RegisteredAgencies = () => {
     setFilteredUsers(filtered);
   };
 
-  const updateUserStatus = async (userId: string, newStatus: "Active" | "Inactive" | "Suspended") => {
+  const updateUserStatus = async (userId: string, newStatus: "Active" | "Inactive" | "Pending") => {
     try {
       setApprovalLoading(userId);
       const token = localStorage.getItem("token");
@@ -91,9 +120,18 @@ const RegisteredAgencies = () => {
       );
 
       if (response.data.success) {
+        const updated = response.data.data as User;
         setUsers(
           users.map((user) =>
-            user._id === userId ? { ...user, status: newStatus } : user
+            user._id === userId 
+              ? { 
+                  ...user, 
+                  status: newStatus, 
+                  activatedBy: updated.activatedBy,
+                  deactivatedBy: updated.deactivatedBy,
+                  deactivatedAt: updated.deactivatedAt
+                } 
+              : user
           )
         );
       }
@@ -101,6 +139,62 @@ const RegisteredAgencies = () => {
       console.error("Error updating user status:", error);
     } finally {
       setApprovalLoading(null);
+    }
+  };
+
+  const handleAgentLogin = (user: User) => {
+    if (!user.agencyCode || !user.email || !user.plainPassword) {
+      window.alert("Missing agent credentials for auto login. Ensure email, code, and password are set.");
+      return;
+    }
+
+    const params = new URLSearchParams({
+      agentCode: user.agencyCode,
+      email: user.email,
+      password: user.plainPassword,
+      auto: "true",
+    });
+
+    const target = `${frontendUrl.replace(/\/$/, "")}/auth/login?${params.toString()}`;
+    window.open(target, "_blank", "noopener,noreferrer");
+  };
+
+  const handleSendCredentials = async (userId: string) => {
+    try {
+      setSendingCredentials(userId);
+      const token = localStorage.getItem("token");
+      
+      const response = await axiosInstance.post(
+        `/auth/users/${userId}/send-credentials`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        window.alert("✅ " + (response.data.message || "Credentials sent successfully!"));
+      }
+    } catch (error: any) {
+      console.error("Error sending credentials:", error);
+      
+      let errorMessage = "❌ Failed to send credentials email.\n\n";
+      
+      if (error.response?.status === 500) {
+        errorMessage += "Email service is not configured properly.\n\n";
+        errorMessage += "Please check the backend EMAIL_SETUP_GUIDE.md for instructions on:\n";
+        errorMessage += "1. Setting up Gmail App Password\n";
+        errorMessage += "2. Or configuring alternative email service\n\n";
+        errorMessage += "Contact system administrator to configure email settings.";
+      } else {
+        errorMessage += error.response?.data?.message || "An unexpected error occurred. Please try again.";
+      }
+      
+      window.alert(errorMessage);
+    } finally {
+      setSendingCredentials(null);
     }
   };
 
@@ -112,196 +206,257 @@ const RegisteredAgencies = () => {
     });
   };
 
-  const getStatusBadgeColor = (status: string) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "Active":
-        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
+        return "text-green-600 dark:text-green-400";
+      case "Pending":
+        return "text-red-600 dark:text-red-400";
       case "Inactive":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400";
-      case "Suspended":
-        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
+        return "text-gray-600 dark:text-gray-400";
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400";
+        return "text-gray-600 dark:text-gray-400";
     }
   };
 
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case "Admin":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400";
-      case "Agency":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
-      case "SubAgent":
-        return "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400";
-      case "User":
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400";
+  const formatMargin = (user: User) => {
+    if (user.marginType === "Amount") {
+      return `${user.flightMarginAmount ?? 0} PKR`;
     }
+    if (user.marginType === "Percentage") {
+      return `${user.flightMarginPercent ?? 0}%`;
+    }
+    return user.margin || "0";
   };
+
+  const activeCount = users.filter(u => u.role === "Agency" && u.status === "Active").length;
+  const pendingCount = users.filter(u => u.role === "Agency" && u.status === "Pending").length;
+  const inactiveCount = users.filter(u => u.role === "Agency" && u.status === "Inactive").length;
+  const totalAgents = 1000; // This can be dynamic based on your requirements
+
+  const uniqueCities = Array.from(new Set(users.filter(u => u.city).map(u => u.city)));
 
   return (
     <>
-      <PageMeta title="Registered Agencies" description="Manage and approve registered agencies and users" />
-      <PageBreadCrumb pageTitle="Registered Agencies" />
+      <PageMeta title="All Agents" description="Manage all registered agents" />
+      <PageBreadCrumb pageTitle="All Agents" />
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-3">
+        {/* Active Agents Card */}
+        <div className="flex items-center gap-4 p-6 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl shadow-lg">
+          <div className="flex items-center justify-center w-14 h-14 bg-white/90 rounded-full shadow-md">
+            <svg className="w-7 h-7 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+            </svg>
+          </div>
+          <div className="text-white">
+            <div className="text-sm font-semibold tracking-wide">Active Agents</div>
+            <div className="text-3xl font-bold">{activeCount}/{totalAgents}</div>
+          </div>
+        </div>
+
+        {/* Pending Agents Card */}
+        <div className="flex items-center gap-4 p-6 bg-gradient-to-br from-sky-400 to-blue-500 rounded-xl shadow-lg">
+          <div className="flex items-center justify-center w-14 h-14 bg-white/90 rounded-full shadow-md">
+            <svg className="w-7 h-7 text-sky-500" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+            </svg>
+          </div>
+          <div className="text-white">
+            <div className="text-sm font-semibold tracking-wide">Pending Agents</div>
+            <div className="text-3xl font-bold">{pendingCount}</div>
+          </div>
+        </div>
+
+        {/* De-Active Agents Card */}
+        <div className="flex items-center gap-4 p-6 bg-gradient-to-br from-rose-400 to-pink-500 rounded-xl shadow-lg">
+          <div className="flex items-center justify-center w-14 h-14 bg-white/90 rounded-full shadow-md">
+            <svg className="w-7 h-7 text-rose-500" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+            </svg>
+          </div>
+          <div className="text-white">
+            <div className="text-sm font-semibold tracking-wide">De-Active Agents</div>
+            <div className="text-3xl font-bold">{inactiveCount}</div>
+          </div>
+        </div>
+      </div>
 
       <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="px-4 py-6 md:px-6 xl:px-7.5">
-          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="text-xl font-semibold text-gray-800 dark:text-white/90">
-              Manage Agencies
-            </h3>
+          {/* Filters */}
+          <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                Filter by City
+              </label>
+              <select
+                value={cityFilter}
+                onChange={(e) => setCityFilter(e.target.value)}
+                className="w-full h-11 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+              >
+                <option value="All">All Cities</option>
+                {uniqueCities.map(city => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                Filter by Status
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full h-11 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+              >
+                <option value="All">All</option>
+                <option value="Active">Active</option>
+                <option value="Pending">Pending</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
           </div>
 
-          {/* Filters */}
-          <div className="mb-6 flex flex-col gap-4 sm:flex-row">
-            <input
-              type="text"
-              placeholder="Search by name, email, company, or agency code..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 outline-none transition focus:outline-hidden focus:ring-3 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 sm:flex-1"
-            />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="h-11 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs outline-none transition focus:outline-hidden focus:ring-3 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-            >
-              <option value="All">All Status</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-              <option value="Suspended">Suspended</option>
-            </select>
+          {/* Entries and Search */}
+          <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Show</span>
+              <select
+                value={entriesPerPage}
+                onChange={(e) => setEntriesPerPage(Number(e.target.value))}
+                className="h-9 rounded border border-gray-300 bg-white px-3 text-sm outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <span className="text-sm text-gray-600 dark:text-gray-400">entries</span>
+            </div>
+            <div>
+              <input
+                type="text"
+                placeholder="Filter Search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-9 w-full rounded border border-gray-300 bg-white px-4 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 sm:w-64"
+              />
+            </div>
           </div>
 
           {/* Table */}
           {loading ? (
             <div className="flex justify-center py-10">
-              <div className="text-gray-500 dark:text-gray-400">Loading agencies...</div>
+              <div className="text-gray-500 dark:text-gray-400">Loading agents...</div>
             </div>
           ) : filteredUsers.length === 0 ? (
             <div className="flex justify-center py-10">
-              <div className="text-gray-500 dark:text-gray-400">No agencies found</div>
+              <div className="text-gray-500 dark:text-gray-400">No agents found</div>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full table-auto">
-                <thead>
-                  <tr className="border-b border-gray-100 dark:border-gray-800 text-left">
-                    <th className="px-4 py-5 font-medium text-gray-800 dark:text-white/90">
-                      Name
-                    </th>
-                    <th className="px-4 py-5 font-medium text-black dark:text-white">
-                      Email
-                    </th>
-                    <th className="px-4 py-5 font-medium text-black dark:text-white">
-                      Company
-                    </th>
-                    <th className="px-4 py-5 font-medium text-gray-800 dark:text-white/90">
-                      Agency Code
-                    </th>
-                    <th className="px-4 py-5 font-medium text-gray-800 dark:text-white/90">
-                      Phone
-                    </th>
-                    <th className="px-4 py-5 font-medium text-gray-800 dark:text-white/90">
-                      Role
-                    </th>
-                    <th className="px-4 py-5 font-medium text-gray-800 dark:text-white/90">
-                      Status
-                    </th>
-                    <th className="px-4 py-5 font-medium text-gray-800 dark:text-white/90">
-                      Joined Date
-                    </th>
-                    <th className="px-4 py-5 font-medium text-gray-800 dark:text-white/90">
-                      Actions
-                    </th>
+                <thead className="bg-gray-800 dark:bg-gray-900">
+                  <tr>
+                    <th className="px-4 py-4 text-left text-sm font-medium text-white">#</th>
+                    <th className="px-4 py-4 text-left text-sm font-medium text-white">User</th>
+                    <th className="px-4 py-4 text-left text-sm font-medium text-white">Agency</th>
+                    <th className="px-4 py-4 text-left text-sm font-medium text-white">City</th>
+                    <th className="px-4 py-4 text-left text-sm font-medium text-white">Margin</th>
+                    <th className="px-4 py-4 text-left text-sm font-medium text-white">Status</th>
+                    <th className="px-4 py-4 text-left text-sm font-medium text-white">Register Date</th>
+                    <th className="px-4 py-4 text-left text-sm font-medium text-white">Action</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {filteredUsers.map((user) => (
+                <tbody className="bg-gray-50 dark:bg-gray-800/50">
+                  {filteredUsers.slice(0, entriesPerPage).map((user, index) => (
                     <tr
                       key={user._id}
-                      className="border-b border-gray-100 dark:border-gray-800"
+                      className="border-b border-gray-200 dark:border-gray-700"
                     >
-                      <td className="px-4 py-5">
-                        <div className="text-gray-800 dark:text-white/90">
-                          {user.name}
+                      <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">
+                        {index + 1}
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          Agent Code: {user.agencyCode || "N/A"}
                         </div>
                       </td>
-                      <td className="px-4 py-5">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          {user.email}
+                      <td className="px-4 py-4">
+                        <div className="text-sm text-gray-800 dark:text-white/90">{user.name}</div>
+                        <div className="text-sm text-gray-800 dark:text-white/90">{user.phone}</div>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">
+                        {user.companyName || "N/A"}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">
+                        {user.city || "N/A"}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">
+                        <span className="font-semibold">Margin:</span> {formatMargin(user)}
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="text-sm font-semibold">
+                          <div className={getStatusColor(user.status)}>{user.status}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            Activated by: {user.activatedBy || "N/A"}
+                          </div>
+                          {user.status === "Inactive" && (
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              Deactivated by: {user.deactivatedBy || "N/A"}
+                            </div>
+                          )}
                         </div>
                       </td>
-                      <td className="px-4 py-5">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          {user.companyName || "N/A"}
+                      <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">
+                        {formatDate(user.createdAt)}
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex flex-col gap-2">
+                          {user.status === "Active" ? (
+                            <button
+                              onClick={() => updateUserStatus(user._id, "Inactive")}
+                              disabled={approvalLoading === user._id}
+                              className="rounded bg-red-500 px-3 py-1 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-50"
+                            >
+                              De-active this Agent
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => updateUserStatus(user._id, "Active")}
+                              disabled={approvalLoading === user._id}
+                              className="rounded bg-blue-500 px-3 py-1 text-xs font-medium text-white hover:bg-blue-600 disabled:opacity-50"
+                            >
+                              Active this Agent
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleSendCredentials(user._id)}
+                            disabled={sendingCredentials === user._id}
+                            className="rounded bg-yellow-500 px-3 py-1 text-xs font-medium text-white hover:bg-yellow-600 disabled:opacity-50"
+                          >
+                            {sendingCredentials === user._id ? "Sending..." : "Send Credential"}
+                          </button>
+                          {user.status === "Active" && (
+                            <button
+                              onClick={() => handleAgentLogin(user)}
+                              className="rounded bg-yellow-400 px-3 py-1 text-xs font-medium text-gray-800 hover:bg-yellow-500"
+                            >
+                              Agent Login
+                            </button>
+                          )}
+                          <button
+                            onClick={() => navigate(`/registered-agencies/${user._id}`)}
+                            className="rounded bg-green-500 px-3 py-1 text-xs font-medium text-white hover:bg-green-600"
+                          >
+                            Detail
+                          </button>
                         </div>
-                      </td>
-                      <td className="px-4 py-5">
-                        <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                          {user.agencyCode || "N/A"}
-                        </div>
-                      </td>
-                      <td className="px-4 py-5">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          {user.phone}
-                        </div>
-                      </td>
-                      <td className="px-4 py-5">
-                        <span
-                          className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${getRoleBadgeColor(
-                            user.role
-                          )}`}
-                        >
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="px-4 py-5">
-                        <span
-                          className={`inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium ${getStatusBadgeColor(
-                            user.status
-                          )}`}
-                        >
-                          {user.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-5">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          {formatDate(user.createdAt)}
-                        </div>
-                      </td>
-                      <td className="px-4 py-5">
-                        <select
-                          value={user.status}
-                          onChange={(e) =>
-                            updateUserStatus(
-                              user._id,
-                              e.target.value as "Active" | "Inactive" | "Suspended"
-                            )
-                          }
-                          disabled={approvalLoading === user._id}
-                          className="rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 shadow-theme-xs outline-none transition focus:outline-hidden focus:ring-3 focus:border-brand-300 focus:ring-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-                        >
-                          <option value="Active">Active</option>
-                          <option value="Inactive">Inactive</option>
-                          <option value="Suspended">Suspended</option>
-                        </select>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
-          )}
-
-          {/* Summary */}
-          {!loading && (
-            <div className="mt-6 flex gap-4 text-sm text-gray-600 dark:text-gray-400">
-              <div>Total Agencies: <span className="font-semibold">{users.filter(u => u.role === "Agency").length}</span></div>
-              <div>Active: <span className="font-semibold">{users.filter(u => u.role === "Agency" && u.status === "Active").length}</span></div>
-              <div>Inactive: <span className="font-semibold">{users.filter(u => u.role === "Agency" && u.status === "Inactive").length}</span></div>
-              <div>Suspended: <span className="font-semibold">{users.filter(u => u.role === "Agency" && u.status === "Suspended").length}</span></div>
             </div>
           )}
         </div>

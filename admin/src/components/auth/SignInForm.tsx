@@ -3,10 +3,7 @@ import { useNavigate } from "react-router";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 
-import { EyeCloseIcon, EyeIcon } from "../../icons";
-import Label from "../form/Label";
 import Input from "../form/input/InputField";
-import Checkbox from "../form/input/Checkbox";
 import Button from "../ui/button/Button";
 import { useAuth } from "../../context/AuthContext";
 import axiosInstance from "../../Api/axios";
@@ -18,8 +15,6 @@ const SignInSchema = Yup.object().shape({
 });
 
 export default function SignInForm() {
-    const [showPassword, setShowPassword] = useState(false);
-    const [isChecked, setIsChecked] = useState(false);
     const [error, setError] = useState("");
     const { login } = useAuth();
     const navigate = useNavigate();
@@ -54,92 +49,78 @@ export default function SignInForm() {
     });
 
     return (
-        <div className="flex flex-col flex-1">
-            <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
-                <div className="mb-5 sm:mb-8">
-                    <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
-                        Sign In
-                    </h1>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Enter your email and password to sign in!
-                    </p>
-                </div>
-
-                {/* Social buttons (Google/X) omitted for brevity */}
-
-                <div className="relative py-3 sm:py-5">
-                    <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-200 dark:border-gray-800"></div>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                        <span className="p-2 text-gray-400 bg-white dark:bg-gray-900 sm:px-5 sm:py-2">
-                            Or
-                        </span>
+        <div 
+            className="flex items-center justify-center min-h-screen w-full"
+            style={{
+                backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(/images/carousel/bg.jpg)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'bottom',
+                backgroundRepeat: 'no-repeat',
+            }}
+        >
+            <div className="w-full max-w-md p-8 bg-gray-800 rounded-lg shadow-xl">
+                {/* Logo */}
+                <div className="flex justify-center mb-6">
+                    <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center">
+                        <img src="/images/logo/logo.webp" alt="Logo" className="rounded-full" />
                     </div>
                 </div>
 
-                <form onSubmit={formik.handleSubmit} className="space-y-6">
-                    <div>
-                        <Label>
-                            Email <span className="text-error-500">*</span>
-                        </Label>
+                {/* Title */}
+                <h2 className="mb-8 text-center text-white text-lg">
+                    Sign in to start your session
+                </h2>
+
+                <form onSubmit={formik.handleSubmit} className="space-y-4">
+                    {/* Email Input */}
+                    <div className="relative">
                         <Input
                             name="email"
-                            placeholder="info@gmail.com"
+                            placeholder="Email"
                             value={formik.values.email}
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
                             touched={formik.touched.email}
                             error={!!formik.errors.email}
+                            className="w-full pl-4 pr-10 py-3 bg-white text-gray-800 rounded"
                         />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            </svg>
+                        </span>
                     </div>
 
-                    <div>
-                        <Label>
-                            Password <span className="text-error-500">*</span>
-                        </Label>
-                        <div className="relative">
-                            <Input
-                                name="password"
-                                type={showPassword ? "text" : "password"}
-                                placeholder="Enter your password"
-                                value={formik.values.password}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                touched={formik.touched.password}
-                                error={!!formik.errors.password}
-                            />
-                            <span
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
-                            >
-                                {showPassword ? (
-                                    <EyeIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
-                                ) : (
-                                    <EyeCloseIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
-                                )}
-                            </span>
-                        </div>
+                    {/* Password Input */}
+                    <div className="relative">
+                        <Input
+                            name="password"
+                            type="password"
+                            placeholder="••••••••••••••••"
+                            value={formik.values.password}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            touched={formik.touched.password}
+                            error={!!formik.errors.password}
+                            className="w-full pl-4 pr-10 py-3 bg-white text-gray-800 rounded"
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                            </svg>
+                        </span>
                     </div>
 
-                    <p className="text-red-500">{error}</p>
+                    {error && <p className="text-red-400 text-sm text-center">{error}</p>}
 
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <Checkbox checked={isChecked} onChange={setIsChecked} />
-                            <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400">
-                                Keep me logged in
-                            </span>
-                        </div>
-                    </div>
-
+                    {/* Sign In Button */}
                     <Button
                         type="submit"
-                        className="w-full"
-                        size="sm"
+                        className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded font-medium"
                         disabled={formik.isSubmitting}
                     >
-                        {formik.isSubmitting ? "Signing in..." : "Sign in"}
+                        {formik.isSubmitting ? "Signing in..." : "Sign In"}
                     </Button>
                 </form>
             </div>

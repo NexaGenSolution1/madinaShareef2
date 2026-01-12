@@ -14,7 +14,7 @@ export default function Header() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const storedUser = localStorage.getItem("user");
+        const storedUser = localStorage.getItem("frontend_user");
         if (storedUser) {
             try {
                 setUser(JSON.parse(storedUser));
@@ -48,8 +48,8 @@ export default function Header() {
     }, [profileOpen]);
 
     const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+        localStorage.removeItem("frontend_token");
+        localStorage.removeItem("frontend_user");
         setUser(null);
         setProfileOpen(false);
         navigate("/auth/login");

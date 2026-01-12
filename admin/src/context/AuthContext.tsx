@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
+    const storedToken = localStorage.getItem("admin_token");
     if (storedToken) {
       axiosInstance
         .get("/auth/profile", {
@@ -41,7 +41,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           },
         })
         .then((res) => {
-          setUser(res.data);
+          // Backend returns { success: true, data: user }
+          setUser(res.data.data);
         })
         .catch(() => {
           logout();
@@ -54,12 +55,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = (user: User, token: string) => {
     setUser(user);
-    localStorage.setItem("token", token); // ✅ Only storing token
+    localStorage.setItem("admin_token", token); // ✅ Only storing token
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("token");
+    localStorage.removeItem("admin_token");
   };
 
   const value: AuthContextType = {

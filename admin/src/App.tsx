@@ -1,6 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
+import ChangePassword from "./pages/AuthPages/ChangePassword";
+import ForgotPassword from "./pages/AuthPages/ForgotPassword";
+import ManageUserPasswords from "./pages/AuthPages/ManageUserPasswords";
 import NotFound from "./pages/OtherPage/NotFound";
 import UserProfiles from "./pages/UserProfiles";
 import Videos from "./pages/UiElements/Videos";
@@ -15,12 +18,14 @@ import Calendar from "./pages/Calendar";
 import BasicTables from "./pages/Tables/BasicTables";
 import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/Blank";
+import TestEmail from "./pages/TestEmail";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./context/PrivateRoute";
 import RegisteredAgencies from "./pages/RegisteredAgencies";
+import AgentDetail from "./pages/AgentDetail";
 
 export default function App() {
   return (
@@ -39,6 +44,12 @@ export default function App() {
                 <Route path="/calendar" element={<Calendar />} />
                 <Route path="/blank" element={<Blank />} />
                 <Route path="/registered-agencies" element={<RegisteredAgencies />} />
+                <Route path="/registered-agencies/:id" element={<AgentDetail />} />
+
+                {/* Password Management */}
+                <Route path="/change-password" element={<ChangePassword />} />
+                <Route path="/manage-user-passwords" element={<ManageUserPasswords />} />
+                <Route path="/test-email" element={<TestEmail />} />
 
                 {/* Forms */}
                 <Route path="/form-elements" element={<FormElements />} />
@@ -63,6 +74,7 @@ export default function App() {
             {/* Auth Layout */}
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
 
             {/* Fallback Route */}
             <Route path="*" element={<NotFound />} />

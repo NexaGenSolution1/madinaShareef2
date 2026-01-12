@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import dbConnection from './config/db.js';
 import groupTicketingRoutes from "./routes/groupTicketing.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import testEmail from "./utils/testEmail.js";
 
 
 const app = express();
@@ -11,6 +12,9 @@ dotenv.config();
 
 // Connect to the database
 dbConnection();
+
+// Test email configuration
+testEmail();
 
 app.use(
     cors({

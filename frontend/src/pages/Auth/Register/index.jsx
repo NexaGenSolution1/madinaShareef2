@@ -8,19 +8,17 @@ import Select from "react-select";
 import Header from "../../../components/Header";
 
 const Register = () => {
-    const [userType, setUserType] = useState("normal");
     const [formData, setFormData] = useState({
         name: "",
         email: "",
-        password: "",
-        confirmPassword: "",
         phone: "",
-        role: "User",
+        countryCode: "",
+        address: "",
+        city: "",
+        role: "Agency",
         companyName: "",
     });
     const [loading, setLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const navigate = useNavigate();
 
@@ -32,29 +30,24 @@ const Register = () => {
         }));
     };
 
-    const togglePasswordVisibility = (field) => {
-        if (field === "password") setShowPassword((prev) => !prev);
-        if (field === "confirmPassword") setShowConfirmPassword((prev) => !prev);
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
 
-        if (formData.password !== formData.confirmPassword) {
-            toast.error("Passwords do not match");
-            setLoading(false);
-            return;
-        }
+        // Auto-generate a secure password since the form omits password fields
+        const generatedPassword = Math.random().toString(36).slice(-10) + "A1!";
 
         try {
             const payload = {
                 name: formData.name.trim(),
                 email: formData.email.trim(),
-                password: formData.password,
-                companyName: userType === "agency" ? formData.companyName.trim() : "",
-                phone: formData.phone.trim(),
-                role: userType === "agency" ? "Agency" : "User",
+                password: generatedPassword,
+                plainPassword: generatedPassword,
+                companyName: formData.companyName.trim(),
+                phone: `${formData.countryCode || ""}${formData.phone.trim()}`.trim(),
+                address: formData.address.trim(),
+                city: formData.city.trim(),
+                role: "Agency",
             };
 
             const res = await axiosInstance.post("/auth/register", payload);
@@ -81,6 +74,40 @@ const Register = () => {
         )} ${c.country} (+${c.code})`,
     }));
 
+    const selectStyles = {
+        control: (base, state) => ({
+            ...base,
+            minHeight: 50,
+            height: 50,
+            backgroundColor: "#f8f9fb",
+            borderColor: state.isFocused ? "#2A166D" : "#d1d5db",
+            boxShadow: state.isFocused ? "0 0 0 2px rgba(42, 22, 109, 0.15)" : "none",
+            '&:hover': {
+                borderColor: state.isFocused ? "#2A166D" : "#cbd5e1",
+            },
+        }),
+        valueContainer: (base) => ({
+            ...base,
+            padding: "0 12px",
+        }),
+        placeholder: (base) => ({
+            ...base,
+            color: "#6b7280",
+        }),
+        singleValue: (base) => ({
+            ...base,
+            color: "#111827",
+        }),
+        indicatorsContainer: (base) => ({
+            ...base,
+            height: 48,
+        }),
+        menu: (base) => ({
+            ...base,
+            zIndex: 50,
+        }),
+    };
+
     // Find selected value
     const selectedOption = options.find(
         (opt) => opt.value === formData.countryCode
@@ -90,165 +117,71 @@ const Register = () => {
         <>
             <Header />
             <div
-            className="min-h-screen w-full flex flex-col items-center justify-start 
-             bg-no-repeat bg-cover bg-center bg-fixed relative"
-            style={{
-                backgroundImage: `url('https://images.pexels.com/photos/20277838/pexels-photo-20277838.jpeg')`,
-                backgroundColor: "#000000",
-                paddingTop: "60px",
-            }}
-        >
-            <div className="absolute inset-0 bg-black/50 z-0" />
+                className="min-h-screen w-full flex flex-col items-center justify-start bg-no-repeat bg-cover bg-center bg-fixed relative pt-36 md:pt-42 lg:pt-48"
+                style={{
+                    backgroundImage: `url('https://images.pexels.com/photos/20277838/pexels-photo-20277838.jpeg')`,
+                    backgroundColor: "#000000",
+                }}
+            >
+                <div className="absolute inset-0 bg-black/55 z-0" />
 
-            {/* ---- Top Text Section ---- */}
-            <div className="relative z-10 text-center mb-10">
-                    <span className="text-2xl md:text-3xl mt-20 font-bold mb-2 tracking-widest text-[#fff] block leading-tight animate-pulse">
-                    JOIN US
-                </span>
-                <p className="text-lg md:text-xl max-w-2xl mx-auto text-white">
-                    Start your journey with us
-                </p>
-            </div>
-
-            {/* ---- Centered Form ---- */}
-            <div className="z-10 flex justify-center items-center w-full px-4 mb-20 relative">
-                <div
-                    className="w-full max-w-3xl rounded-3xl bg-white/90 shadow-2xl p-12 flex flex-col gap-6 border border-white/60 backdrop-blur-md"
-                    style={{
-                        boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
-                    }}
-                >
-                    <form
-                        onSubmit={handleSubmit}
-                        autoComplete="off"
-                        className="flex flex-col gap-6 mt-2"
-                    >
-                        {/* User Type Toggle */}
-                        <div className="flex gap-2 justify-center mb-4">
-                            {["normal", "agency"].map((type) => (
-                                <button
-                                    type="button"
-                                    key={type}
-                                    onClick={() => {
-                                        setUserType(type)
-                                        setFormData((prev) => ({
-                                            ...prev,
-                                            role: type === "agency" ? "Agency" : "User",
-                                            companyName: "",
-                                        }));
-                                    }}
-                                    className={`px-6 py-2 rounded-full font-semibold transition-colors duration-200 border
-                    ${userType === type
-                                            ? "bg-[#2A166D] text-white border-[#2A166D]"
-                                            : "bg-white/70 text-[#2A166D] border-[#2A166D] hover:bg-[#ede9ff]"
-                                        }`}
+                <div className="z-10 flex justify-center w-full px-4 md:px-6 mb-20 relative">
+                    <div className="w-full max-w-2xl rounded-2xl bg-white/95 shadow-2xl p-6 md:p-8 lg:p-10 flex flex-col gap-8 border border-white/70 backdrop-blur-md">
+                        <div className="flex flex-col gap-1 text-left">
+                            <h1 className="text-2xl font-semibold text-gray-900">
+                                Sign in or create an account
+                            </h1>
+                            <p className="text-base text-gray-700">
+                                Already have an account?{" "}
+                                <Link
+                                    to="/auth/login"
+                                    className="text-[#2A166D] font-semibold hover:underline"
                                 >
-                                    {type === "normal" ? "User" : "Agency"}
-                                </button>
-                            ))}
+                                    Log in
+                                </Link>
+                            </p>
                         </div>
 
-                        {/* Grid Layout */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Name */}
-                            <div>
-                                <label className="text-base font-semibold text-gray-900">
-                                    Name
-                                </label>
+                        <form
+                            onSubmit={handleSubmit}
+                            autoComplete="off"
+                            className="flex flex-col gap-4"
+                        >
+                            <div className="flex flex-col gap-4">
+                                <input
+                                    autoComplete="organization"
+                                    type="text"
+                                    name="companyName"
+                                    placeholder="Agency Name"
+                                    value={formData.companyName}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full px-4 py-3 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2A166D] focus:border-transparent text-gray-900 placeholder:text-gray-500"
+                                />
+
                                 <input
                                     autoComplete="name"
                                     type="text"
                                     name="name"
-                                    placeholder="Enter your full name"
+                                    placeholder="Contact Name"
                                     value={formData.name}
                                     onChange={handleChange}
                                     required
-                                    className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2A166D]"
+                                    className="w-full px-4 py-3 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2A166D] focus:border-transparent text-gray-900 placeholder:text-gray-500"
                                 />
-                            </div>
 
-                            {/* Email */}
-                            <div>
-                                <label className="text-base font-semibold text-gray-900">
-                                    Email
-                                </label>
                                 <input
                                     autoComplete="email"
                                     type="email"
                                     name="email"
-                                    placeholder="Enter your email"
+                                    placeholder="Email"
                                     value={formData.email}
                                     onChange={handleChange}
                                     required
-                                    className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2A166D] "
+                                    className="w-full px-4 py-3 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2A166D] focus:border-transparent text-gray-900 placeholder:text-gray-500"
                                 />
-                            </div>
 
-                            <div className="relative">
-                                <label className="text-base font-semibold text-gray-900">
-                                    Password
-                                </label>
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    name="password"
-                                    placeholder="Enter your password"
-                                    autoComplete="password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2A166D] "
-                                />
-                                {/* Eye icon inside input */}
-                                <button
-                                    type="button"
-                                    onClick={() => togglePasswordVisibility("password")}
-                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-600"
-                                >
-                                    {showPassword ? (
-                                        <AiOutlineEye size={20} />
-                                    ) : (
-                                        <AiOutlineEyeInvisible size={20} />
-                                    )}
-                                </button>
-                                <p className="text-xs text-gray-600 mt-1">
-                                    Password must be at least 8 characters
-                                </p>
-                            </div>
-
-                            <div className="relative">
-                                <label className="text-base font-semibold text-gray-900">
-                                    Confirm Password
-                                </label>
-                                <input
-                                    type={showConfirmPassword ? "text" : "password"}
-                                    name="confirmPassword"
-                                    placeholder="Confirm your password"
-                                    autoComplete="off"
-                                    value={formData.confirmPassword}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2"
-                                />
-                                {/* Eye icon inside input */}
-                                <button
-                                    type="button"
-                                    onClick={() => togglePasswordVisibility("confirmPassword")}
-                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-600"
-                                >
-                                    {showConfirmPassword ? (
-                                        <AiOutlineEye size={20} />
-                                    ) : (
-                                        <AiOutlineEyeInvisible size={20} />
-                                    )}
-                                </button>
-                            </div>
-
-                            {/* Contact Number */}
-                            <div className="md:col-span-2">
-                                <label className="text-base font-semibold text-gray-900">
-                                    Contact Number
-                                </label>
-                                <div className="flex items-center gap-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <Select
                                         options={options}
                                         value={selectedOption}
@@ -257,71 +190,60 @@ const Register = () => {
                                                 target: { name: "countryCode", value: selected.value },
                                             })
                                         }
-                                        className="w-64"
+                                        className="w-full"
                                         classNamePrefix="country-select"
-                                        placeholder="Select country code..."
+                                        placeholder="Country Code"
+                                        styles={selectStyles}
                                         isSearchable
                                     />
                                     <input
                                         type="text"
                                         name="phone"
-                                        placeholder="Your contact number"
-                                        autoComplete="off"
+                                        placeholder="Cell"
+                                        autoComplete="tel"
                                         value={formData.phone}
                                         onChange={handleChange}
                                         required
-                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2A166D]"
+                                        className="w-full px-4 py-3 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2A166D] focus:border-transparent text-gray-900 placeholder:text-gray-500"
                                     />
                                 </div>
+
+                                <input
+                                    type="text"
+                                    name="address"
+                                    placeholder="Address"
+                                    autoComplete="street-address"
+                                    value={formData.address}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-3 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2A166D] focus:border-transparent text-gray-900 placeholder:text-gray-500"
+                                />
+
+                                <input
+                                    type="text"
+                                    name="city"
+                                    placeholder="City Name"
+                                    autoComplete="address-level2"
+                                    value={formData.city}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-3 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2A166D] focus:border-transparent text-gray-900 placeholder:text-gray-500"
+                                />
+
                             </div>
 
-                            {/* Agency Name (only if agency) */}
-                            {userType === "agency" && (
-                                <div className="md:col-span-2">
-                                    <label className="text-base font-semibold text-gray-900">
-                                        Agency Name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="companyName"
-                                        placeholder="Enter agency name"
-                                        autoComplete="off"
-                                        value={formData.companyName}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2A166D]"
-                                    />
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Submit Button */}
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className={`w-full py-3 rounded-md text-lg font-semibold mt-4 
-                ${loading
-                                    ? "bg-gray-400 text-white cursor-not-allowed"
-                                    : "bg-[#2A166D] text-white hover:bg-[#3a1c9a] shadow-md"
-                                } 
-                transition-all duration-200`}
-                        >
-                            {loading ? "Creating Account..." : "Create Account"}
-                        </button>
-                    </form>
-
-                    {/* Already have account */}
-                    <div className="text-center text-gray-900 text-base mt-4">
-                        Already have an account?{" "}
-                        <Link
-                            to="/auth/login"
-                            className="text-[#2A166D] font-semibold hover:underline"
-                        >
-                            Sign In
-                        </Link>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className={`w-full py-3 rounded text-base font-semibold mt-2
+                    ${loading
+                                        ? "bg-gray-400 text-white cursor-not-allowed"
+                                        : "bg-[#2A166D] text-white hover:bg-[#3a1c9a] shadow-md"}
+                    transition-all duration-200`}
+                            >
+                                {loading ? "Creating Account..." : "Sign In"}
+                            </button>
+                        </form>
                     </div>
                 </div>
-            </div>
             </div>
         </>
     );
