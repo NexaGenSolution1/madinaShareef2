@@ -74,21 +74,18 @@ export default function Header({ user, handleLogout }) {
                             <button className='text-sm font-semibold hover:text-[#d6d30b]'>Deals</button> */}
                         </div>
                     }
-                    {!user &&
-                        <div className='hidden xl:block space-x-5'>
-                            <Link to='/banks' className='text-sm font-semibold hover:text-[#d6d30b]'>Banks</Link>
-                        </div>
-                    }
+                    
                 </div>
 
                 <div className='relative flex items-center gap-2 md:gap-4 z-1'>
                     {/* Banks Link - Always Visible */}
-                    <Link to='/banks' className='hidden md:block text-sm font-semibold hover:text-[#d6d30b]'>Banks</Link>
+                    
                     
                     {
                         // user ? (
                         user && (
                             <div ref={profileRef} className='relative hidden md:flex items-center gap-2'>
+                                <Link to='/banks' className='hidden md:block text-sm font-semibold hover:text-[#d6d30b]'>Banks</Link>
                                 <button
                                     className='flex items-center gap-2 rounded-full border border-[#2A166D] px-3 py-2 text-sm text-[#2A166D] hover:bg-[#2A166D] hover:text-white'
                                     onClick={() => setProfileOpen((p) => !p)}
