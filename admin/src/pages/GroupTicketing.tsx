@@ -49,13 +49,7 @@ interface GroupTicketing {
   _id: string;
   voucher_id: string;
   groupBookingId: string;
-  user: {
-    _id: string;
-    name: string;
-    email: string;
-    companyName: string;
-    agencyCode: string;
-  };
+  user: string;
   evoucherAccount?: string;
   sector?: string;
   type?: string;
@@ -141,9 +135,9 @@ const GroupTicketing = () => {
     const matchesSearch = 
       booking.voucher_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.groupBookingId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.user.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.user.agencyCode.toLowerCase().includes(searchTerm.toLowerCase());
+      (booking.user && booking.user.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (booking.groupName && booking.groupName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (booking.airline && booking.airline.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesGroupType = groupTypeFilter === "All" || booking.groupType === groupTypeFilter;
     
