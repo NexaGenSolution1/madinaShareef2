@@ -95,8 +95,7 @@ const GroupTicketingForm = () => {
     contactPersonPhone: "",
     contactPersonEmail: "",
     internalStatus: "Public",
-    payments: [] as Payment[],
-    status: "Pending" as "Pending" | "Processing" | "Cancelled" | "Confirmed"
+    payments: [] as Payment[]
   });
 
   useEffect(() => {
@@ -176,8 +175,7 @@ const GroupTicketingForm = () => {
           contactPersonPhone: booking.contactPersonPhone || "",
           contactPersonEmail: booking.contactPersonEmail || "",
           internalStatus: booking.internalStatus || "Public",
-          payments: booking.payments,
-          status: booking.status
+          payments: booking.payments
         });
       }
     } catch (error) {

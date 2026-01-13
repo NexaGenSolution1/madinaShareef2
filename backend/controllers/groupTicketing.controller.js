@@ -119,39 +119,6 @@ export const updateGroupTicketing = async (req, res) => {
 };
 
 /* ===========================
-   UPDATE STATUS ONLY
-=========================== */
-export const updateGroupStatus = async (req, res) => {
-  try {
-    const { status } = req.body;
-
-    const group = await GroupTicketing.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    );
-
-    if (!group) {
-      return res.status(404).json({
-        success: false,
-        message: "Group ticketing not found"
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Status updated",
-      data: group
-    });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: error.message
-    });
-  }
-};
-
-/* ===========================
    DELETE GROUP BOOKING
 =========================== */
 export const deleteGroupTicketing = async (req, res) => {

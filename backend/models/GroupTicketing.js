@@ -118,13 +118,7 @@ const GroupTicketingSchema = new mongoose.Schema(
   pnr: { type: String },
   contactPersonPhone: { type: String },
   contactPersonEmail: { type: String },
-  internalStatus: { type: String, default: "Public" },
-
-  status: {
-    type: String,
-    enum: ["Pending", "Processing", "Cancelled", "Confirmed"],
-    default: "Pending"
-  }
+  internalStatus: { type: String, default: "Public" }
 },
 { timestamps: true }
 );
@@ -155,6 +149,5 @@ GroupTicketingSchema.pre("save", function () {
 =========================== */
 GroupTicketingSchema.index({ voucher_id: 1 });
 GroupTicketingSchema.index({ groupBookingId: 1 });
-GroupTicketingSchema.index({ status: 1 });
 
 export default mongoose.model("GroupTicketing", GroupTicketingSchema);
