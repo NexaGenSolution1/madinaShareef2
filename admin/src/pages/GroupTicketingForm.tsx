@@ -27,18 +27,25 @@ interface Payment {
   paymentDate?: string;
 }
 
+interface Sector {
+  _id: string;
+  groupType: string;
+  sectorTitle: string;
+  fullSector: string;
+}
+
 const GroupTicketingForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [sectors, setSectors] = useState<Sector[]>([]);
 
   // Form state
   const [formData, setFormData] = useState({
     user: "",
     evoucherAccount: "",
     sector: "",
-    type: "",
     airline: "",
     groupCategory: "",
     groupName: "",
@@ -83,11 +90,23 @@ const GroupTicketingForm = () => {
   });
 
   useEffect(() => {
+    fetchSectors();
     if (id) {
       setEditMode(true);
       fetchBookingDetails(id);
     }
   }, [id]);
+
+  const fetchSectors = async () => {
+    try {
+      const response = await axiosInstance.get("/sector");
+      if (response.data.success) {
+        setSectors(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching sectors:", error);
+    }
+  };
 
   const fetchBookingDetails = async (bookingId: string) => {
     try {
@@ -104,7 +123,6 @@ const GroupTicketingForm = () => {
           user: booking.user._id,
           evoucherAccount: booking.evoucherAccount || "",
           sector: booking.sector || "",
-          type: booking.type || "",
           airline: booking.airline || "",
           groupCategory: booking.groupCategory || "",
           groupName: booking.groupName || "",
@@ -247,7 +265,7 @@ const GroupTicketingForm = () => {
       <PageBreadCrumb pageTitle={editMode ? "Edit Booking" : "Create Booking"} />
 
       <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
-        <div className="bg-blue-600 px-6 py-4 rounded-t-2xl">
+        <div className="bg-[#000] px-6 py-4 rounded-t-2xl">
           <h3 className="text-xl font-bold text-white">
             {editMode ? "Edit Airline Group" : "Add Airline Group"}
           </h3>
@@ -255,8 +273,8 @@ const GroupTicketingForm = () => {
         </div>
         
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Top Section: Select Evoucher, Sector, Type */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Top Section: Select Evoucher, Sector */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                 Enter Supplier Account
@@ -274,31 +292,24 @@ const GroupTicketingForm = () => {
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                 Sector
               </label>
-              <input
-                type="text"
-                value={formData.sector}
-                onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
-                placeholder="e.g., SKT-SHJ-RUH"
-                className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-              />
-            </div>
-            <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Type
-              </label>
               <select
-                value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                value={formData.sector}
+                onChange={(e) => {
+                  const selectedSector = sectors.find(s => s.sectorTitle === e.target.value);
+                  setFormData({ 
+                    ...formData, 
+                    sector: e.target.value,
+                    groupCategory: selectedSector?.groupType || ""
+                  });
+                }}
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               >
-                <option value="">Select Type</option>
-                <option value="UAE Groups">UAE Groups</option>
-                <option value="KSA Groups">KSA Groups</option>
-                <option value="Bahrain Groups">Bahrain Groups</option>
-                <option value="Mascat Groups">Mascat Groups</option>
-                <option value="Qatar Groups">Qatar Groups</option>
-                <option value="UK Groups">UK Groups</option>
-                <option value="Umrah Groups">Umrah Groups</option>
+                <option value="">Select Sector</option>
+                {sectors.map((sector) => (
+                  <option key={sector._id} value={sector.sectorTitle}>
+                    {sector.sectorTitle} - {sector.fullSector}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -327,9 +338,13 @@ const GroupTicketingForm = () => {
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               >
                 <option value="">Select Category</option>
-                <option value="One Way Group">One Way Group</option>
-                <option value="Round Trip">Round Trip</option>
-                <option value="Multi City">Multi City</option>
+                <option value="UAE Groups">UAE Groups</option>
+                <option value="KSA Groups">KSA Groups</option>
+                <option value="Bahrain Groups">Bahrain Groups</option>
+                <option value="Mascat Groups">Mascat Groups</option>
+                <option value="Qatar Groups">Qatar Groups</option>
+                <option value="UK Groups">UK Groups</option>
+                <option value="Umrah Groups">Umrah Groups</option>
               </select>
             </div>
             <div>

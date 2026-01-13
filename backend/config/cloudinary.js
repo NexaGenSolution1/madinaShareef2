@@ -13,10 +13,30 @@ cloudinary.config({
 });
 
 // Configure storage for bank logos
-const storage = new CloudinaryStorage({
+const bankStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'bank-logos',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'],
+    transformation: [{ width: 500, height: 500, crop: 'limit' }]
+  }
+});
+
+// Configure storage for airline logos
+const airlineStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'airline-logos',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'],
+    transformation: [{ width: 500, height: 500, crop: 'limit' }]
+  }
+});
+
+// Default storage (can be used for both)
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'uploads',
     allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'],
     transformation: [{ width: 500, height: 500, crop: 'limit' }]
   }

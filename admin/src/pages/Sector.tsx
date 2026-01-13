@@ -170,8 +170,8 @@ const Sector = () => {
                 {/* Success/Error Message */}
                 {message.text && (
                     <div className={`mx-6 mt-4 rounded-md p-4 ${message.type === "success"
-                            ? "bg-green-50 text-green-800 border border-green-200"
-                            : "bg-red-50 text-red-800 border border-red-200"
+                        ? "bg-green-50 text-green-800 border border-green-200"
+                        : "bg-red-50 text-red-800 border border-red-200"
                         }`}>
                         {message.text}
                     </div>

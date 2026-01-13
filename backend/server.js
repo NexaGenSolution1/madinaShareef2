@@ -7,6 +7,7 @@ import groupTicketingRoutes from "./routes/groupTicketing.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import bankRoutes from "./routes/bank.routes.js";
 import sectorRoutes from "./routes/sector.routes.js";
+import airlineRoutes from "./routes/airline.routes.js";
 import testEmail from "./utils/testEmail.js";
 
 
@@ -33,6 +34,7 @@ app.use("/api/group-ticketing", groupTicketingRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/bank", bankRoutes);
 app.use("/api/sector", sectorRoutes);
+app.use("/api/airline", airlineRoutes);
 
 app.get('/', (req, res) => {
     res.send('Brother International API is running');

@@ -57,6 +57,11 @@ const navItems: NavItem[] = [
     path: "/sector",
   },
   {
+    icon: <ListIcon />,
+    name: "Airline",
+    path: "/airline",
+  },
+  {
     icon: <TableIcon />,
     name: "Group Ticketing",
     subItems: [

@@ -28,6 +28,7 @@ import RegisteredAgencies from "./pages/RegisteredAgencies";
 import AgentDetail from "./pages/AgentDetail";
 import AddBank from "./pages/AddBank";
 import Sector from "./pages/Sector";
+import Airline from "./pages/Airline";
 import GroupTicketing from "./pages/GroupTicketing";
 import GroupTicketingForm from "./pages/GroupTicketingForm";
 
@@ -51,6 +52,7 @@ export default function App() {
                 <Route path="/registered-agencies/:id" element={<AgentDetail />} />
                 <Route path="/add-bank" element={<AddBank />} />
                 <Route path="/sector" element={<Sector />} />
+                <Route path="/airline" element={<Airline />} />
                 <Route path="/group-ticketing" element={<GroupTicketing />} />
                 <Route path="/group-ticketing/create" element={<GroupTicketingForm />} />
                 <Route path="/group-ticketing/edit/:id" element={<GroupTicketingForm />} />
