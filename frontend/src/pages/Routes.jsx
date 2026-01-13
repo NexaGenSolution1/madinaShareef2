@@ -7,7 +7,7 @@ export default function Index() {
     return (
         <Routes>
             <Route path='/*' element={<Frontend />} />
-            <Route path='/auth/*' element={<Auth />} />
+            {/* <Route path='/auth/*' element={<Auth />} /> */}
         </Routes>
     )
 }

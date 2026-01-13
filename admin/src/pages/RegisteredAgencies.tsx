@@ -57,7 +57,7 @@ const RegisteredAgencies = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("admin_token");
       const response = await axiosInstance.get("/auth/users", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -107,7 +107,7 @@ const RegisteredAgencies = () => {
   const updateUserStatus = async (userId: string, newStatus: "Active" | "Inactive" | "Pending") => {
     try {
       setApprovalLoading(userId);
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("admin_token");
       const response = await axiosInstance.patch(
         `/auth/users/${userId}/status`,
         { status: newStatus },
@@ -162,7 +162,7 @@ const RegisteredAgencies = () => {
   const handleSendCredentials = async (userId: string) => {
     try {
       setSendingCredentials(userId);
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("admin_token");
       
       const response = await axiosInstance.post(
         `/auth/users/${userId}/send-credentials`,
