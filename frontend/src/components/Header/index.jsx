@@ -54,8 +54,16 @@ export default function Header({ user, handleLogout }) {
 
                     {user &&
                         <div className='hidden xl:block space-x-5'>
-                            <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>Home</Link>
-                            <button className='text-sm font-semibold hover:text-[#d6d30b]'>Umrah Groups</button>
+                            <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>All Groups</Link>
+                            <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>UAE Groups</Link>
+                            <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>KSA Groups</Link>
+                            <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>Bahrain Groups</Link>
+                            <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>Muscat Groups</Link>
+                            <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>Qatar Groups</Link>
+                            <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>UK Groups</Link>
+                            <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>Umrah Groups</Link>
+                            {
+                            /* <button className='text-sm font-semibold hover:text-[#d6d30b]'>Umrah Groups</button>
                             <button className='text-sm font-semibold hover:text-[#d6d30b]'>UAE Groups</button>
                             <button className='text-sm font-semibold hover:text-[#d6d30b]'>KSA Groups</button>
                             <button className='text-sm font-semibold hover:text-[#d6d30b]'>Qatar Groups</button>
@@ -63,7 +71,7 @@ export default function Header({ user, handleLogout }) {
                             <button className='text-sm font-semibold hover:text-[#d6d30b]'>Muscat Groups</button>
                             <button className='text-sm font-semibold hover:text-[#d6d30b]'>Bahrain Groups</button>
                             <button className='text-sm font-semibold hover:text-[#d6d30b]'>Banks</button>
-                            <button className='text-sm font-semibold hover:text-[#d6d30b]'>Deals</button>
+                            <button className='text-sm font-semibold hover:text-[#d6d30b]'>Deals</button> */}
                         </div>
                     }
                 </div>
