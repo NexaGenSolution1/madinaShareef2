@@ -62,7 +62,6 @@ export default function Header({ user, handleLogout }) {
                             <Link to='/all-groups?group_type=QATAR' className='text-sm font-semibold hover:text-[#d6d30b]'>Qatar Groups</Link>
                             <Link to='/all-groups?group_type=UK' className='text-sm font-semibold hover:text-[#d6d30b]'>UK Groups</Link>
                             <Link to='/all-groups?group_type=UMRAH' className='text-sm font-semibold hover:text-[#d6d30b]'>Umrah Groups</Link>
-                            <Link to='/banks' className='text-sm font-semibold hover:text-[#d6d30b]'>Banks</Link>
                             {
                             /* <button className='text-sm font-semibold hover:text-[#d6d30b]'>Umrah Groups</button>
                             <button className='text-sm font-semibold hover:text-[#d6d30b]'>UAE Groups</button>
@@ -75,9 +74,17 @@ export default function Header({ user, handleLogout }) {
                             <button className='text-sm font-semibold hover:text-[#d6d30b]'>Deals</button> */}
                         </div>
                     }
+                    {!user &&
+                        <div className='hidden xl:block space-x-5'>
+                            <Link to='/banks' className='text-sm font-semibold hover:text-[#d6d30b]'>Banks</Link>
+                        </div>
+                    }
                 </div>
 
                 <div className='relative flex items-center gap-2 md:gap-4 z-1'>
+                    {/* Banks Link - Always Visible */}
+                    <Link to='/banks' className='hidden md:block text-sm font-semibold hover:text-[#d6d30b]'>Banks</Link>
+                    
                     {
                         // user ? (
                         user && (
@@ -142,7 +149,9 @@ export default function Header({ user, handleLogout }) {
                         // )
                     }
                     <div className='block md:hidden'>
-                        {/* {user ? ( */}
+                        {!user && (
+                            <Link to='/banks' className='text-sm font-semibold hover:text-[#d6d30b]'>Banks</Link>
+                        )}
                         {user && (
                             <button onClick={() => navigate('/')}>
                                 <HiOutlineUserCircle className='text-2xl text-neutral-700' />
