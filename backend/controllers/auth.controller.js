@@ -1,7 +1,7 @@
 import Register from "../models/Register.js";
 import jwt from "jsonwebtoken";
 import { sendPasswordResetEmail, sendCredentialsEmail } from "../utils/emailService.js";
-import { preAuthMiddleware } from "../middleware/externalAuth.middleware.js";
+// import { alHaiderAuthMiddleware } from "../middleware/auth.middleware.js";
 
 /* ===========================
    GENERATE JWT
@@ -72,7 +72,7 @@ export const registerUser = async (req, res) => {
     });
   } catch (error) {
     console.error("REGISTER ERROR:", error);
-    
+
     res.status(400).json({
       success: false,
       message: error.message
@@ -125,48 +125,48 @@ export const loginUser = async (req, res) => {
     }
 
     // For Agency role, call preAuthMiddleware before returning response
-    if (user.role === "Agency") {
-      return preAuthMiddleware(req, res, (err) => {
-        if (err) {
-          return res.status(503).json({
-            success: false,
-            message: "External authentication failed",
-            error: process.env.NODE_ENV === "development" ? err.message : undefined
-          });
-        }
+    // if (user.role === "Agency") {
+    //   return alHaiderAuthMiddleware(req, res, (err) => {
+    //     if (err) {
+    //       return res.status(503).json({
+    //         success: false,
+    //         message: "External authentication failed",
+    //         error: process.env.NODE_ENV === "development" ? err.message : undefined
+    //       });
+    //     }
 
-        // Update last login before response
-        user.lastLogin = new Date();
-        user.save().then(() => {
-          // Only return success if middleware passed
-          res.status(200).json({
-            success: true,
-            token: generateToken(user._id),
-            user: {
-              id: user._id,
-              name: user.name,
-              email: user.email,
-              role: user.role,
-              status: user.status
-            }
-          });
-        }).catch(err => {
-          console.error("Error saving last login:", err);
-          // Still return success even if lastLogin save fails
-          res.status(200).json({
-            success: true,
-            token: generateToken(user._id),
-            user: {
-              id: user._id,
-              name: user.name,
-              email: user.email,
-              role: user.role,
-              status: user.status
-            }
-          });
-        });
-      });
-    }
+    //     // Update last login before response
+    //     user.lastLogin = new Date();
+    //     user.save().then(() => {
+    //       // Only return success if middleware passed
+    //       res.status(200).json({
+    //         success: true,
+    //         token: generateToken(user._id),
+    //         user: {
+    //           id: user._id,
+    //           name: user.name,
+    //           email: user.email,
+    //           role: user.role,
+    //           status: user.status
+    //         }
+    //       });
+    //     }).catch(err => {
+    //       console.error("Error saving last login:", err);
+    //       // Still return success even if lastLogin save fails
+    //       res.status(200).json({
+    //         success: true,
+    //         token: generateToken(user._id),
+    //         user: {
+    //           id: user._id,
+    //           name: user.name,
+    //           email: user.email,
+    //           role: user.role,
+    //           status: user.status
+    //         }
+    //       });
+    //     });
+    //   });
+    // }
 
     // Update last login for non-Agency roles before proceeding
     user.lastLogin = new Date();
@@ -491,19 +491,19 @@ export const requestPasswordReset = async (req, res) => {
     // Send email with reset link
     try {
       await sendPasswordResetEmail(email, resetToken, user._id.toString(), user.name);
-      
+
       res.status(200).json({
         success: true,
         message: "Password reset link has been sent to your email",
         // In development, you might want to include the token for testing
-        ...(process.env.NODE_ENV === "development" && { 
+        ...(process.env.NODE_ENV === "development" && {
           resetToken: resetToken,
-          userId: user._id 
+          userId: user._id
         })
       });
     } catch (emailError) {
       console.error("Email sending failed:", emailError);
-      
+
       // If email fails, still return token for testing (in dev only)
       if (process.env.NODE_ENV === "development") {
         return res.status(200).json({
@@ -513,7 +513,7 @@ export const requestPasswordReset = async (req, res) => {
           userId: user._id
         });
       }
-      
+
       return res.status(500).json({
         success: false,
         message: "Failed to send reset email. Please try again later."

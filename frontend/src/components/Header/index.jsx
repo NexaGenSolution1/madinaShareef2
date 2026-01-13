@@ -62,6 +62,7 @@ export default function Header({ user, handleLogout }) {
                             <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>Qatar Groups</Link>
                             <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>UK Groups</Link>
                             <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>Umrah Groups</Link>
+                            <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>Banks</Link>
                             {
                             /* <button className='text-sm font-semibold hover:text-[#d6d30b]'>Umrah Groups</button>
                             <button className='text-sm font-semibold hover:text-[#d6d30b]'>UAE Groups</button>
@@ -166,8 +167,18 @@ export default function Header({ user, handleLogout }) {
                 ${open ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
                 >
                     <div className='flex flex-col items-start gap-6 px-8 py-6 font-semibold'>
-                        <Link to='/' className='hover:text-[#d6d30b]'>Home</Link>
-                        <button className='hover:text-[#d6d30b]'>Umrah Groups</button>
+                        <Link to='/' className='hover:text-[#d6d30b]'>All Groups</Link>
+                        <Link to='/' className='hover:text-[#d6d30b]'>UAE Groups</Link>
+                        <Link to='/' className='hover:text-[#d6d30b]'>KSA Groups</Link>
+                        <Link to='/' className='hover:text-[#d6d30b]'>Bahrain Groups</Link>
+                        <Link to='/' className='hover:text-[#d6d30b]'>Muscat Groups</Link>
+                        <Link to='/' className='hover:text-[#d6d30b]'>Qatar Groups</Link>
+                        <Link to='/' className='hover:text-[#d6d30b]'>UK Groups</Link>
+                        <Link to='/' className='hover:text-[#d6d30b]'>Umrah Groups</Link>
+                        <hr className='w-full border-t border-neutral-200' />
+                        <Link to='/' className='hover:text-[#d6d30b]'>Banks</Link>
+
+                        {/* <button className='hover:text-[#d6d30b]'>Umrah Groups</button>
                         <button className='hover:text-[#d6d30b]'>UAE Groups</button>
                         <button className='hover:text-[#d6d30b]'>KSA Groups</button>
                         <button className='hover:text-[#d6d30b]'>Qatar Groups</button>
@@ -175,7 +186,7 @@ export default function Header({ user, handleLogout }) {
                         <button className='hover:text-[#d6d30b]'>Muscat Groups</button>
                         <button className='hover:text-[#d6d30b]'>Bahrain Groups</button>
                         <button className='hover:text-[#d6d30b]'>Banks</button>
-                        <button className='hover:text-[#d6d30b]'>Deals</button>
+                        <button className='hover:text-[#d6d30b]'>Deals</button> */}
                     </div>
                 </div>
             </div>

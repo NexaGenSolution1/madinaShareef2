@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import Header from '../../components/Header'
 import Home from './Home'
+import AllGroups from './AllGroups'
 import Footer from '../../components/Footer'
 import NoPage from '../../components/NoPage'
 
@@ -36,6 +37,7 @@ export default function Frontend() {
             <Routes>
                 <Route index element={<Home user={user} onLogin={handleLogin} />} />
                 <Route path="home" element={<Home user={user} onLogin={handleLogin} />} />
+                 <Route path="/all-groups" element={<AllGroups />} />
                 <Route path="*" element={<NoPage />} />
             </Routes>
             <Footer />

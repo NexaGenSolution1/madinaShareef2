@@ -1,4 +1,4 @@
-import React from 'react'
+import { Link } from 'react-router-dom'
 import heroImg from '../../assets/images/hero.webp'
 import makkahImg from '../../assets/images/makkah.webp'
 import ukImg from '../../assets/images/uk.webp'
@@ -24,12 +24,12 @@ export default function HeroSection() {
                 </div>
 
                 <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 mt-10 sm:mt-16'>
-                    <div className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
+                    <Link to="all-groups" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
                         <img src={madinaImg} alt="madina-img" className='w-full h-full object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:-translate-y-3' />
                         <div className='absolute w-full bottom-0 left-0'>
                             <p className='text-xl font-semibold text-center bg-black/70 text-white p-3 transition-all duration-300 ease-in-out group-hover:bg-black/80'>All Groups</p>
                         </div>
-                    </div>
+                    </Link>
                     <div className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
                         <img src={bahrainImg} alt="bahrain-img" className='w-full h-full object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:-translate-y-3' />
                         <div className='absolute w-full bottom-0 left-0'>
