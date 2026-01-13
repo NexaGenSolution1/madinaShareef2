@@ -1,6 +1,7 @@
 import Register from "../models/Register.js";
 import jwt from "jsonwebtoken";
 import { sendPasswordResetEmail, sendCredentialsEmail } from "../utils/emailService.js";
+import { preAuthMiddleware } from "../middleware/externalAuth.middleware.js";
 
 /* ===========================
    GENERATE JWT
@@ -123,9 +124,55 @@ export const loginUser = async (req, res) => {
       });
     }
 
+    // For Agency role, call preAuthMiddleware before returning response
+    if (user.role === "Agency") {
+      return preAuthMiddleware(req, res, (err) => {
+        if (err) {
+          return res.status(503).json({
+            success: false,
+            message: "External authentication failed",
+            error: process.env.NODE_ENV === "development" ? err.message : undefined
+          });
+        }
+
+        // Update last login before response
+        user.lastLogin = new Date();
+        user.save().then(() => {
+          // Only return success if middleware passed
+          res.status(200).json({
+            success: true,
+            token: generateToken(user._id),
+            user: {
+              id: user._id,
+              name: user.name,
+              email: user.email,
+              role: user.role,
+              status: user.status
+            }
+          });
+        }).catch(err => {
+          console.error("Error saving last login:", err);
+          // Still return success even if lastLogin save fails
+          res.status(200).json({
+            success: true,
+            token: generateToken(user._id),
+            user: {
+              id: user._id,
+              name: user.name,
+              email: user.email,
+              role: user.role,
+              status: user.status
+            }
+          });
+        });
+      });
+    }
+
+    // Update last login for non-Agency roles before proceeding
     user.lastLogin = new Date();
     await user.save();
 
+    // For non-Agency roles, return response directly
     res.status(200).json({
       success: true,
       token: generateToken(user._id),
@@ -137,6 +184,8 @@ export const loginUser = async (req, res) => {
         status: user.status
       }
     });
+
+
   } catch (error) {
     res.status(500).json({
       success: false,

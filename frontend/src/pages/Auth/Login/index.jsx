@@ -4,7 +4,7 @@ import axiosInstance from "../../../api/axios";
 import { toast } from "react-toastify";
 import Header from "../../../components/Header";
 
-const Login = () => {
+const Login = ({ onLogin }) => {
     const [formData, setFormData] = useState({
         agentCode: "",
         email: "",
@@ -49,7 +49,10 @@ const Login = () => {
                 if (user.role === "Admin") {
                     window.location.href = "/admin-portal/";
                 } else {
-                    navigate("/");
+                    // Update parent component state
+                    if (onLogin) {
+                        onLogin(user);
+                    }
                 }
             }
         } catch (error) {

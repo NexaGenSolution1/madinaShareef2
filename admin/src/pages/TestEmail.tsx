@@ -18,7 +18,7 @@ export default function TestEmail() {
     setResult(null);
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("admin_token");
       const response = await axiosInstance.post(
         "/auth/forgot-password",
         { email },

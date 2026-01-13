@@ -6,9 +6,10 @@ const url = "http://localhost:8007/api";
 const axiosInstance = axios.create({
   baseURL: url,
   headers: {
-    "Content-Type": "multipart/form-data",
+    "Content-Type": "application/json",
   },
 });
+
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -17,4 +18,5 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 export default axiosInstance;
