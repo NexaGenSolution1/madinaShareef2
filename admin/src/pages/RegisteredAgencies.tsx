@@ -155,7 +155,7 @@ const RegisteredAgencies = () => {
       auto: "true",
     });
 
-    const target = `${frontendUrl.replace(/\/$/, "")}/auth/login?${params.toString()}`;
+    const target = `${frontendUrl.replace(/\/$/, "")}/?${params.toString()}`;
     window.open(target, "_blank", "noopener,noreferrer");
   };
 

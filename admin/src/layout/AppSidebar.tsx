@@ -52,6 +52,19 @@ const navItems: NavItem[] = [
     path: "/add-bank",
   },
   {
+    icon: <ListIcon />,
+    name: "Sector",
+    path: "/sector",
+  },
+  {
+    icon: <TableIcon />,
+    name: "Group Ticketing",
+    subItems: [
+      { name: "View Bookings", path: "/group-ticketing", pro: false },
+      { name: "Create Booking", path: "/group-ticketing/create", pro: false },
+    ],
+  },
+  {
     name: "Forms",
     icon: <ListIcon />,
     subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],

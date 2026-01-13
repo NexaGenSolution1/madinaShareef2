@@ -27,6 +27,9 @@ import PrivateRoute from "./context/PrivateRoute";
 import RegisteredAgencies from "./pages/RegisteredAgencies";
 import AgentDetail from "./pages/AgentDetail";
 import AddBank from "./pages/AddBank";
+import Sector from "./pages/Sector";
+import GroupTicketing from "./pages/GroupTicketing";
+import GroupTicketingForm from "./pages/GroupTicketingForm";
 
 export default function App() {
   return (
@@ -47,6 +50,10 @@ export default function App() {
                 <Route path="/registered-agencies" element={<RegisteredAgencies />} />
                 <Route path="/registered-agencies/:id" element={<AgentDetail />} />
                 <Route path="/add-bank" element={<AddBank />} />
+                <Route path="/sector" element={<Sector />} />
+                <Route path="/group-ticketing" element={<GroupTicketing />} />
+                <Route path="/group-ticketing/create" element={<GroupTicketingForm />} />
+                <Route path="/group-ticketing/edit/:id" element={<GroupTicketingForm />} />
 
                 {/* Password Management */}
                 <Route path="/change-password" element={<ChangePassword />} />

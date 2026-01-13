@@ -7,12 +7,17 @@ const FlightSchema = new mongoose.Schema({
   airline: { type: String, required: true },
   flightNo: { type: String, required: true },
 
-  depDateTime: { type: Date, required: true },
-  arrDateTime: { type: Date, required: true },
+  depDate: { type: Date, required: true },
+  depTime: { type: String, required: true },
+  arrDate: { type: Date, required: true },
+  arrTime: { type: String, required: true },
 
   sectorFrom: { type: String, required: true },
   sectorTo: { type: String, required: true },
-
+  fromTerminal: { type: String },
+  toTerminal: { type: String },
+  
+  flightClass: { type: String },
   baggage: String,
   meal: String
 }, { _id: false });
@@ -30,10 +35,18 @@ const PassengerSchema = new mongoose.Schema({
    PRICE BREAKDOWN
 =========================== */
 const PriceSchema = new mongoose.Schema({
-  currency: { type: String, default: "SAR" },
-  adultPrice: { type: Number, default: 0 },
-  childPrice: { type: Number, default: 0 },
-  infantPrice: { type: Number, default: 0 },
+  // Buying Prices
+  buyingCurrency: { type: String, default: "SAR" },
+  buyingAdultPrice: { type: Number, default: 0 },
+  buyingChildPrice: { type: Number, default: 0 },
+  buyingInfantPrice: { type: Number, default: 0 },
+  
+  // Selling Prices B2B
+  sellingCurrencyB2B: { type: String, default: "SAR" },
+  sellingAdultPriceB2B: { type: Number, default: 0 },
+  sellingChildPriceB2B: { type: Number, default: 0 },
+  sellingInfantPriceB2B: { type: Number, default: 0 },
+  
   total: { type: Number, default: 0 }
 }, { _id: false });
 
@@ -78,6 +91,15 @@ const GroupTicketingSchema = new mongoose.Schema(
     required: true
   },
 
+  evoucherAccount: { type: String },
+  sector: { type: String },
+  type: { type: String },
+  
+  airline: { type: String },
+  groupCategory: { type: String },
+  groupName: { type: String },
+  showSeat: { type: Boolean, default: false },
+
   groupType: {
     type: String,
     enum: ["Hajj", "Umrah"],
@@ -93,6 +115,11 @@ const GroupTicketingSchema = new mongoose.Schema(
   payments: [PaymentSchema],
 
   seatCount: { type: Number, default: 0 },
+  
+  pnr: { type: String },
+  contactPersonPhone: { type: String },
+  contactPersonEmail: { type: String },
+  internalStatus: { type: String, default: "Public" },
 
   status: {
     type: String,
@@ -112,10 +139,11 @@ GroupTicketingSchema.pre("save", function (next) {
   // infants do NOT occupy seats
   this.seatCount = adults + children;
 
+  // Calculate total based on selling prices (B2B)
   this.price.total =
-    adults * this.price.adultPrice +
-    children * this.price.childPrice +
-    infants * this.price.infantPrice;
+    adults * (this.price.sellingAdultPriceB2B || 0) +
+    children * (this.price.sellingChildPriceB2B || 0) +
+    infants * (this.price.sellingInfantPriceB2B || 0);
 
   next();
 });
