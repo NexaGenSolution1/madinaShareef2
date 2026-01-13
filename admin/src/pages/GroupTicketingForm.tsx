@@ -565,10 +565,8 @@ const GroupTicketingForm = () => {
                         className="w-full min-w-[100px] h-9 rounded border border-gray-300 px-2 text-xs outline-none focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                       >
                         <option value="">Select</option>
-                        <option value="Included">Included</option>
-                        <option value="Not Included">Not Included</option>
-                        <option value="Vegetarian">Vegetarian</option>
-                        <option value="Halal">Halal</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
                       </select>
                     </td>
                     <td className="px-2 py-2 border border-gray-300 dark:border-gray-600">
