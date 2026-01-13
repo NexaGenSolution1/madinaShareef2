@@ -22,10 +22,10 @@ dbConnection();
 testEmail();
 
 app.use(
-    cors({
-        origin: ["http://localhost:5173", "http://localhost:5174"],
-        credentials: true,
-    })
+  cors({
+    origin: ["http://localhost:5174", "http://localhost:5173", "http://localhost:3000", "http://localhost:3001", "http://brothersinttvl.com", "https://brothersinttvl.com", "https://www.brothersinttvl.com", "http://www.brothersinttvl.com"],
+    credentials: true,
+  })
 );
 app.use(express.json());
 app.use(cookieParser());
