@@ -331,10 +331,8 @@ const GroupTicketing = () => {
                   <tr>
                     <th className="px-4 py-4 text-left text-sm font-medium text-white">#</th>
                     <th className="px-4 py-4 text-left text-sm font-medium text-white">Voucher ID</th>
-                    <th className="px-4 py-4 text-left text-sm font-medium text-white">Agency</th>
                     <th className="px-4 py-4 text-left text-sm font-medium text-white">Group Type</th>
-                    <th className="px-4 py-4 text-left text-sm font-medium text-white">Passengers</th>
-                    <th className="px-4 py-4 text-left text-sm font-medium text-white">Total Price</th>
+                    <th className="px-4 py-4 text-left text-sm font-medium text-white">Available Seats</th>
                     <th className="px-4 py-4 text-left text-sm font-medium text-white">Status</th>
                     <th className="px-4 py-4 text-left text-sm font-medium text-white">Created</th>
                     <th className="px-4 py-4 text-left text-sm font-medium text-white">Actions</th>
@@ -349,22 +347,12 @@ const GroupTicketing = () => {
                         <div className="text-xs text-gray-500 dark:text-gray-400">{booking.groupBookingId}</div>
                       </td>
                       <td className="px-4 py-4">
-                        <div className="text-sm text-gray-800 dark:text-white/90">{booking.user.companyName}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">{booking.user.agencyCode}</div>
-                      </td>
-                      <td className="px-4 py-4">
                         <span className="inline-flex rounded-full px-3 py-1 text-xs font-semibold bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400">
                           {booking.groupType}
                         </span>
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">
-                        <div>Adults: {booking.passengers.adults}</div>
-                        <div>Children: {booking.passengers.children}</div>
-                        <div>Infants: {booking.passengers.infants}</div>
                         <div className="text-xs text-gray-500">Seats: {booking.seatCount}</div>
-                      </td>
-                      <td className="px-4 py-4 text-sm font-semibold text-gray-800 dark:text-white/90">
-                        {booking.price.total.toFixed(2)} {booking.price.sellingCurrencyB2B || booking.price.buyingCurrency}
                       </td>
                       <td className="px-4 py-4">
                         <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getStatusColor(booking.status)}`}>

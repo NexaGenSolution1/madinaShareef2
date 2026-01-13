@@ -5,7 +5,27 @@ import GroupTicketing from "../models/GroupTicketing.js";
 =========================== */
 export const createGroupTicketing = async (req, res) => {
   try {
-    const group = await GroupTicketing.create(req.body);
+    // Generate unique IDs
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
+    
+    const voucher_id = `VCH-${timestamp}-${randomSuffix}`;
+    const groupBookingId = `GRP-${timestamp}-${randomSuffix}`;
+
+    // Add airline to each flight if not present
+    const flights = req.body.flights?.map(flight => ({
+      ...flight,
+      airline: flight.airline || req.body.airline
+    })) || [];
+
+    const groupData = {
+      ...req.body,
+      voucher_id,
+      groupBookingId,
+      flights
+    };
+
+    const group = await GroupTicketing.create(groupData);
 
     res.status(201).json({
       success: true,
@@ -26,7 +46,6 @@ export const createGroupTicketing = async (req, res) => {
 export const getAllGroupTicketings = async (req, res) => {
   try {
     const groups = await GroupTicketing.find()
-      .populate("user", "name email")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -47,8 +66,7 @@ export const getAllGroupTicketings = async (req, res) => {
 =========================== */
 export const getGroupTicketingById = async (req, res) => {
   try {
-    const group = await GroupTicketing.findById(req.params.id)
-      .populate("user", "name email");
+    const group = await GroupTicketing.findById(req.params.id);
 
     if (!group) {
       return res.status(404).json({

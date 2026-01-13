@@ -86,23 +86,22 @@ const GroupTicketingSchema = new mongoose.Schema(
   },
 
   user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Register",
+    type: String,
     required: true
   },
 
   evoucherAccount: { type: String },
   sector: { type: String },
-  type: { type: String },
   
   airline: { type: String },
   groupCategory: { type: String },
   groupName: { type: String },
+  totalSeats: { type: Number, default: 0 },
   showSeat: { type: Boolean, default: false },
 
   groupType: {
     type: String,
-    enum: ["Hajj", "Umrah"],
+    enum: ["UAE Groups", "KSA Groups", "Bahrain Groups", "Mascat Groups", "Qatar Groups", "UK Groups", "Umrah Groups"],
     required: true
   },
 
@@ -133,19 +132,22 @@ const GroupTicketingSchema = new mongoose.Schema(
 /* ===========================
    AUTO CALCULATIONS
 =========================== */
-GroupTicketingSchema.pre("save", function (next) {
+GroupTicketingSchema.pre("save", function () {
   const { adults = 0, children = 0, infants = 0 } = this.passengers || {};
 
   // infants do NOT occupy seats
-  this.seatCount = adults + children;
+  // Only auto-calculate seatCount if passengers are provided, otherwise use totalSeats
+  if (adults > 0 || children > 0) {
+    this.seatCount = adults + children;
+  } else if (this.totalSeats > 0) {
+    this.seatCount = this.totalSeats;
+  }
 
   // Calculate total based on selling prices (B2B)
   this.price.total =
     adults * (this.price.sellingAdultPriceB2B || 0) +
     children * (this.price.sellingChildPriceB2B || 0) +
     infants * (this.price.sellingInfantPriceB2B || 0);
-
-  next();
 });
 
 /* ===========================

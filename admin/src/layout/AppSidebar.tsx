@@ -65,8 +65,8 @@ const navItems: NavItem[] = [
     icon: <TableIcon />,
     name: "Group Ticketing",
     subItems: [
-      { name: "View Bookings", path: "/group-ticketing", pro: false },
-      { name: "Create Booking", path: "/group-ticketing/create", pro: false },
+      { name: "View Groups", path: "/group-ticketing", pro: false },
+      { name: "Create Group", path: "/group-ticketing/create", pro: false },
     ],
   },
   {

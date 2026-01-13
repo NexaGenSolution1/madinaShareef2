@@ -34,12 +34,21 @@ interface Sector {
   fullSector: string;
 }
 
+interface Airline {
+  _id: string;
+  airlineCode: string;
+  airlineName: string;
+  shortCode: string;
+  logo: string;
+}
+
 const GroupTicketingForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [sectors, setSectors] = useState<Sector[]>([]);
+  const [airlines, setAirlines] = useState<Airline[]>([]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -49,8 +58,9 @@ const GroupTicketingForm = () => {
     airline: "",
     groupCategory: "",
     groupName: "",
+    totalSeats: 0,
     showSeat: false,
-    groupType: "Hajj" as "Hajj" | "Umrah",
+    groupType: "" as string,
     flights: [{
       airline: "",
       flightNo: "",
@@ -91,6 +101,7 @@ const GroupTicketingForm = () => {
 
   useEffect(() => {
     fetchSectors();
+    fetchAirlines();
     if (id) {
       setEditMode(true);
       fetchBookingDetails(id);
@@ -108,6 +119,17 @@ const GroupTicketingForm = () => {
     }
   };
 
+  const fetchAirlines = async () => {
+    try {
+      const response = await axiosInstance.get("/airline");
+      if (response.data.success) {
+        setAirlines(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching airlines:", error);
+    }
+  };
+
   const fetchBookingDetails = async (bookingId: string) => {
     try {
       setLoading(true);
@@ -120,12 +142,13 @@ const GroupTicketingForm = () => {
       if (response.data.success) {
         const booking = response.data.data;
         setFormData({
-          user: booking.user._id,
+          user: booking.user || "",
           evoucherAccount: booking.evoucherAccount || "",
           sector: booking.sector || "",
           airline: booking.airline || "",
           groupCategory: booking.groupCategory || "",
           groupName: booking.groupName || "",
+          totalSeats: booking.totalSeats || 0,
           showSeat: booking.showSeat || false,
           groupType: booking.groupType,
           flights: booking.flights.map((f: Flight) => ({
@@ -250,8 +273,8 @@ const GroupTicketingForm = () => {
   if (loading) {
     return (
       <>
-        <PageMeta title={editMode ? "Edit Booking" : "Create Booking"} description="Group ticketing form" />
-        <PageBreadCrumb pageTitle={editMode ? "Edit Booking" : "Create Booking"} />
+        <PageMeta title={editMode ? "Edit Group" : "Create Group"} description="Group ticketing form" />
+        <PageBreadCrumb pageTitle={editMode ? "Edit Group" : "Create Group"} />
         <div className="flex justify-center items-center py-20">
           <div className="text-gray-500 dark:text-gray-400">Loading...</div>
         </div>
@@ -261,8 +284,8 @@ const GroupTicketingForm = () => {
 
   return (
     <>
-      <PageMeta title={editMode ? "Edit Booking" : "Create Booking"} description="Group ticketing form" />
-      <PageBreadCrumb pageTitle={editMode ? "Edit Booking" : "Create Booking"} />
+      <PageMeta title={editMode ? "Edit Group" : "Create Group"} description="Group ticketing form" />
+      <PageBreadCrumb pageTitle={editMode ? "Edit Group" : "Create Group"} />
 
       <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="bg-[#000] px-6 py-4 rounded-t-2xl">
@@ -299,7 +322,8 @@ const GroupTicketingForm = () => {
                   setFormData({ 
                     ...formData, 
                     sector: e.target.value,
-                    groupCategory: selectedSector?.groupType || ""
+                    groupCategory: selectedSector?.groupType || "",
+                    groupType: selectedSector?.groupType || ""
                   });
                 }}
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
@@ -314,38 +338,42 @@ const GroupTicketingForm = () => {
             </div>
           </div>
 
-          {/* Second Row: Airline, Group Category, Group Name, Seats, Show Seat */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {/* Second Row: Airline, Group Category, Group Name */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                 Airline
               </label>
-              <input
-                type="text"
+              <select
                 value={formData.airline}
-                onChange={(e) => setFormData({ ...formData, airline: e.target.value })}
-                placeholder="e.g., AIR SIAL"
+                onChange={(e) => {
+                  const selectedAirline = airlines.find(a => a.airlineName === e.target.value);
+                  setFormData({ 
+                    ...formData, 
+                    airline: e.target.value,
+                    groupName: selectedAirline ? `${selectedAirline.airlineName}-${formData.sector || 'NULL'}` : formData.groupName
+                  });
+                }}
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-              />
+              >
+                <option value="">Select Airline</option>
+                {airlines.map((airline) => (
+                  <option key={airline._id} value={airline.airlineName}>
+                    {airline.airlineName} ({airline.shortCode})
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                 Group Category
               </label>
-              <select
+              <input
+                type="text"
                 value={formData.groupCategory}
-                onChange={(e) => setFormData({ ...formData, groupCategory: e.target.value })}
-                className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-              >
-                <option value="">Select Category</option>
-                <option value="UAE Groups">UAE Groups</option>
-                <option value="KSA Groups">KSA Groups</option>
-                <option value="Bahrain Groups">Bahrain Groups</option>
-                <option value="Mascat Groups">Mascat Groups</option>
-                <option value="Qatar Groups">Qatar Groups</option>
-                <option value="UK Groups">UK Groups</option>
-                <option value="Umrah Groups">Umrah Groups</option>
-              </select>
+                readOnly
+                className="w-full h-11 rounded border border-gray-300 bg-gray-100 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:bg-gray-700 dark:text-white/90 cursor-not-allowed"
+              />
             </div>
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -354,58 +382,9 @@ const GroupTicketingForm = () => {
               <input
                 type="text"
                 value={formData.groupName}
-                onChange={(e) => setFormData({ ...formData, groupName: e.target.value })}
+                readOnly
                 placeholder="e.g., AIR SIAL-NULL"
-                className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-              />
-            </div>
-            <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Adults
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={formData.passengers.adults}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  passengers: { ...formData.passengers, adults: Number(e.target.value) }
-                })}
-                className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-              />
-            </div>
-            <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Children
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={formData.passengers.children}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  passengers: { ...formData.passengers, children: Number(e.target.value) }
-                })}
-                className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-              />
-            </div>
-          </div>
-
-          {/* Third Row: Infants and Show Seat */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Infants
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={formData.passengers.infants}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  passengers: { ...formData.passengers, infants: Number(e.target.value) }
-                })}
-                className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                className="w-full h-11 rounded border border-gray-300 bg-gray-100 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:bg-gray-700 dark:text-white/90 cursor-not-allowed"
               />
             </div>
             <div>
@@ -415,12 +394,17 @@ const GroupTicketingForm = () => {
               <input
                 type="number"
                 min="0"
-                value={formData.passengers.adults + formData.passengers.children}
-                disabled
-                className="w-full h-11 rounded border border-gray-300 bg-gray-100 px-4 text-sm text-gray-800 outline-none dark:border-gray-700 dark:bg-gray-700 dark:text-white/90"
+                value={formData.totalSeats}
+                onChange={(e) => setFormData({ ...formData, totalSeats: Number(e.target.value) })}
+                placeholder="Enter total seats"
+                className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               />
             </div>
-            <div className="flex items-end">
+          </div>
+
+          {/* Show Seat Section */}
+          <div className="grid grid-cols-1 gap-4">
+            <div className="flex items-center">
               <label className="flex items-center cursor-pointer">
                 <input
                   type="checkbox"
@@ -481,7 +465,8 @@ const GroupTicketingForm = () => {
                         required
                         value={flight.depDate}
                         onChange={(e) => updateFlight(index, "depDate", e.target.value)}
-                        className="w-full min-w-[120px] h-9 rounded border border-gray-300 px-2 text-xs outline-none focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                        onClick={(e) => e.currentTarget.showPicker?.()}
+                        className="w-full min-w-[140px] h-9 px-2 text-xs border border-gray-300 rounded bg-white text-gray-900"
                       />
                     </td>
                     <td className="px-2 py-2 border border-gray-300 dark:border-gray-600">
@@ -490,7 +475,8 @@ const GroupTicketingForm = () => {
                         required
                         value={flight.depTime}
                         onChange={(e) => updateFlight(index, "depTime", e.target.value)}
-                        className="w-full min-w-[100px] h-9 rounded border border-gray-300 px-2 text-xs outline-none focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                        onClick={(e) => e.currentTarget.showPicker?.()}
+                        className="w-full min-w-[120px] h-9 px-2 text-xs border border-gray-300 rounded bg-white text-gray-900"
                       />
                     </td>
                     <td className="px-2 py-2 border border-gray-300 dark:border-gray-600">
@@ -549,7 +535,8 @@ const GroupTicketingForm = () => {
                         required
                         value={flight.arrDate}
                         onChange={(e) => updateFlight(index, "arrDate", e.target.value)}
-                        className="w-full min-w-[120px] h-9 rounded border border-gray-300 px-2 text-xs outline-none focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                        onClick={(e) => e.currentTarget.showPicker?.()}
+                        className="w-full min-w-[140px] h-9 px-2 text-xs border border-gray-300 rounded bg-white text-gray-900"
                       />
                     </td>
                     <td className="px-2 py-2 border border-gray-300 dark:border-gray-600">
@@ -558,7 +545,8 @@ const GroupTicketingForm = () => {
                         required
                         value={flight.arrTime}
                         onChange={(e) => updateFlight(index, "arrTime", e.target.value)}
-                        className="w-full min-w-[100px] h-9 rounded border border-gray-300 px-2 text-xs outline-none focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                        onClick={(e) => e.currentTarget.showPicker?.()}
+                        className="w-full min-w-[120px] h-9 px-2 text-xs border border-gray-300 rounded bg-white text-gray-900"
                       />
                     </td>
                     <td className="px-2 py-2 border border-gray-300 dark:border-gray-600">
@@ -801,7 +789,7 @@ const GroupTicketingForm = () => {
               disabled={loading}
               className="rounded bg-blue-600 px-8 py-3 text-sm font-medium text-white hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Saving..." : editMode ? "Update Booking" : "Create Booking"}
+              {loading ? "Saving..." : editMode ? "Update Group" : "Create Group"}
             </button>
           </div>
         </form>
