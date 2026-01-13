@@ -52,7 +52,7 @@ export default function SignInForm() {
         <div 
             className="flex items-center justify-center min-h-screen w-full"
             style={{
-                backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(/images/carousel/bg.jpg)',
+                backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(/admin-portal/images/carousel/bg.jpg)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'bottom',
                 backgroundRepeat: 'no-repeat',
@@ -62,7 +62,7 @@ export default function SignInForm() {
                 {/* Logo */}
                 <div className="flex justify-center mb-6">
                     <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center">
-                        <img src="/images/logo/logo.webp" alt="Logo" className="rounded-full" />
+                        <img src="/admin-portal/images/logo/logo.webp" alt="Logo" className="rounded-full" />
                     </div>
                 </div>
 
