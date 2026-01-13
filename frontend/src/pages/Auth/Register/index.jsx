@@ -54,7 +54,7 @@ const Register = () => {
 
             if (res.status === 201) {
                 toast.success("Registration successful! Please login.");
-                navigate("/auth/login");
+                navigate("/");
             }
         } catch (error) {
             if (error.response) {
@@ -134,7 +134,7 @@ const Register = () => {
                             <p className="text-base text-gray-700">
                                 Already have an account?{" "}
                                 <Link
-                                    to="/auth/login"
+                                    to="/"
                                     className="text-[#2A166D] font-semibold hover:underline"
                                 >
                                     Log in

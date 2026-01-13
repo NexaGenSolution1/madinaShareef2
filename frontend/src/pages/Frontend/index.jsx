@@ -6,6 +6,7 @@ import AllGroups from './AllGroups'
 import Bank from './Bank'
 import Footer from '../../components/Footer'
 import NoPage from '../../components/NoPage'
+import Register from '../Auth/Register'
 
 export default function Frontend() {
     const [user, setUser] = useState(null);
@@ -40,6 +41,7 @@ export default function Frontend() {
                 <Route path="home" element={<Home user={user} onLogin={handleLogin} />} />
                  <Route path="/all-groups" element={<AllGroups />} />
                 <Route path="/banks" element={<Bank />} />
+                <Route path="/auth/register" element={<Register />} />
                 <Route path="*" element={<NoPage />} />
             </Routes>
             <Footer />
