@@ -54,14 +54,14 @@ export default function Header({ user, handleLogout }) {
 
                     {user &&
                         <div className='hidden xl:block space-x-5'>
-                            <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>All Groups</Link>
-                            <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>UAE Groups</Link>
-                            <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>KSA Groups</Link>
-                            <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>Bahrain Groups</Link>
-                            <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>Muscat Groups</Link>
-                            <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>Qatar Groups</Link>
-                            <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>UK Groups</Link>
-                            <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>Umrah Groups</Link>
+                            <Link to='/all-groups' className='text-sm font-semibold hover:text-[#d6d30b]'>All Groups</Link>
+                            <Link to='/all-groups?group_type=UAE' className='text-sm font-semibold hover:text-[#d6d30b]'>UAE Groups</Link>
+                            <Link to='/all-groups?group_type=KSA ONEWAY' className='text-sm font-semibold hover:text-[#d6d30b]'>KSA Groups</Link>
+                            <Link to='/all-groups?group_type=BAHRAIN' className='text-sm font-semibold hover:text-[#d6d30b]'>Bahrain Groups</Link>
+                            <Link to='/all-groups?group_type=MUSCAT' className='text-sm font-semibold hover:text-[#d6d30b]'>Muscat Groups</Link>
+                            <Link to='/all-groups?group_type=QATAR' className='text-sm font-semibold hover:text-[#d6d30b]'>Qatar Groups</Link>
+                            <Link to='/all-groups?group_type=UK' className='text-sm font-semibold hover:text-[#d6d30b]'>UK Groups</Link>
+                            <Link to='/all-groups?group_type=UMRAH' className='text-sm font-semibold hover:text-[#d6d30b]'>Umrah Groups</Link>
                             <Link to='/' className='text-sm font-semibold hover:text-[#d6d30b]'>Banks</Link>
                             {
                             /* <button className='text-sm font-semibold hover:text-[#d6d30b]'>Umrah Groups</button>
@@ -167,14 +167,14 @@ export default function Header({ user, handleLogout }) {
                 ${open ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
                 >
                     <div className='flex flex-col items-start gap-6 px-8 py-6 font-semibold'>
-                        <Link to='/' className='hover:text-[#d6d30b]'>All Groups</Link>
-                        <Link to='/' className='hover:text-[#d6d30b]'>UAE Groups</Link>
-                        <Link to='/' className='hover:text-[#d6d30b]'>KSA Groups</Link>
-                        <Link to='/' className='hover:text-[#d6d30b]'>Bahrain Groups</Link>
-                        <Link to='/' className='hover:text-[#d6d30b]'>Muscat Groups</Link>
-                        <Link to='/' className='hover:text-[#d6d30b]'>Qatar Groups</Link>
-                        <Link to='/' className='hover:text-[#d6d30b]'>UK Groups</Link>
-                        <Link to='/' className='hover:text-[#d6d30b]'>Umrah Groups</Link>
+                        <Link to='/all-groups' className='hover:text-[#d6d30b]'>All Groups</Link>
+                        <Link to='/all-groups?group_type=UAE' className='hover:text-[#d6d30b]'>UAE Groups</Link>
+                        <Link to='/all-groups?group_type=KSA ONEWAY' className='hover:text-[#d6d30b]'>KSA Groups</Link>
+                        <Link to='/all-groups?group_type=BAHRAIN' className='hover:text-[#d6d30b]'>Bahrain Groups</Link>
+                        <Link to='/all-groups?group_type=MUSCAT' className='hover:text-[#d6d30b]'>Muscat Groups</Link>
+                        <Link to='/all-groups?group_type=QATAR' className='hover:text-[#d6d30b]'>Qatar Groups</Link>
+                        <Link to='/all-groups?group_type=UK' className='hover:text-[#d6d30b]'>UK Groups</Link>
+                        <Link to='/all-groups?group_type=UMRAH' className='hover:text-[#d6d30b]'>Umrah Groups</Link>
                         <hr className='w-full border-t border-neutral-200' />
                         <Link to='/' className='hover:text-[#d6d30b]'>Banks</Link>
 
