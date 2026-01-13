@@ -47,6 +47,11 @@ const navItems: NavItem[] = [
     path: "/registered-agencies",
   },
   {
+    icon: <ListIcon />,
+    name: "Add Bank",
+    path: "/add-bank",
+  },
+  {
     name: "Forms",
     icon: <ListIcon />,
     subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],

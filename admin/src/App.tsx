@@ -26,6 +26,7 @@ import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./context/PrivateRoute";
 import RegisteredAgencies from "./pages/RegisteredAgencies";
 import AgentDetail from "./pages/AgentDetail";
+import AddBank from "./pages/AddBank";
 
 export default function App() {
   return (
@@ -45,6 +46,7 @@ export default function App() {
                 <Route path="/blank" element={<Blank />} />
                 <Route path="/registered-agencies" element={<RegisteredAgencies />} />
                 <Route path="/registered-agencies/:id" element={<AgentDetail />} />
+                <Route path="/add-bank" element={<AddBank />} />
 
                 {/* Password Management */}
                 <Route path="/change-password" element={<ChangePassword />} />

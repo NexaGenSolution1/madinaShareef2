@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import dbConnection from './config/db.js';
 import groupTicketingRoutes from "./routes/groupTicketing.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import bankRoutes from "./routes/bank.routes.js";
 import testEmail from "./utils/testEmail.js";
 
 
@@ -27,6 +28,7 @@ app.use(express.json());
 
 app.use("/api/group-ticketing", groupTicketingRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/bank", bankRoutes);
 
 app.get('/', (req, res) => {
     res.send('Brother International API is running');
