@@ -9,7 +9,7 @@ export default function AllGroups() {
     const [allGroups, setAllGroups] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-    
+
     // Filter states
     const [filters, setFilters] = useState({
         sector: '',
@@ -18,7 +18,7 @@ export default function AllGroups() {
         fromDate: '',
         toDate: ''
     })
-    
+
     // Get unique values for filter dropdowns
     const [airlines, setAirlines] = useState([])
     const [sectors, setSectors] = useState([])
@@ -34,14 +34,14 @@ export default function AllGroups() {
             setError(null)
             let allGroups = []
             const groupType = searchParams.get('group_type') || ''
-            
+
             // Fetch al-haider groups
             const alHaiderApiResponse = await axiosInstance.get('/al-haider/available-bookings-by-group')
                 .catch(err => {
                     console.error('Al-Haider API Error:', err)
                     return { data: { success: false, data: { groups: [] } } }
                 })
-            
+
             if (alHaiderApiResponse.data.success) {
                 allGroups = alHaiderApiResponse.data.data.groups || []
             }
@@ -52,7 +52,15 @@ export default function AllGroups() {
                     console.error('Admin API Error:', err)
                     return { data: { success: false, data: [] } }
                 });
-            
+
+            const adminAirlineApiResponse = await axiosInstance.get("/airline")
+                .catch(err => {
+                    console.error('Admin API Error:', err)
+                    return { data: { success: false, data: [] } }
+                });
+            console.log("Admin API response", adminApiResponse.data.data)
+            console.log("Airline API response", adminAirlineApiResponse.data.data)
+
             if (adminApiResponse.data.success && adminApiResponse.data.data) {
                 // Transform admin API data to match alHaider structure
                 const transformedAdminGroups = adminApiResponse.data.data.map(group => ({
@@ -83,19 +91,19 @@ export default function AllGroups() {
                         id: null,
                         airline_name: group.airline,
                         short_name: null,
-                        logo_url: null
+                        logo_url: adminAirlineApiResponse.data.data.filter(airline => airline.airlineName === group.airline)[0]?.logo || null
                     }
                 }))
-                
+
                 allGroups = [...allGroups, ...transformedAdminGroups]
             }
-            
-            console.log("Fetched groups:", allGroups)
-            
+
+            console.log("All groups", allGroups)
+
             // Apply filtering based on group_type if specified
             if (groupType) {
                 const normalizedGroupType = groupType.toLowerCase().trim()
-                
+
                 // Define group type mappings - maps search terms to actual group types in data
                 const groupTypeMap = {
                     'uae': (type) => type === 'uae' || type.includes('uae'),
@@ -108,26 +116,24 @@ export default function AllGroups() {
                     'uk': (type) => type === 'uk' || type.includes('uk'),
                     'umrah': (type) => type === 'umrah' || type.includes('umrah')
                 }
-                
+
                 allGroups = allGroups.filter(group => {
                     if (!group.type) return false
                     const normalizedType = group.type.toLowerCase().trim()
-                    
+
                     // Check if we have a custom matcher for this group type
                     const matcher = groupTypeMap[normalizedGroupType]
                     if (matcher) {
                         return matcher(normalizedType)
                     }
-                    
+
                     // Fallback to direct comparison and contains check
-                    return normalizedType === normalizedGroupType || 
-                           normalizedType.includes(normalizedGroupType) || 
-                           normalizedGroupType.includes(normalizedType)
+                    return normalizedType === normalizedGroupType ||
+                        normalizedType.includes(normalizedGroupType) ||
+                        normalizedGroupType.includes(normalizedType)
                 })
             }
-            
-            console.log("Filtered groups:", allGroups)
-            
+
             // Extract unique airlines and sectors for filters
             const uniqueAirlines = [...new Set(allGroups.map(g => g.airline?.airline_name).filter(Boolean))]
             const uniqueSectors = [...new Set(allGroups.map(g => g.sector).filter(Boolean))]
@@ -135,7 +141,7 @@ export default function AllGroups() {
             setAirlines(uniqueAirlines.sort())
             setSectors(uniqueSectors.sort())
             setMeals(uniqueMeals.sort())
-            
+
             setAllGroups(allGroups)
             applyFilters(allGroups)
 
@@ -149,25 +155,25 @@ export default function AllGroups() {
             setLoading(false)
         }
     }
-    
+
     const applyFilters = (dataToFilter = allGroups) => {
         let filtered = [...dataToFilter]
-        
+
         // Filter by sector
         if (filters.sector) {
             filtered = filtered.filter(g => g.sector === filters.sector)
         }
-        
+
         // Filter by airline
         if (filters.airline) {
             filtered = filtered.filter(g => g.airline?.airline_name === filters.airline)
         }
-        
+
         // Filter by meal
         if (filters.meal) {
             filtered = filtered.filter(g => g.meal?.toLowerCase() === filters.meal.toLowerCase())
         }
-        
+
         // Filter by date range
         if (filters.fromDate) {
             filtered = filtered.filter(g => {
@@ -183,22 +189,22 @@ export default function AllGroups() {
                 return deptDate <= toDate
             })
         }
-        
+
         // Sort by departure date (earliest first)
         filtered.sort((a, b) => {
             const dateA = new Date(a.dept_date)
             const dateB = new Date(b.dept_date)
             return dateA - dateB
         })
-        
+
         setGroups(filtered)
         updateFilterOptions(filtered)
     }
-    
+
     const updateFilterOptions = (filteredGroups) => {
         // Create a copy of current filters to determine which filters to respect
         let dataForOptions = [...allGroups]
-        
+
         // Apply each filter except the one being updated to get dynamic options
         if (filters.airline) {
             dataForOptions = dataForOptions.filter(g => g.airline?.airline_name === filters.airline)
@@ -223,22 +229,22 @@ export default function AllGroups() {
                 return deptDate <= toDate
             })
         }
-        
+
         // Extract unique values for dropdowns from filtered data
         const uniqueAirlines = [...new Set(dataForOptions.map(g => g.airline?.airline_name).filter(Boolean))]
         const uniqueSectors = [...new Set(dataForOptions.map(g => g.sector).filter(Boolean))]
         const uniqueMeals = [...new Set(dataForOptions.map(g => g.meal).filter(Boolean))]
-        
+
         setAirlines(uniqueAirlines.sort())
         setSectors(uniqueSectors.sort())
         setMeals(uniqueMeals.sort())
     }
-    
+
     const handleFilterChange = (filterName, value) => {
         const newFilters = { ...filters, [filterName]: value }
         setFilters(newFilters)
     }
-    
+
     const resetFilters = () => {
         setFilters({
             sector: '',
@@ -248,7 +254,7 @@ export default function AllGroups() {
             toDate: ''
         })
     }
-    
+
     useEffect(() => {
         applyFilters()
     }, [filters, allGroups])
@@ -286,8 +292,8 @@ export default function AllGroups() {
                 <div className="mb-6 flex justify-between items-center">
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900">
-                            {searchParams.get('group_type') 
-                                ? `${searchParams.get('group_type').toUpperCase()} Groups` 
+                            {searchParams.get('group_type')
+                                ? `${searchParams.get('group_type').toUpperCase()} Groups`
                                 : 'All Groups'}
                         </h2>
                         <p className="text-sm text-gray-600">
@@ -307,7 +313,7 @@ export default function AllGroups() {
                             Reset All
                         </button>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         {/* Sector Filter */}
                         <div>
@@ -432,6 +438,7 @@ export default function AllGroups() {
                                                 acc[key] = {
                                                     airline: group.airline?.airline_name || 'Unknown',
                                                     sector: group.sector || 'Unknown',
+                                                    logo_url: group.airline?.logo_url || null,
                                                     groups: []
                                                 }
                                             }
@@ -452,10 +459,12 @@ export default function AllGroups() {
                                                 {/* Header row with airline logo and route */}
                                                 <tr className="bg-gray-50">
                                                     <td colSpan="8" className="px-4 py-2">
-                                                        <div className="flex justify-center gap-2">
-                                                            <span className="text-green-600 text-xl">✈</span>
+                                                        <div className="flex justify-center items-center gap-2">
+                                                            {/* <span className="text-green-600 text-xl">✈</span> */}
+                                                            <img src={data.logo_url} className='w-28'/>
                                                             <span className="font-semibold text-gray-700">
-                                                                {data.airline} | {data.sector}
+                                                                {/* {data.airline} |  */}
+                                                                {data.sector}
                                                             </span>
                                                         </div>
                                                     </td>
