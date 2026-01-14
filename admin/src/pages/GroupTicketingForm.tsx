@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import AsyncSelect from "react-select/async";
 import axiosInstance from "../Api/axios";
 import PageMeta from "../components/common/PageMeta";
 import PageBreadCrumb from "../components/common/PageBreadCrumb";
@@ -49,6 +50,7 @@ const GroupTicketingForm = () => {
   const [editMode, setEditMode] = useState(false);
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [airlines, setAirlines] = useState<Airline[]>([]);
+  const [cityOptions, setCityOptions] = useState<{ value: string; label: string }[]>([]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -105,6 +107,18 @@ const GroupTicketingForm = () => {
       setEditMode(true);
       fetchBookingDetails(id);
     }
+
+    // Fetch cities for sector from/to dropdowns
+    fetch("/admin-portal/data/cities.json")
+      .then((res) => res.json())
+      .then((data) => {
+        const options = data.map((c: any) => ({
+          value: c.airportCode,
+          label: `${c.cityEn} (${c.airportCode})`,
+        }));
+        setCityOptions(options);
+      })
+      .catch(() => setCityOptions([]));
   }, [id]);
 
   const fetchSectors = async () => {
@@ -184,6 +198,67 @@ const GroupTicketingForm = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Custom select styles
+  const getCustomSelectStyles = (hasError: boolean = false) => ({
+    control: (provided: any, state: any) => ({
+      ...provided,
+      minHeight: "36px",
+      height: "36px",
+      fontSize: "0.75rem",
+      borderColor: hasError ? "red" : provided.borderColor,
+      boxShadow: hasError ? "0 0 0 1px red" : state.isFocused ? provided.boxShadow : "none",
+      borderRadius: ".375rem",
+      "&:hover": {
+        borderColor: hasError ? "red" : provided.borderColor,
+      },
+    }),
+    valueContainer: (provided: any) => ({
+      ...provided,
+      padding: "0 0.5rem",
+    }),
+    indicatorsContainer: (provided: any) => ({
+      ...provided,
+      height: "36px",
+    }),
+    input: (provided: any) => ({
+      ...provided,
+      margin: "0",
+      padding: "0",
+    }),
+    menuPortal: (provided: any) => ({
+      ...provided,
+      zIndex: 9999,
+    }),
+  });
+
+  // Async loadOptions function to filter cities.json
+  const loadCityOptions = (inputValue: string, callback: (options: any[]) => void) => {
+    fetch("/admin-portal/data/cities.json")
+      .then((res) => res.json())
+      .then((data) => {
+        const input = inputValue.toLowerCase();
+        const filtered = data
+          .filter((c: any) => {
+            const city = (c.cityEn || "").toLowerCase();
+            const code = (c.airportCode || "").toLowerCase();
+            const searchTerm = (c.titleKey || "").toLowerCase();
+            return (
+              !inputValue ||
+              city.includes(input) ||
+              code.includes(input) ||
+              searchTerm.includes(input)
+            );
+          })
+          .map((c: any) => ({
+            value: c.airportCode,
+            label: `${c.cityEn} (${c.airportCode})`,
+          }))
+          .slice(0, 50);
+        callback(filtered);
+      })
+      .catch(() => callback([]));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -477,13 +552,17 @@ const GroupTicketingForm = () => {
                       />
                     </td>
                     <td className="px-2 py-2 border border-gray-300 dark:border-gray-600">
-                      <input
-                        type="text"
-                        required
-                        value={flight.sectorFrom}
-                        onChange={(e) => updateFlight(index, "sectorFrom", e.target.value)}
-                        placeholder="e.g., JED"
-                        className="w-full min-w-[100px] h-9 rounded border border-gray-300 px-2 text-xs outline-none focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      <AsyncSelect
+                        cacheOptions
+                        defaultOptions={cityOptions}
+                        loadOptions={loadCityOptions}
+                        styles={getCustomSelectStyles()}
+                        value={cityOptions.find((opt) => opt.value === flight.sectorFrom) || null}
+                        onChange={(option: any) => updateFlight(index, "sectorFrom", option?.value || "")}
+                        placeholder="Select city"
+                        className="min-w-[150px]"
+                        menuPortalTarget={document.body}
+                        menuPosition="fixed"
                       />
                     </td>
                     <td className="px-2 py-2 border border-gray-300 dark:border-gray-600">
@@ -496,13 +575,17 @@ const GroupTicketingForm = () => {
                       />
                     </td>
                     <td className="px-2 py-2 border border-gray-300 dark:border-gray-600">
-                      <input
-                        type="text"
-                        required
-                        value={flight.sectorTo}
-                        onChange={(e) => updateFlight(index, "sectorTo", e.target.value)}
-                        placeholder="e.g., DXB"
-                        className="w-full min-w-[100px] h-9 rounded border border-gray-300 px-2 text-xs outline-none focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      <AsyncSelect
+                        cacheOptions
+                        defaultOptions={cityOptions}
+                        loadOptions={loadCityOptions}
+                        styles={getCustomSelectStyles()}
+                        value={cityOptions.find((opt) => opt.value === flight.sectorTo) || null}
+                        onChange={(option: any) => updateFlight(index, "sectorTo", option?.value || "")}
+                        placeholder="Select city"
+                        className="min-w-[150px]"
+                        menuPortalTarget={document.body}
+                        menuPosition="fixed"
                       />
                     </td>
                     <td className="px-2 py-2 border border-gray-300 dark:border-gray-600">
