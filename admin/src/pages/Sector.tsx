@@ -209,7 +209,11 @@ const Sector = () => {
                                 type="text"
                                 placeholder="e.g., DBX-JDH"
                                 value={formData.sectorTitle}
-                                onChange={(e) => setFormData({ ...formData, sectorTitle: e.target.value.toUpperCase() })}
+                                onChange={(e) => {
+                                    const input = e.target.value.replace(/-/g, '').toUpperCase();
+                                    const formatted = input.length > 3 ? `${input.slice(0, 3)}-${input.slice(3)}` : input;
+                                    setFormData({ ...formData, sectorTitle: formatted });
+                                }}
                                 className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                                 required
                             />

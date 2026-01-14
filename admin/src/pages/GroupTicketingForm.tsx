@@ -390,10 +390,9 @@ const GroupTicketingForm = () => {
                 Total Seats
               </label>
               <input
-                type="number"
-                min="0"
-                value={formData.totalSeats}
-                onChange={(e) => setFormData({ ...formData, totalSeats: Number(e.target.value) })}
+                type="text"
+                value={formData.totalSeats ? formData.totalSeats.toLocaleString() : ''}
+                onChange={(e) => setFormData({ ...formData, totalSeats: Number(e.target.value.replace(/,/g, '')) || 0 })}
                 placeholder="Enter total seats"
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               />
@@ -606,14 +605,13 @@ const GroupTicketingForm = () => {
                 Buying Price Per Seat (Adult)
               </label>
               <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.price.buyingAdultPrice}
+                type="text"
+                value={formData.price.buyingAdultPrice ? formData.price.buyingAdultPrice.toLocaleString() : ''}
                 onChange={(e) => setFormData({ 
                   ...formData, 
-                  price: { ...formData.price, buyingAdultPrice: Number(e.target.value) }
+                  price: { ...formData.price, buyingAdultPrice: Number(e.target.value.replace(/,/g, '')) || 0 }
                 })}
+                placeholder="0"
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               />
             </div>
@@ -622,14 +620,13 @@ const GroupTicketingForm = () => {
                 Buying Price Per Seat (Child)
               </label>
               <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.price.buyingChildPrice}
+                type="text"
+                value={formData.price.buyingChildPrice ? formData.price.buyingChildPrice.toLocaleString() : ''}
                 onChange={(e) => setFormData({ 
                   ...formData, 
-                  price: { ...formData.price, buyingChildPrice: Number(e.target.value) }
+                  price: { ...formData.price, buyingChildPrice: Number(e.target.value.replace(/,/g, '')) || 0 }
                 })}
+                placeholder="0"
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               />
             </div>
@@ -638,14 +635,13 @@ const GroupTicketingForm = () => {
                 Buying Price Per Seat (Infant)
               </label>
               <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.price.buyingInfantPrice}
+                type="text"
+                value={formData.price.buyingInfantPrice ? formData.price.buyingInfantPrice.toLocaleString() : ''}
                 onChange={(e) => setFormData({ 
                   ...formData, 
-                  price: { ...formData.price, buyingInfantPrice: Number(e.target.value) }
+                  price: { ...formData.price, buyingInfantPrice: Number(e.target.value.replace(/,/g, '')) || 0 }
                 })}
+                placeholder="0"
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               />
             </div>
@@ -673,14 +669,13 @@ const GroupTicketingForm = () => {
                 Selling Price Per Seat B2B(Adult)
               </label>
               <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.price.sellingAdultPriceB2B}
+                type="text"
+                value={formData.price.sellingAdultPriceB2B ? formData.price.sellingAdultPriceB2B.toLocaleString() : ''}
                 onChange={(e) => setFormData({ 
                   ...formData, 
-                  price: { ...formData.price, sellingAdultPriceB2B: Number(e.target.value) }
+                  price: { ...formData.price, sellingAdultPriceB2B: Number(e.target.value.replace(/,/g, '')) || 0 }
                 })}
+                placeholder="0"
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               />
             </div>
@@ -689,14 +684,13 @@ const GroupTicketingForm = () => {
                 Selling Price Per Seat B2B(Child)
               </label>
               <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.price.sellingChildPriceB2B}
+                type="text"
+                value={formData.price.sellingChildPriceB2B ? formData.price.sellingChildPriceB2B.toLocaleString() : ''}
                 onChange={(e) => setFormData({ 
                   ...formData, 
-                  price: { ...formData.price, sellingChildPriceB2B: Number(e.target.value) }
+                  price: { ...formData.price, sellingChildPriceB2B: Number(e.target.value.replace(/,/g, '')) || 0 }
                 })}
+                placeholder="0"
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               />
             </div>
@@ -705,14 +699,13 @@ const GroupTicketingForm = () => {
                 Selling Price Per Seat B2B(Infant)
               </label>
               <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.price.sellingInfantPriceB2B}
+                type="text"
+                value={formData.price.sellingInfantPriceB2B ? formData.price.sellingInfantPriceB2B.toLocaleString() : ''}
                 onChange={(e) => setFormData({ 
                   ...formData, 
-                  price: { ...formData.price, sellingInfantPriceB2B: Number(e.target.value) }
+                  price: { ...formData.price, sellingInfantPriceB2B: Number(e.target.value.replace(/,/g, '')) || 0 }
                 })}
+                placeholder="0"
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               />
             </div>
