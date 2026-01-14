@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import axiosInstance from '../../../api/axios'
 import { toast } from 'react-toastify'
 
 export default function AllGroups() {
     const [searchParams, setSearchParams] = useSearchParams()
+    const navigate = useNavigate()
     const [groups, setGroups] = useState([])
     const [allGroups, setAllGroups] = useState([])
     const [loading, setLoading] = useState(true)
@@ -255,6 +256,10 @@ export default function AllGroups() {
         })
     }
 
+    const handleBookNow = (group) => {
+        navigate('/dashboard/booking', { state: { groupData: group } })
+    }
+    
     useEffect(() => {
         applyFilters()
     }, [filters, allGroups])
@@ -288,7 +293,7 @@ export default function AllGroups() {
 
     return (
         <div className="w-full min-h-screen bg-gray-50 py-8">
-            <div className="mt-25 mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="mb-6 flex justify-between items-center">
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900">
@@ -461,7 +466,7 @@ export default function AllGroups() {
                                                     <td colSpan="8" className="px-4 py-2">
                                                         <div className="flex justify-center items-center gap-2">
                                                             {/* <span className="text-green-600 text-xl">✈</span> */}
-                                                            <img src={data.logo_url} className='w-28'/>
+                                                            <img src={data.logo_url} className='w-28' />
                                                             <span className="font-semibold text-gray-700">
                                                                 {/* {data.airline} |  */}
                                                                 {data.sector}
@@ -500,7 +505,10 @@ export default function AllGroups() {
                                                             </td>
                                                             <td className="px-4 py-3 whitespace-nowrap text-sm">
                                                                 {flightIndex === 0 && (
-                                                                    <button className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors text-xs font-medium">
+                                                                    <button 
+                                                                        // onClick={() => handleBookNow(group)}
+                                                                        className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors text-xs font-medium"
+                                                                    >
                                                                         Book now
                                                                     </button>
                                                                 )}

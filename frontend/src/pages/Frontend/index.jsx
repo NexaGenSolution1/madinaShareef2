@@ -3,6 +3,7 @@ import { Route, Routes, Navigate } from 'react-router-dom'
 import Header from '../../components/Header'
 import Home from './Home'
 import AllGroups from './AllGroups'
+import BookingForm from '../../components/BookingForm'
 import Bank from './Bank'
 import Footer from '../../components/Footer'
 import NoPage from '../../components/NoPage'
@@ -67,7 +68,9 @@ export default function Frontend() {
                 user ? (
                     <>
                         <Header user={user} handleLogout={handleLogout} />
-                        <AllGroups />
+                        <div className='pt-20'>
+                            <AllGroups />
+                        </div>
                         <Footer />
                     </>
                 ) : <Navigate to="/" replace />
@@ -97,6 +100,7 @@ export default function Frontend() {
             }>
                 <Route index element={<Dashboard />} />
                 <Route path="all-groups" element={<AllGroups />} />
+                <Route path="booking" element={<BookingForm />} />
                 <Route path="banks" element={<Bank />} />
                 <Route path="payment" element={<Payment />} />
                 <Route path="ledger" element={<Ledger />} />
