@@ -2,8 +2,6 @@ import axios from "axios";
 
 export const getAvailableBookingsByGroup = async (req, res) => {
     try {
-        
-
         // Get auth token set by middleware
         const token = req.alHaiderAPIToken;
 
@@ -35,7 +33,6 @@ export const getAirlines = async (req, res) => {
     try {
         // Get auth token set by middleware
         const token = req.alHaiderAPIToken;
-
         const response = await axios.get(
             `${process.env.ALI_HAIDER_API_URL}api/available/airlines`,
             {

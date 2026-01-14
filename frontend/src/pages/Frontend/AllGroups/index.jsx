@@ -34,15 +34,24 @@ export default function AllGroups() {
             setError(null)
             let allGroups = []
             const groupType = searchParams.get('group_type') || ''
+            
+            // Fetch al-haider groups
             const alHaiderApiResponse = await axiosInstance.get('/al-haider/available-bookings-by-group')
+                .catch(err => {
+                    console.error('Al-Haider API Error:', err)
+                    return { data: { success: false, data: { groups: [] } } }
+                })
             
             if (alHaiderApiResponse.data.success) {
                 allGroups = alHaiderApiResponse.data.data.groups || []
-            } else {
-                throw new Error('Failed to fetch groups')
             }
 
-            const adminApiResponse = await axiosInstance.get("/group-ticketing");
+            // Fetch admin groups
+            const adminApiResponse = await axiosInstance.get("/group-ticketing")
+                .catch(err => {
+                    console.error('Admin API Error:', err)
+                    return { data: { success: false, data: [] } }
+                });
             
             if (adminApiResponse.data.success && adminApiResponse.data.data) {
                 // Transform admin API data to match alHaider structure
@@ -132,8 +141,10 @@ export default function AllGroups() {
 
         } catch (err) {
             console.error('Error fetching groups:', err)
-            setError(err)
-            toast.error('Failed to load groups')
+            setError(null) // Don't show error, just use empty data
+            setAllGroups([])
+            setGroups([])
+            toast.error('Failed to load groups. Showing empty list.')
         } finally {
             setLoading(false)
         }
