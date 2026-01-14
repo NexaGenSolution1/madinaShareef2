@@ -53,8 +53,8 @@ const Bank = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen  px-4 sm:px-6 lg:px-8">
+      <div className="max-w-full mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Bank Details</h1>
 
         {banks.length === 0 ? (

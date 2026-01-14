@@ -85,8 +85,8 @@ export default function Header({ user, handleLogout }) {
                         // user ? (
                         user && (
                             <div ref={profileRef} className='relative hidden md:flex items-center gap-2'>
-                                <Link to='/banks' className='hidden md:block text-sm font-semibold hover:text-[#d6d30b]'>Banks</Link>
-                                <Link to='/payment' className='hidden md:block text-sm font-semibold hover:text-[#d6d30b]'>Payment</Link>
+                                {/* <Link to='/banks' className='hidden md:block text-sm font-semibold hover:text-[#d6d30b]'>Banks</Link>
+                                <Link to='/payment' className='hidden md:block text-sm font-semibold hover:text-[#d6d30b]'>Payment</Link> */}
                                 <button
                                     className='flex items-center gap-2 rounded-full border border-[#2A166D] px-3 py-2 text-sm text-[#2A166D] hover:bg-[#2A166D] hover:text-white'
                                     onClick={() => setProfileOpen((p) => !p)}
@@ -122,6 +122,15 @@ export default function Header({ user, handleLogout }) {
                                         >
                                             Home
                                         </button> */}
+                                           <button
+                                            className='w-full text-left px-4 py-2 hover:bg-neutral-100 font-semibold'
+                                            onClick={() => {
+                                                setProfileOpen(false);
+                                                navigate('/dashboard');
+                                            }}
+                                        >
+                                            Agent Dashboard
+                                        </button>
                                         <button
                                             className='w-full text-left px-4 py-2 text-red-600 hover:bg-neutral-100'
                                             onClick={() => {

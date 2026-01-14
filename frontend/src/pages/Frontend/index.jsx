@@ -8,6 +8,9 @@ import Footer from '../../components/Footer'
 import NoPage from '../../components/NoPage'
 import Register from '../Auth/Register'
 import Payment from './Payment'
+import DashboardLayout from '../../components/Dashboard/DashboardLayout'
+import Dashboard from './Dashboard'
+import Ledger from './Ledger'
 
 export default function Frontend() {
     const [user, setUser] = useState(null);
@@ -35,18 +38,78 @@ export default function Frontend() {
         setUser(null);
     };
     return (
-        <>
-            <Header user={user} handleLogout={handleLogout} />
-            <Routes>
-                <Route index element={<Home user={user} onLogin={handleLogin} />} />
-                <Route path="home" element={<Home user={user} onLogin={handleLogin} />} />
-                <Route path="/all-groups" element={user ? <AllGroups /> : <Navigate to="/" replace />} />
-                <Route path="/banks" element={user ? <Bank /> : <Navigate to="/" replace />} />
-                <Route path="/auth/register" element={<Register />} />
-                <Route path="/payment" element={user ? <Payment /> : <Navigate to="/" replace />} />
-                <Route path="*" element={<NoPage />} />
-            </Routes>
-            <Footer />
-        </>
+        <Routes>
+            {/* Public Routes with Header and Footer */}
+            <Route path="/" element={
+                <>
+                    <Header user={user} handleLogout={handleLogout} />
+                    <Home user={user} onLogin={handleLogin} />
+                    <Footer />
+                </>
+            } />
+            <Route path="/home" element={
+                <>
+                    <Header user={user} handleLogout={handleLogout} />
+                    <Home user={user} onLogin={handleLogin} />
+                    <Footer />
+                </>
+            } />
+            <Route path="/auth/register" element={
+                <>
+                    <Header user={user} handleLogout={handleLogout} />
+                    <Register />
+                    <Footer />
+                </>
+            } />
+
+            {/* Original Routes with Header and Footer - Protected */}
+            <Route path="/all-groups" element={
+                user ? (
+                    <>
+                        <Header user={user} handleLogout={handleLogout} />
+                        <AllGroups />
+                        <Footer />
+                    </>
+                ) : <Navigate to="/" replace />
+            } />
+            <Route path="/banks" element={
+                user ? (
+                    <>
+                        <Header user={user} handleLogout={handleLogout} />
+                        <Bank />
+                        <Footer />
+                    </>
+                ) : <Navigate to="/" replace />
+            } />
+            <Route path="/payment" element={
+                user ? (
+                    <>
+                        <Header user={user} handleLogout={handleLogout} />
+                        <Payment />
+                        <Footer />
+                    </>
+                ) : <Navigate to="/" replace />
+            } />
+
+            {/* Dashboard Routes - Protected */}
+            <Route path="/dashboard" element={
+                user ? <DashboardLayout user={user} handleLogout={handleLogout} /> : <Navigate to="/" replace />
+            }>
+                <Route index element={<Dashboard />} />
+                <Route path="all-groups" element={<AllGroups />} />
+                <Route path="banks" element={<Bank />} />
+                <Route path="payment" element={<Payment />} />
+                <Route path="ledger" element={<Ledger />} />
+            </Route>
+
+            {/* 404 Page */}
+            <Route path="*" element={
+                <>
+                    <Header user={user} handleLogout={handleLogout} />
+                    <NoPage />
+                    <Footer />
+                </>
+            } />
+        </Routes>
     )
 }
