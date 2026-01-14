@@ -7,6 +7,7 @@ import Bank from './Bank'
 import Footer from '../../components/Footer'
 import NoPage from '../../components/NoPage'
 import Register from '../Auth/Register'
+import Payment from './Payment'
 
 export default function Frontend() {
     const [user, setUser] = useState(null);
@@ -42,6 +43,7 @@ export default function Frontend() {
                 <Route path="/all-groups" element={user ? <AllGroups /> : <Navigate to="/" replace />} />
                 <Route path="/banks" element={user ? <Bank /> : <Navigate to="/" replace />} />
                 <Route path="/auth/register" element={<Register />} />
+                <Route path="/payment" element={<Payment />} />
                 <Route path="*" element={<NoPage />} />
             </Routes>
             <Footer />

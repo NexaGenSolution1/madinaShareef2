@@ -86,6 +86,7 @@ export default function Header({ user, handleLogout }) {
                         user && (
                             <div ref={profileRef} className='relative hidden md:flex items-center gap-2'>
                                 <Link to='/banks' className='hidden md:block text-sm font-semibold hover:text-[#d6d30b]'>Banks</Link>
+                                <Link to='/payment' className='hidden md:block text-sm font-semibold hover:text-[#d6d30b]'>Payment</Link>
                                 <button
                                     className='flex items-center gap-2 rounded-full border border-[#2A166D] px-3 py-2 text-sm text-[#2A166D] hover:bg-[#2A166D] hover:text-white'
                                     onClick={() => setProfileOpen((p) => !p)}
@@ -183,6 +184,7 @@ export default function Header({ user, handleLogout }) {
                         <Link to='/all-groups?group_type=UMRAH' className='hover:text-[#d6d30b]'>Umrah Groups</Link>
                         <hr className='w-full border-t border-neutral-200' />
                         <Link to='/banks' className='hover:text-[#d6d30b]'>Banks</Link>
+                        <Link to='/payment' className='hover:text-[#d6d30b]'>Payment</Link>
 
                         {/* <button className='hover:text-[#d6d30b]'>Umrah Groups</button>
                         <button className='hover:text-[#d6d30b]'>UAE Groups</button>

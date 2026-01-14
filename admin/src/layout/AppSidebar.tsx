@@ -53,6 +53,13 @@ const navItems: NavItem[] = [
       { name: "Create Group", path: "/group-ticketing/create", pro: false },
     ],
   },
+  {
+    icon: <TableIcon />,
+    name: "Ledger",
+    subItems: [
+      { name: "View Payment Voucher", path: "/view-payment-voucher", pro: false },
+    ],
+  },
 ];
 
 const AppSidebar: React.FC = () => {
