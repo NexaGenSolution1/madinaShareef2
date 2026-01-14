@@ -36,13 +36,13 @@ const PassengerSchema = new mongoose.Schema({
 =========================== */
 const PriceSchema = new mongoose.Schema({
   // Buying Prices
-  buyingCurrency: { type: String, default: "SAR" },
+  buyingCurrency: { type: String, default: "PKR" },
   buyingAdultPrice: { type: Number, default: 0 },
   buyingChildPrice: { type: Number, default: 0 },
   buyingInfantPrice: { type: Number, default: 0 },
   
   // Selling Prices B2B
-  sellingCurrencyB2B: { type: String, default: "SAR" },
+  sellingCurrencyB2B: { type: String, default: "PKR" },
   sellingAdultPriceB2B: { type: Number, default: 0 },
   sellingChildPriceB2B: { type: Number, default: 0 },
   sellingInfantPriceB2B: { type: Number, default: 0 },
