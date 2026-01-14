@@ -76,10 +76,20 @@ const Payment = () => {
   // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    
+    if (name === "amount") {
+      // Remove any non-digit characters except decimal point
+      const numericValue = value.replace(/[^0-9.]/g, "");
+      setFormData((prev) => ({
+        ...prev,
+        [name]: numericValue,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   // Handle file upload
@@ -265,15 +275,13 @@ const Payment = () => {
                   Amount
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   name="amount"
-                  value={formData.amount}
+                  value={formData.amount ? parseFloat(formData.amount).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : ""}
                   onChange={handleInputChange}
                   placeholder="Enter amount"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
-                  min="0"
-                  step="0.01"
                 />
               </div>
             </div>
