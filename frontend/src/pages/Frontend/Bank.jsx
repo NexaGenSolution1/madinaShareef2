@@ -18,10 +18,19 @@ const Bank = () => {
           (bank) => bank.status === "Active"
         );
         setBanks(activeBanks);
+      } else {
+        // If response is not successful but no error thrown, set empty array
+        setBanks([]);
       }
     } catch (error) {
       console.error("Error fetching banks:", error);
-      setError("Failed to fetch bank details. Please try again later.");
+      // Only show error for actual network/server errors
+      // If it's a 404 or empty response, just show empty state
+      if (error.response && error.response.status === 404) {
+        setBanks([]);
+      } else {
+        setError("Failed to fetch bank details. Please try again later.");
+      }
     } finally {
       setLoading(false);
     }
