@@ -109,7 +109,7 @@ const GroupTicketing = () => {
   };
 
   const handleDelete = async (bookingId: string) => {
-    if (!window.confirm("Are you sure you want to delete this booking?")) {
+    if (!window.confirm("Are you sure you want to delete this group?")) {
       return;
     }
     
@@ -122,12 +122,12 @@ const GroupTicketing = () => {
       });
       
       if (response.data.success) {
-        window.alert("✅ Booking deleted successfully!");
+        window.alert("✅ Group deleted successfully!");
         fetchBookings();
       }
     } catch (error: any) {
-      console.error("Error deleting booking:", error);
-      window.alert("❌ " + (error.response?.data?.message || "Failed to delete booking"));
+      console.error("Error deleting group:", error);
+      window.alert("❌ " + (error.response?.data?.message || "Failed to delete group"));
     }
   };
 
@@ -156,19 +156,19 @@ const GroupTicketing = () => {
 
   return (
     <>
-      <PageMeta title="Group Ticketing" description="Manage group ticketing bookings" />
+      <PageMeta title="Group Ticketing" description="Manage group ticketing groups" />
       <PageBreadCrumb pageTitle="Group Ticketing" />
 
       <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]" style={{zIndex: 999999999999999999999999999999999999999999999999999}}>
         <div className="px-4 py-6 md:px-6 xl:px-7.5">
           {/* Header */}
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Group Bookings</h2>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Group Groups</h2>
             <button
               onClick={() => navigate("/group-ticketing/create")}
               className="rounded-lg bg-blue-500 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-600 transition"
             >
-              + Create New Booking
+              + Create New Group
             </button>
           </div>
 
@@ -199,7 +199,7 @@ const GroupTicketing = () => {
               </label>
               <input
                 type="text"
-                placeholder="Search by voucher, booking ID, agency..."
+                placeholder="Search by voucher ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full h-11 rounded-lg border border-gray-300 bg-white px-4 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
@@ -226,11 +226,11 @@ const GroupTicketing = () => {
           {/* Table */}
           {loading ? (
             <div className="flex justify-center py-10">
-              <div className="text-gray-500 dark:text-gray-400">Loading bookings...</div>
+              <div className="text-gray-500 dark:text-gray-400">Loading groups...</div>
             </div>
           ) : filteredBookings.length === 0 ? (
             <div className="flex justify-center py-10">
-              <div className="text-gray-500 dark:text-gray-400">No bookings found</div>
+              <div className="text-gray-500 dark:text-gray-400">No groups found</div>
             </div>
           ) : (
             <div className="overflow-x-auto">
