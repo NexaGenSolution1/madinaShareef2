@@ -14,8 +14,6 @@ export default function AllGroups() {
     const [filters, setFilters] = useState({
         sector: '',
         airline: '',
-        minPrice: '',
-        maxPrice: '',
         meal: '',
         fromDate: '',
         toDate: ''
@@ -24,6 +22,7 @@ export default function AllGroups() {
     // Get unique values for filter dropdowns
     const [airlines, setAirlines] = useState([])
     const [sectors, setSectors] = useState([])
+    const [meals, setMeals] = useState([])
 
     useEffect(() => {
         fetchGroups()
@@ -123,8 +122,10 @@ export default function AllGroups() {
             // Extract unique airlines and sectors for filters
             const uniqueAirlines = [...new Set(allGroups.map(g => g.airline?.airline_name).filter(Boolean))]
             const uniqueSectors = [...new Set(allGroups.map(g => g.sector).filter(Boolean))]
+            const uniqueMeals = [...new Set(allGroups.map(g => g.meal).filter(Boolean))]
             setAirlines(uniqueAirlines.sort())
             setSectors(uniqueSectors.sort())
+            setMeals(uniqueMeals.sort())
             
             setAllGroups(allGroups)
             applyFilters(allGroups)
@@ -151,14 +152,6 @@ export default function AllGroups() {
             filtered = filtered.filter(g => g.airline?.airline_name === filters.airline)
         }
         
-        // Filter by price range
-        if (filters.minPrice) {
-            filtered = filtered.filter(g => g.price >= parseInt(filters.minPrice))
-        }
-        if (filters.maxPrice) {
-            filtered = filtered.filter(g => g.price <= parseInt(filters.maxPrice))
-        }
-        
         // Filter by meal
         if (filters.meal) {
             filtered = filtered.filter(g => g.meal?.toLowerCase() === filters.meal.toLowerCase())
@@ -180,7 +173,54 @@ export default function AllGroups() {
             })
         }
         
+        // Sort by departure date (earliest first)
+        filtered.sort((a, b) => {
+            const dateA = new Date(a.dept_date)
+            const dateB = new Date(b.dept_date)
+            return dateA - dateB
+        })
+        
         setGroups(filtered)
+        updateFilterOptions(filtered)
+    }
+    
+    const updateFilterOptions = (filteredGroups) => {
+        // Create a copy of current filters to determine which filters to respect
+        let dataForOptions = [...allGroups]
+        
+        // Apply each filter except the one being updated to get dynamic options
+        if (filters.airline) {
+            dataForOptions = dataForOptions.filter(g => g.airline?.airline_name === filters.airline)
+        }
+        if (filters.sector) {
+            dataForOptions = dataForOptions.filter(g => g.sector === filters.sector)
+        }
+        if (filters.meal) {
+            dataForOptions = dataForOptions.filter(g => g.meal?.toLowerCase() === filters.meal.toLowerCase())
+        }
+        if (filters.fromDate) {
+            dataForOptions = dataForOptions.filter(g => {
+                const deptDate = new Date(g.dept_date)
+                const fromDate = new Date(filters.fromDate)
+                return deptDate >= fromDate
+            })
+        }
+        if (filters.toDate) {
+            dataForOptions = dataForOptions.filter(g => {
+                const deptDate = new Date(g.dept_date)
+                const toDate = new Date(filters.toDate)
+                return deptDate <= toDate
+            })
+        }
+        
+        // Extract unique values for dropdowns from filtered data
+        const uniqueAirlines = [...new Set(dataForOptions.map(g => g.airline?.airline_name).filter(Boolean))]
+        const uniqueSectors = [...new Set(dataForOptions.map(g => g.sector).filter(Boolean))]
+        const uniqueMeals = [...new Set(dataForOptions.map(g => g.meal).filter(Boolean))]
+        
+        setAirlines(uniqueAirlines.sort())
+        setSectors(uniqueSectors.sort())
+        setMeals(uniqueMeals.sort())
     }
     
     const handleFilterChange = (filterName, value) => {
@@ -192,8 +232,6 @@ export default function AllGroups() {
         setFilters({
             sector: '',
             airline: '',
-            minPrice: '',
-            maxPrice: '',
             meal: '',
             fromDate: '',
             toDate: ''
@@ -305,36 +343,14 @@ export default function AllGroups() {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="">All</option>
-                                <option value="yes">Yes</option>
-                                <option value="no">No</option>
+                                {meals.map(meal => (
+                                    <option key={meal} value={meal}>{meal}</option>
+                                ))}
                             </select>
                         </div>
 
-                        {/* Price Range */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Price Range (PKR)
-                            </label>
-                            <div className="flex gap-2">
-                                <input
-                                    type="number"
-                                    placeholder="Min"
-                                    value={filters.minPrice}
-                                    onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-                                    className="w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                                <input
-                                    type="number"
-                                    placeholder="Max"
-                                    value={filters.maxPrice}
-                                    onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                                    className="w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-                        </div>
-
                         {/* Date Range */}
-                        <div className="md:col-span-2">
+                        <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Departure Date Range
                             </label>
@@ -343,12 +359,14 @@ export default function AllGroups() {
                                     type="date"
                                     value={filters.fromDate}
                                     onChange={(e) => handleFilterChange('fromDate', e.target.value)}
+                                    min={new Date().toISOString().split('T')[0]}
                                     className="w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                                 <input
                                     type="date"
                                     value={filters.toDate}
                                     onChange={(e) => handleFilterChange('toDate', e.target.value)}
+                                    min={filters.fromDate || new Date().toISOString().split('T')[0]}
                                     className="w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>

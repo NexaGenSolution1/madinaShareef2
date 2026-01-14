@@ -1,6 +1,7 @@
 import express from "express";
 import {
-    getAvailableBookingsByGroup
+    getAvailableBookingsByGroup,
+    getAirlines
 } from "../controllers/al-haider.controller.js";
 import { alHaiderAuthMiddleware } from "../middleware/auth.middleware.js";
 const router = express.Router();
@@ -15,6 +16,18 @@ router.get("/available-bookings-by-group", (req, res) => {
             });
         }
         getAvailableBookingsByGroup(req, res);
+    });
+});
+
+router.get("/get-airlines", (req, res) => {
+    alHaiderAuthMiddleware(req, res, (error) => {
+        if (error) {
+            return res.status(401).json({
+                success: false,
+                message: "Failed to authenticate with Al-Haider API"
+            });
+        }
+        getAirlines(req, res);
     });
 });
 
