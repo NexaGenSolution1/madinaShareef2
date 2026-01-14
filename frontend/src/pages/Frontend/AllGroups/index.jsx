@@ -4,10 +4,26 @@ import axiosInstance from '../../../api/axios'
 import { toast } from 'react-toastify'
 
 export default function AllGroups() {
-    const [searchParams] = useSearchParams()
+    const [searchParams, setSearchParams] = useSearchParams()
     const [groups, setGroups] = useState([])
+    const [allGroups, setAllGroups] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    
+    // Filter states
+    const [filters, setFilters] = useState({
+        sector: '',
+        airline: '',
+        minPrice: '',
+        maxPrice: '',
+        meal: '',
+        fromDate: '',
+        toDate: ''
+    })
+    
+    // Get unique values for filter dropdowns
+    const [airlines, setAirlines] = useState([])
+    const [sectors, setSectors] = useState([])
 
     useEffect(() => {
         fetchGroups()
@@ -17,15 +33,9 @@ export default function AllGroups() {
         try {
             setLoading(true)
             setError(null)
-            const groupType = searchParams.get('group_type') || '0'
-            const alHaiderApiResponse = await axiosInstance.get('/al-haider/available-bookings-by-group', {
-                params: {
-                    group_type: groupType
-                }
-            })
-
-            console.log('Fetched groups:', alHaiderApiResponse.data)
             let allGroups = []
+            const groupType = searchParams.get('group_type') || ''
+            const alHaiderApiResponse = await axiosInstance.get('/al-haider/available-bookings-by-group')
             
             if (alHaiderApiResponse.data.success) {
                 allGroups = alHaiderApiResponse.data.data.groups || []
@@ -34,7 +44,6 @@ export default function AllGroups() {
             }
 
             const adminApiResponse = await axiosInstance.get("/group-ticketing");
-            console.log('Admin API Response', adminApiResponse.data.data)
             
             if (adminApiResponse.data.success && adminApiResponse.data.data) {
                 // Transform admin API data to match alHaider structure
@@ -45,7 +54,7 @@ export default function AllGroups() {
                     available_no_of_pax: group.seatCount || 0,
                     arv_date: group.flights[group.flights.length - 1]?.arrDate || null,
                     sector: group.sector,
-                    type: group.groupType || 'Other',
+                    type: group.groupType,
                     price: group.price?.sellingAdultPriceB2B || 0,
                     baggage: null,
                     meal: group.flights[0]?.meal || 'No',
@@ -73,7 +82,52 @@ export default function AllGroups() {
                 allGroups = [...allGroups, ...transformedAdminGroups]
             }
             
-            setGroups(allGroups)
+            console.log("Fetched groups:", allGroups)
+            
+            // Apply filtering based on group_type if specified
+            if (groupType) {
+                const normalizedGroupType = groupType.toLowerCase().trim()
+                
+                // Define group type mappings - maps search terms to actual group types in data
+                const groupTypeMap = {
+                    'uae': (type) => type === 'uae' || type.includes('uae'),
+                    'ksa': (type) => type === 'ksa oneway' || type.includes('ksa'),
+                    'ksa oneway': (type) => type === 'ksa oneway' || type.includes('ksa'),
+                    'bahrain': (type) => type === 'bahrain' || type.includes('bahrain'),
+                    'muscat': (type) => type === 'muscat' || type.includes('muscat') || type.includes('mascat'),
+                    'mascat': (type) => type === 'muscat' || type.includes('muscat') || type.includes('mascat'),
+                    'qatar': (type) => type === 'qatar' || type.includes('qatar'),
+                    'uk': (type) => type === 'uk' || type.includes('uk'),
+                    'umrah': (type) => type === 'umrah' || type.includes('umrah')
+                }
+                
+                allGroups = allGroups.filter(group => {
+                    if (!group.type) return false
+                    const normalizedType = group.type.toLowerCase().trim()
+                    
+                    // Check if we have a custom matcher for this group type
+                    const matcher = groupTypeMap[normalizedGroupType]
+                    if (matcher) {
+                        return matcher(normalizedType)
+                    }
+                    
+                    // Fallback to direct comparison and contains check
+                    return normalizedType === normalizedGroupType || 
+                           normalizedType.includes(normalizedGroupType) || 
+                           normalizedGroupType.includes(normalizedType)
+                })
+            }
+            
+            console.log("Filtered groups:", allGroups)
+            
+            // Extract unique airlines and sectors for filters
+            const uniqueAirlines = [...new Set(allGroups.map(g => g.airline?.airline_name).filter(Boolean))]
+            const uniqueSectors = [...new Set(allGroups.map(g => g.sector).filter(Boolean))]
+            setAirlines(uniqueAirlines.sort())
+            setSectors(uniqueSectors.sort())
+            
+            setAllGroups(allGroups)
+            applyFilters(allGroups)
 
         } catch (err) {
             console.error('Error fetching groups:', err)
@@ -83,6 +137,72 @@ export default function AllGroups() {
             setLoading(false)
         }
     }
+    
+    const applyFilters = (dataToFilter = allGroups) => {
+        let filtered = [...dataToFilter]
+        
+        // Filter by sector
+        if (filters.sector) {
+            filtered = filtered.filter(g => g.sector === filters.sector)
+        }
+        
+        // Filter by airline
+        if (filters.airline) {
+            filtered = filtered.filter(g => g.airline?.airline_name === filters.airline)
+        }
+        
+        // Filter by price range
+        if (filters.minPrice) {
+            filtered = filtered.filter(g => g.price >= parseInt(filters.minPrice))
+        }
+        if (filters.maxPrice) {
+            filtered = filtered.filter(g => g.price <= parseInt(filters.maxPrice))
+        }
+        
+        // Filter by meal
+        if (filters.meal) {
+            filtered = filtered.filter(g => g.meal?.toLowerCase() === filters.meal.toLowerCase())
+        }
+        
+        // Filter by date range
+        if (filters.fromDate) {
+            filtered = filtered.filter(g => {
+                const deptDate = new Date(g.dept_date)
+                const fromDate = new Date(filters.fromDate)
+                return deptDate >= fromDate
+            })
+        }
+        if (filters.toDate) {
+            filtered = filtered.filter(g => {
+                const deptDate = new Date(g.dept_date)
+                const toDate = new Date(filters.toDate)
+                return deptDate <= toDate
+            })
+        }
+        
+        setGroups(filtered)
+    }
+    
+    const handleFilterChange = (filterName, value) => {
+        const newFilters = { ...filters, [filterName]: value }
+        setFilters(newFilters)
+    }
+    
+    const resetFilters = () => {
+        setFilters({
+            sector: '',
+            airline: '',
+            minPrice: '',
+            maxPrice: '',
+            meal: '',
+            fromDate: '',
+            toDate: ''
+        })
+    }
+    
+    useEffect(() => {
+        applyFilters()
+    }, [filters, allGroups])
 
     if (loading) {
         return (
@@ -113,13 +233,130 @@ export default function AllGroups() {
 
     return (
         <div className="w-full min-h-screen bg-gray-50 py-8">
-            <div className="mx-auto px-4 sm:px-6 lg:px-8">
-                {/* <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-gray-900">Available Groups</h1>
-                    <p className="mt-2 text-gray-600">Browse and book your group travel</p>
-                </div> */}
+            <div className="mt-25 mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="mb-6 flex justify-between items-center">
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-900">
+                            {searchParams.get('group_type') 
+                                ? `${searchParams.get('group_type').toUpperCase()} Groups` 
+                                : 'All Groups'}
+                        </h2>
+                        <p className="text-sm text-gray-600">
+                            Showing {groups.length} of {allGroups.length} {groups.length === 1 ? 'group' : 'groups'}
+                        </p>
+                    </div>
+                </div>
 
-                <div className="mt-19 bg-white rounded-lg shadow overflow-hidden">
+                {/* Filters Section */}
+                <div className="mb-6 bg-white rounded-lg shadow p-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
+                        <button
+                            onClick={resetFilters}
+                            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                            Reset All
+                        </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {/* Sector Filter */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Sector
+                            </label>
+                            <select
+                                value={filters.sector}
+                                onChange={(e) => handleFilterChange('sector', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="">All Sectors</option>
+                                {sectors.map(sector => (
+                                    <option key={sector} value={sector}>{sector}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Airline Filter */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Airline
+                            </label>
+                            <select
+                                value={filters.airline}
+                                onChange={(e) => handleFilterChange('airline', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="">All Airlines</option>
+                                {airlines.map(airline => (
+                                    <option key={airline} value={airline}>{airline}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Meal Filter */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Meal
+                            </label>
+                            <select
+                                value={filters.meal}
+                                onChange={(e) => handleFilterChange('meal', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="">All</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+
+                        {/* Price Range */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Price Range (PKR)
+                            </label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="number"
+                                    placeholder="Min"
+                                    value={filters.minPrice}
+                                    onChange={(e) => handleFilterChange('minPrice', e.target.value)}
+                                    className="w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <input
+                                    type="number"
+                                    placeholder="Max"
+                                    value={filters.maxPrice}
+                                    onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
+                                    className="w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Date Range */}
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Departure Date Range
+                            </label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="date"
+                                    value={filters.fromDate}
+                                    onChange={(e) => handleFilterChange('fromDate', e.target.value)}
+                                    className="w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <input
+                                    type="date"
+                                    value={filters.toDate}
+                                    onChange={(e) => handleFilterChange('toDate', e.target.value)}
+                                    className="w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-blue-900">

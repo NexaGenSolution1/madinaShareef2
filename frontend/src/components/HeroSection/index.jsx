@@ -30,43 +30,43 @@ export default function HeroSection() {
                             <p className='text-xl font-semibold text-center bg-black/70 text-white p-3 transition-all duration-300 ease-in-out group-hover:bg-black/80'>All Groups</p>
                         </div>
                     </Link>
-                    <Link to="all-groups?group_type=UAE" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
+                    <Link to="all-groups?group_type=uae&group_type=uae groups" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
                         <img src={bahrainImg} alt="bahrain-img" className='w-full h-full object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:-translate-y-3' />
                         <div className='absolute w-full bottom-0 left-0'>
                             <p className='text-xl font-semibold text-center bg-black/70 text-white p-3 transition-all duration-300 ease-in-out group-hover:bg-black/80'>UAE Groups</p>
                         </div>
                     </Link>
-                    <Link to="all-groups?group_type=KSA ONEWAY" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
+                    <Link to="all-groups?group_type=ksa oneway&group_type=ksa groups" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
                         <img src={jeddahImg} alt="jeddah-img" className='w-full h-full object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:-translate-y-3' />
                         <div className='absolute w-full bottom-0 left-0'>
                             <p className='text-xl font-semibold text-center bg-black/70 text-white p-3 transition-all duration-300 ease-in-out group-hover:bg-black/80'>KSA Groups</p>
                         </div>
                     </Link>
-                    <Link to="all-groups?group_type=BAHRAIN" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
+                    <Link to="all-groups?group_type=bahrain&group_type=bahrain groups" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
                         <img src={uaeImg} alt="uae-img" className='w-full h-full object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:-translate-y-3' />
                         <div className='absolute w-full bottom-0 left-0'>
                             <p className='text-xl font-semibold text-center bg-black/70 text-white p-3 transition-all duration-300 ease-in-out group-hover:bg-black/80'>Bahrain Groups</p>
                         </div>
                     </Link>
-                    <Link to="all-groups?group_type=MUSCAT" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
+                    <Link to="all-groups?group_type=muscat&group_type=muscat groups&group_type=mascat groups" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
                         <img src={mascatImg} alt="mascat-img" className='w-full h-full object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:-translate-y-3' />
                         <div className='absolute w-full bottom-0 left-0'>
                             <p className='text-xl font-semibold text-center bg-black/70 text-white p-3 transition-all duration-300 ease-in-out group-hover:bg-black/80'>Muscat Groups</p>
                         </div>
                     </Link>
-                    <Link to="all-groups?group_type=QATAR" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
+                    <Link to="all-groups?group_type=qatar&group_type=qatar groups" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
                         <img src={qatarImg} alt="qatar-img" className='w-full h-full object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:-translate-y-3' />
                         <div className='absolute w-full bottom-0 left-0'>
                             <p className='text-xl font-semibold text-center bg-black/70 text-white p-3 transition-all duration-300 ease-in-out group-hover:bg-black/80'>Qatar Groups</p>
                         </div>
                     </Link>
-                    <Link to="all-groups?group_type=UK" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
+                    <Link to="all-groups?group_type=uk&group_type=uk groups" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
                         <img src={ukImg} alt="uk-img" className='w-full h-full object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:-translate-y-3' />
                         <div className='absolute w-full bottom-0 left-0'>
                             <p className='text-xl font-semibold text-center bg-black/70 text-white p-3 transition-all duration-300 ease-in-out group-hover:bg-black/80'>UK Groups</p>
                         </div>
                     </Link>
-                    <Link to="all-groups?group_type=UMRAH" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
+                    <Link to="all-groups?group_type=umrah&group_type=umrah groups" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
                         <img src={makkahImg} alt="makkah-img" className='w-full h-full object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:-translate-y-3' />
                         <div className='absolute w-full bottom-0 left-0'>
                             <p className='text-xl font-semibold text-center bg-black/70 text-white p-3 transition-all duration-300 ease-in-out group-hover:bg-black/80'>Umrah Groups</p>
