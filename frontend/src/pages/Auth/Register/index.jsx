@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import countryCodes from "../../../data/countryCodes.json"; // adjust path
 import Select from "react-select";
 import Header from "../../../components/Header";
+import CommonSections from "../../../components/CommonSections";
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -245,6 +246,7 @@ const Register = () => {
                     </div>
                 </div>
             </div>
+            <CommonSections />
         </>
     );
 };

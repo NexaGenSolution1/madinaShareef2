@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, Navigate } from 'react-router-dom'
 import Header from '../../components/Header'
 import Home from './Home'
 import AllGroups from './AllGroups'
@@ -39,8 +39,8 @@ export default function Frontend() {
             <Routes>
                 <Route index element={<Home user={user} onLogin={handleLogin} />} />
                 <Route path="home" element={<Home user={user} onLogin={handleLogin} />} />
-                 <Route path="/all-groups" element={<AllGroups />} />
-                <Route path="/banks" element={<Bank />} />
+                <Route path="/all-groups" element={user ? <AllGroups /> : <Navigate to="/" replace />} />
+                <Route path="/banks" element={user ? <Bank /> : <Navigate to="/" replace />} />
                 <Route path="/auth/register" element={<Register />} />
                 <Route path="*" element={<NoPage />} />
             </Routes>

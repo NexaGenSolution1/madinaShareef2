@@ -18,18 +18,63 @@ export default function AllGroups() {
             setLoading(true)
             setError(null)
             const groupType = searchParams.get('group_type') || '0'
-            const response = await axiosInstance.get('/al-haider/available-bookings-by-group', {
+            const alHaiderApiResponse = await axiosInstance.get('/al-haider/available-bookings-by-group', {
                 params: {
                     group_type: groupType
                 }
             })
+
+            console.log('Fetched groups:', alHaiderApiResponse.data)
+            let allGroups = []
             
-            console.log('Fetched groups:', response.data)
-            if (response.data.success) {
-                setGroups(response.data.data.groups || [])
+            if (alHaiderApiResponse.data.success) {
+                allGroups = alHaiderApiResponse.data.data.groups || []
             } else {
                 throw new Error('Failed to fetch groups')
             }
+
+            const adminApiResponse = await axiosInstance.get("/group-ticketing");
+            console.log('Admin API Response', adminApiResponse.data.data)
+            
+            if (adminApiResponse.data.success && adminApiResponse.data.data) {
+                // Transform admin API data to match alHaider structure
+                const transformedAdminGroups = adminApiResponse.data.data.map(group => ({
+                    id: group._id,
+                    airline_id: null,
+                    dept_date: group.flights[0]?.depDate || null,
+                    available_no_of_pax: group.seatCount || 0,
+                    arv_date: group.flights[group.flights.length - 1]?.arrDate || null,
+                    sector: group.sector,
+                    type: group.groupType || 'Other',
+                    price: group.price?.sellingAdultPriceB2B || 0,
+                    baggage: null,
+                    meal: group.flights[0]?.meal || 'No',
+                    pnr: group.pnr || '',
+                    details: group.flights.map((flight, index) => ({
+                        id: `${group._id}-${index}`,
+                        group_id: group._id,
+                        sr: index + 1,
+                        flight_no: flight.flightNo,
+                        flight_date: flight.depDate,
+                        origin: flight.sectorFrom,
+                        destination: flight.sectorTo,
+                        baggage: flight.baggage,
+                        dept_time: flight.depTime,
+                        arv_time: flight.arrTime
+                    })),
+                    airline: {
+                        id: null,
+                        airline_name: group.airline,
+                        short_name: null,
+                        logo_url: null
+                    }
+                }))
+                
+                allGroups = [...allGroups, ...transformedAdminGroups]
+            }
+            
+            setGroups(allGroups)
+
         } catch (err) {
             console.error('Error fetching groups:', err)
             setError(err)
@@ -55,7 +100,7 @@ export default function AllGroups() {
             <div className="w-full min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-red-600 mb-4">{error}</p>
-                    <button 
+                    <button
                         onClick={fetchGroups}
                         className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                     >
@@ -149,7 +194,7 @@ export default function AllGroups() {
                                                         </div>
                                                     </td>
                                                 </tr>
-                                                
+
                                                 {/* All flights under this airline and sector */}
                                                 {data.groups.map((group, groupIndex) => (
                                                     group.details?.map((flight, flightIndex) => (

@@ -1,18 +1,12 @@
 import Login from '../../Auth/Login'
 import HeroSection from '../../../components/HeroSection'
-import AboutSection from '../../../components/AboutSection'
-import ServicesSection from '../../../components/ServicesSection'
-import ChooseUsSection from '../../../components/ChooseUsSection'
+import CommonSections from '../../../components/CommonSections'
 
-export default function Home({user, onLogin}) {
+export default function Home({ user, onLogin }) {
     return (
         <>
-            {
-                user ? <HeroSection /> : <Login onLogin={onLogin} />
-            }
-            <AboutSection />
-            <ServicesSection />
-            <ChooseUsSection />
+            {user ? <HeroSection /> : <Login onLogin={onLogin} />}
+            <CommonSections />
         </>
     )
 }
