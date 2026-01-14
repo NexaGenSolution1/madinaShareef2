@@ -43,7 +43,7 @@ export default function Frontend() {
                 <Route path="/all-groups" element={user ? <AllGroups /> : <Navigate to="/" replace />} />
                 <Route path="/banks" element={user ? <Bank /> : <Navigate to="/" replace />} />
                 <Route path="/auth/register" element={<Register />} />
-                <Route path="/payment" element={<Payment />} />
+                <Route path="/payment" element={user ? <Payment /> : <Navigate to="/" replace />} />
                 <Route path="*" element={<NoPage />} />
             </Routes>
             <Footer />
