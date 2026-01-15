@@ -33,6 +33,8 @@ import GroupTicketing from "./pages/GroupTicketing";
 import GroupTicketingForm from "./pages/GroupTicketingForm";
 import ViewPaymentVoucher from "./pages/ViewPaymentVoucher";
 import EditPaymentVoucher from "./pages/EditPaymentVoucher";
+import ViewAccounts from "./pages/ViewAccounts";
+import Ledger from "./pages/Ledger";
 
 export default function App() {
   return (
@@ -60,6 +62,8 @@ export default function App() {
                 <Route path="/group-ticketing/edit/:id" element={<GroupTicketingForm />} />
                 <Route path="/view-payment-voucher" element={<ViewPaymentVoucher />} />
                 <Route path="/view-payment-voucher/edit/:id" element={<EditPaymentVoucher />} />
+                <Route path="/view-accounts" element={<ViewAccounts />} />
+                <Route path="/ledger/:id" element={<Ledger />} />
 
                 {/* Password Management */}
                 <Route path="/change-password" element={<ChangePassword />} />

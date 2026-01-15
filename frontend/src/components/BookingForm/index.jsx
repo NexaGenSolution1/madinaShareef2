@@ -1,11 +1,48 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { createBooking } from '../../api/bookingApi'
 
-export default function BookingForm() {
+export default function BookingForm({ user: userProp }) {
     const navigate = useNavigate()
     const location = useLocation()
     const groupData = location.state?.groupData
     console.log('BookingForm groupData:', groupData)
+
+    // Get user from prop or localStorage as fallback
+    const [user, setUser] = useState(userProp || null)
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState(null)
+
+    useEffect(() => {
+        // If user prop is provided, use it
+        if (userProp) {
+            console.log("User received from props:", userProp)
+            setUser(userProp)
+            return
+        }
+
+        // Fallback to localStorage
+        const storedUser = localStorage.getItem("frontend_user")
+        const storedToken = localStorage.getItem("frontend_token")
+        
+        console.log("Checking localStorage:")
+        console.log("- frontend_user:", storedUser)
+        console.log("- frontend_token:", storedToken)
+        
+        if (storedUser) {
+            try {
+                const parsedUser = JSON.parse(storedUser)
+                console.log("Parsed user data:", parsedUser)
+                setUser(parsedUser)
+            } catch (err) {
+                console.error("Error parsing user data:", err)
+                setError("User session error. Please login again.")
+            }
+        } else {
+            console.warn("No user data found in localStorage")
+            setError("Please login to make a booking")
+        }
+    }, [userProp])
 
     const [formData, setFormData] = useState({
         contactPersonName: '',
@@ -103,12 +140,76 @@ export default function BookingForm() {
     const calculateChildTotal = () => (parseInt(formData.children) || 0) * (groupData?.childPrice || groupData?.price || 0)
     const calculateInfantTotal = () => (parseInt(formData.infants) || 0) * (groupData?.infantPrice || (groupData?.price * 0.24) || 0)
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
-        console.log('Booking Data:', { ...formData, groupData })
-        // Add API call here
-        alert('Booking submitted successfully!')
-        navigate('/dashboard/all-groups')
+        
+        // Validate user is logged in
+        if (!user || !user._id) {
+            setError("Please login to make a booking")
+            alert('Please login to make a booking')
+            return
+        }
+
+        // Validate all passenger details are filled
+        const allPassengersFilled = formData.passengers.every(passenger => 
+            passenger.givenName && 
+            passenger.surName && 
+            passenger.passport && 
+            passenger.dateOfBirth && 
+            passenger.passportExpiry
+        )
+
+        if (!allPassengersFilled) {
+            alert('Please fill in all passenger details')
+            return
+        }
+
+        setLoading(true)
+        setError(null)
+
+        try {
+            // Prepare booking data
+            const bookingData = {
+                groupTicketingId: groupData._id,
+                userId: user._id,
+                contactPersonName: formData.contactPersonName,
+                adults: parseInt(formData.adults),
+                children: parseInt(formData.children),
+                infants: parseInt(formData.infants),
+                passengers: formData.passengers,
+                pricing: {
+                    adultPrice: groupData.price || 0,
+                    childPrice: groupData.childPrice || 0,
+                    infantPrice: groupData.infantPrice || (groupData.price * 0.24) || 0,
+                    adultTotal: calculateAdultTotal(),
+                    childTotal: calculateChildTotal(),
+                    infantTotal: calculateInfantTotal(),
+                    grandTotal: calculateTotalPrice()
+                }
+            }
+
+            console.log('Submitting booking:', bookingData)
+
+            // Make API call
+            const response = await createBooking(bookingData)
+
+            console.log('Booking response:', response)
+
+            if (response.success) {
+                alert(`Booking created successfully! Reference: ${response.data.bookingReference}`)
+                navigate('/dashboard/all-groups')
+            } else {
+                throw new Error(response.message || 'Booking failed')
+            }
+
+        } catch (err) {
+            console.error('Booking error:', err)
+            const errorMessage = err.response?.data?.message || err.message || 'Failed to create booking'
+            setError(errorMessage)
+            alert(errorMessage)
+        } finally {
+            setLoading(false)
+        }
     }
 
     if (!groupData) {
@@ -121,6 +222,22 @@ export default function BookingForm() {
                         className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                     >
                         Back to Flights
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
+    if (error && !user) {
+        return (
+            <div className="w-full min-h-screen bg-gray-50 py-8 flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-red-600 mb-4">{error}</p>
+                    <button
+                        onClick={() => navigate('/login')}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    >
+                        Go to Login
                     </button>
                 </div>
             </div>
@@ -222,6 +339,14 @@ export default function BookingForm() {
                             className="w-full max-w-md px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
                             placeholder="Enter contact person name"
                         />
+                        {user && (
+                            <p className="mt-2 text-sm text-gray-600">
+                                Booking as: <span className="font-semibold text-blue-600">{user.name || user.email}</span>
+                            </p>
+                        )}
+                        {error && (
+                            <p className="mt-2 text-sm text-red-600">{error}</p>
+                        )}
                     </div>
 
                     {/* Passengers and Pricing Grid */}
@@ -461,12 +586,25 @@ export default function BookingForm() {
                         </button>
                         <button
                             type="submit"
-                            className="px-10 py-3 bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f] text-white rounded-lg hover:from-[#2d5a8f] hover:to-[#1e3a5f] hover:scale-105 active:scale-95 transition-all duration-300 font-bold shadow-lg hover:shadow-2xl flex items-center gap-2 transform"
+                            disabled={loading || !user}
+                            className="px-10 py-3 bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f] text-white rounded-lg hover:from-[#2d5a8f] hover:to-[#1e3a5f] hover:scale-105 active:scale-95 transition-all duration-300 font-bold shadow-lg hover:shadow-2xl flex items-center gap-2 transform disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                            Confirm Booking
+                            {loading ? (
+                                <>
+                                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Processing...
+                                </>
+                            ) : (
+                                <>
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Confirm Booking
+                                </>
+                            )}
                         </button>
                     </div>
                 </form>

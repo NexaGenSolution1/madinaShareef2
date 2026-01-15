@@ -57,6 +57,7 @@ const navItems: NavItem[] = [
     icon: <TableIcon />,
     name: "Ledger",
     subItems: [
+      { name: "View Accounts", path: "/view-accounts", pro: false },
       { name: "View Payment Voucher", path: "/view-payment-voucher", pro: false },
     ],
   },
