@@ -62,7 +62,7 @@ interface GroupTicketing {
   passengers: Passenger;
   price: Price;
   payments: Payment[];
-  seatCount: number;
+  totalSeats: number;
   pnr?: string;
   contactPersonPhone?: string;
   contactPersonEmail?: string;
@@ -259,7 +259,7 @@ const GroupTicketing = () => {
                         </span>
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">
-                        <div className="text-xs text-gray-500">Seats: {booking.seatCount}</div>
+                        <div className="text-xs text-gray-500">Seats: {booking.totalSeats}</div>
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">
                         {formatDate(booking.createdAt)}

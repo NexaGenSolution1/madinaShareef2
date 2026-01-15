@@ -112,8 +112,6 @@ const GroupTicketingSchema = new mongoose.Schema(
   price: PriceSchema,
 
   payments: [PaymentSchema],
-
-  seatCount: { type: Number, default: 0 },
   
   pnr: { type: String },
   contactPersonPhone: { type: String },
@@ -130,11 +128,11 @@ GroupTicketingSchema.pre("save", function () {
   const { adults = 0, children = 0, infants = 0 } = this.passengers || {};
 
   // infants do NOT occupy seats
-  // Only auto-calculate seatCount if passengers are provided, otherwise use totalSeats
+  // Only auto-calculate totalSeats if passengers are provided, otherwise use totalSeats
   if (adults > 0 || children > 0) {
-    this.seatCount = adults + children;
+    this.totalSeats = adults + children;
   } else if (this.totalSeats > 0) {
-    this.seatCount = this.totalSeats;
+    this.totalSeats = this.totalSeats;
   }
 
   // Calculate total based on selling prices (B2B)

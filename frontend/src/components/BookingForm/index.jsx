@@ -275,7 +275,7 @@ export default function BookingForm() {
                                         </div>
                                     )}
 
-                                     <div className="px-4 py-2.5 bg-blue-50 rounded-b-lg">
+                                     <div className="px-4 py-3 bg-blue-50 rounded-b-lg">
                                         <div className="flex justify-between items-center">
                                             <span className="text-sm font-bold text-gray-900">Total</span>
                                             <span className="text-lg font-black text-blue-600">{totalPassengers}</span>
@@ -331,7 +331,7 @@ export default function BookingForm() {
                                             <span className="text-sm font-bold text-green-600">{Math.round(calculateInfantTotal()).toLocaleString()}</span>
                                         </div>
                                     )}
-                                    <div className="px-4 py-3 bg-linear-to-r from-green-50 to-blue-50 border-t-2 border-green-400">
+                                    <div className="px-4 py-3 bg-linear-to-r from-green-50 to-blue-50 border-t-2 border-green-400 rounded-b-lg">
                                         <div className="flex justify-between items-center">
                                             <span className="text-sm font-bold text-gray-900">Grand Total</span>
                                             <span className="text-lg font-black text-green-600">{`PKR ${Math.round(calculateTotalPrice()).toLocaleString()}`}</span>
@@ -452,7 +452,7 @@ export default function BookingForm() {
                         <button
                             type="button"
                             onClick={() => navigate('/dashboard/all-groups')}
-                            className="px-8 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-semibold shadow-sm flex items-center gap-2"
+                            className="px-8 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:scale-105 active:scale-95 transition-all duration-300 font-semibold shadow-sm hover:shadow-md flex items-center gap-2 transform"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -461,7 +461,7 @@ export default function BookingForm() {
                         </button>
                         <button
                             type="submit"
-                            className="px-10 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-bold shadow-lg hover:shadow-xl flex items-center gap-2"
+                            className="px-10 py-3 bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f] text-white rounded-lg hover:from-[#2d5a8f] hover:to-[#1e3a5f] hover:scale-105 active:scale-95 transition-all duration-300 font-bold shadow-lg hover:shadow-2xl flex items-center gap-2 transform"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

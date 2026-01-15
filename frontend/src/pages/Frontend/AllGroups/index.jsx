@@ -64,7 +64,7 @@ export default function AllGroups() {
                 // Transform admin API data to match alHaider structure
                 const transformedAdminGroups = adminApiResponse.data.data.map(group => ({
                     id: group._id,
-                    available_no_of_pax: group.seatCount || 0,
+                    available_no_of_pax: group.totalSeats || 0,
                     sector: group.sector,
                     type: group.groupType,
                     price: group.price?.sellingAdultPriceB2B || 0,
@@ -307,7 +307,7 @@ export default function AllGroups() {
                         <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
                         <button
                             onClick={resetFilters}
-                            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                            className="text-sm text-red-600 hover:text-red-800 font-medium"
                         >
                             Reset All
                         </button>
@@ -392,7 +392,7 @@ export default function AllGroups() {
                 <div className="bg-white rounded-lg shadow overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-blue-900">
+                            <thead className="bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f]">
                                 <tr>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                                         Flight#
@@ -510,7 +510,7 @@ export default function AllGroups() {
                                                                     <td rowSpan={group.details.length} className="px-4 py-3 whitespace-nowrap text-sm align-middle text-center">
                                                                         <button
                                                                             onClick={() => handleBookNow(group)}
-                                                                            className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors text-xs font-medium"
+                                                                            className="px-4 py-2 bg-linear-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 hover:scale-105 active:scale-95 transition-all duration-300 text-xs font-semibold shadow-md hover:shadow-lg transform"
                                                                         >
                                                                             Book now
                                                                         </button>

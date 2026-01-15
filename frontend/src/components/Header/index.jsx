@@ -97,7 +97,7 @@ export default function Header({ user, handleLogout }) {
                                     <span className='font-semibold'>{user.name || 'User'}</span>
                                 </button>
                                 {profileOpen && (
-                                    <div className='absolute right-0 top-12 w-48 rounded-lg border border-neutral-200 bg-white shadow-lg py-2 text-sm z-[1000]'>
+                                    <div className='absolute right-0 top-12 w-48 rounded-lg border border-neutral-200 bg-white shadow-lg py-2 text-sm z-1000'>
                                         <div className='px-4 py-2 text-neutral-700'>
                                             Signed in as
                                             <div className='font-semibold text-[#2A166D]'>{user.email}</div>
