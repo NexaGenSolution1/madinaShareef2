@@ -10,6 +10,7 @@ export default function AllGroups() {
     const [allGroups, setAllGroups] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const [hoveredGroup, setHoveredGroup] = useState(null)
 
     // Filter states
     const [filters, setFilters] = useState({
@@ -58,8 +59,6 @@ export default function AllGroups() {
                     console.error('Admin API Error:', err)
                     return { data: { success: false, data: [] } }
                 });
-            console.log("Admin API response", adminApiResponse.data.data)
-            console.log("Airline API response", adminAirlineApiResponse.data.data)
 
             if (adminApiResponse.data.success && adminApiResponse.data.data) {
                 // Transform admin API data to match alHaider structure
@@ -71,12 +70,10 @@ export default function AllGroups() {
                     price: group.price?.sellingAdultPriceB2B || 0,
                     childPrice: group.price?.sellingChildPriceB2B || 0,
                     infantPrice: group.price?.sellingInfantPriceB2B || 0,
-                    meal: group.flights[0]?.meal || 'No',
                     pnr: group.pnr || '',
                     dept_date: group.flights[0]?.depDate || null,
                     arv_date: group.flights[group.flights.length - 1]?.arrDate || null,
                     details: group.flights.map((flight, index) => ({
-                        id: `${group._id}-${index}`,
                         sr: index + 1,
                         flight_no: flight.flightNo,
                         flight_date: flight.depDate,
@@ -84,9 +81,10 @@ export default function AllGroups() {
                         dept_time: flight.depTime,
                         origin: flight.sectorFrom,
                         destination: flight.sectorTo,
-                        baggage: flight.baggage,
                         arv_date: flight.arrDate,
-                        arv_time: flight.arrTime
+                        arv_time: flight.arrTime,
+                        baggage: flight.baggage,
+                        meal: flight.meal
                     })),
                     airline: {
                         id: null,
@@ -98,8 +96,6 @@ export default function AllGroups() {
 
                 allGroups = [...allGroups, ...transformedAdminGroups]
             }
-
-            console.log("All groups", allGroups)
 
             // Apply filtering based on group_type if specified
             if (groupType) {
@@ -425,7 +421,7 @@ export default function AllGroups() {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-white">
                                 {groups.length === 0 ? (
                                     <tr>
                                         <td colSpan="8" className="px-6 py-8 text-center text-gray-500">
@@ -457,6 +453,8 @@ export default function AllGroups() {
                                             return `${day} ${month} ${year}`
                                         }
 
+                                        console.log("Grouped Data", groupedData)
+
                                         return Object.entries(groupedData).map(([key, data]) => (
                                             <React.Fragment key={key}>
                                                 {/* Header row with airline logo and route */}
@@ -476,7 +474,12 @@ export default function AllGroups() {
                                                 {/* All flights under this airline and sector */}
                                                 {data.groups.map((group, groupIndex) => (
                                                     group.details?.map((flight, flightIndex) => (
-                                                        <tr key={`${group.id}-${flight.id}`} className="hover:bg-gray-50 transition-colors border-l-4 border-l-green-500">
+                                                        <tr 
+                                                            key={`${group.id}-${flight.id}`} 
+                                                            className={`transition-colors border-l-4 border-l-green-500 ${flightIndex === group.details.length - 1 ? 'border-b border-gray-200' : ''} ${hoveredGroup === group.id ? 'bg-gray-50' : ''}`}
+                                                            onMouseEnter={() => setHoveredGroup(group.id)}
+                                                            onMouseLeave={() => setHoveredGroup(null)}
+                                                        >
 
                                                             <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                                                                 {flight.flight_no}
@@ -494,24 +497,26 @@ export default function AllGroups() {
                                                                 {flight.dept_time?.substring(0, 5)}-{flight.arv_time?.substring(0, 5)}
                                                             </td>
                                                             <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                                                {`${flight.baggage} KG` || 'N/A'}
+                                                                {`${flight.baggage ? `${flight.baggage} KG` : 'N/A'}`}
                                                             </td>
                                                             <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                                                {group.meal || 'No'}
+                                                                {flight.meal || 'No'}
                                                             </td>
-                                                            <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900">
-                                                                {flightIndex === 0 ? `PKR ${group.price?.toLocaleString()}` : ''}
-                                                            </td>
-                                                            <td className="px-4 py-3 whitespace-nowrap text-sm">
-                                                                {flightIndex === 0 && (
-                                                                    <button
-                                                                        onClick={() => handleBookNow(group)}
-                                                                        className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors text-xs font-medium"
-                                                                    >
-                                                                        Book now
-                                                                    </button>
-                                                                )}
-                                                            </td>
+                                                            {flightIndex === 0 && (
+                                                                <>
+                                                                    <td rowSpan={group.details.length} className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900 align-middle text-center">
+                                                                        PKR {group.price?.toLocaleString()}
+                                                                    </td>
+                                                                    <td rowSpan={group.details.length} className="px-4 py-3 whitespace-nowrap text-sm align-middle text-center">
+                                                                        <button
+                                                                            onClick={() => handleBookNow(group)}
+                                                                            className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors text-xs font-medium"
+                                                                        >
+                                                                            Book now
+                                                                        </button>
+                                                                    </td>
+                                                                </>
+                                                            )}
                                                         </tr>
                                                     ))
                                                 ))}

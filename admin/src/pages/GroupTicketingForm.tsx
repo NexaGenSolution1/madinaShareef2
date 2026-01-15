@@ -166,6 +166,7 @@ const GroupTicketingForm = () => {
           groupType: booking.groupType,
           flights: booking.flights.map((f: Flight) => ({
             ...f,
+            airline: f.airline || booking.airline,
             depDate: f.depDate.slice(0, 10),
             arrDate: f.arrDate.slice(0, 10),
             fromTerminal: f.fromTerminal || "",
@@ -312,7 +313,7 @@ const GroupTicketingForm = () => {
       flights: [
         ...formData.flights,
         {
-          airline: "",
+          airline: formData.airline,
           flightNo: "",
           depDate: "",
           depTime: "",
@@ -421,10 +422,15 @@ const GroupTicketingForm = () => {
                 value={formData.airline}
                 onChange={(e) => {
                   const selectedAirline = airlines.find(a => a.airlineName === e.target.value);
+                  const updatedFlights = formData.flights.map(flight => ({
+                    ...flight,
+                    airline: e.target.value
+                  }));
                   setFormData({ 
                     ...formData, 
                     airline: e.target.value,
-                    groupName: selectedAirline ? `${selectedAirline.airlineName}-${formData.sector || 'NULL'}` : formData.groupName
+                    groupName: selectedAirline ? `${selectedAirline.airlineName}-${formData.sector || 'NULL'}` : formData.groupName,
+                    flights: updatedFlights
                   });
                 }}
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
