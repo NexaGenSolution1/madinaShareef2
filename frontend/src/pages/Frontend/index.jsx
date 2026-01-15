@@ -68,7 +68,7 @@ export default function Frontend() {
                 user ? (
                     <>
                         <Header user={user} handleLogout={handleLogout} />
-                        <div className='pt-20'>
+                        <div className='bg-gray-50 pt-32'>
                             <AllGroups />
                         </div>
                         <Footer />
