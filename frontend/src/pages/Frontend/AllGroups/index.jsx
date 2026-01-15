@@ -23,7 +23,6 @@ export default function AllGroups() {
     // Get unique values for filter dropdowns
     const [airlines, setAirlines] = useState([])
     const [sectors, setSectors] = useState([])
-    const [meals, setMeals] = useState([])
 
     useEffect(() => {
         fetchGroups()
@@ -138,10 +137,8 @@ export default function AllGroups() {
             // Extract unique airlines and sectors for filters
             const uniqueAirlines = [...new Set(allGroups.map(g => g.airline?.airline_name).filter(Boolean))]
             const uniqueSectors = [...new Set(allGroups.map(g => g.sector).filter(Boolean))]
-            const uniqueMeals = [...new Set(allGroups.map(g => g.meal).filter(Boolean))]
             setAirlines(uniqueAirlines.sort())
             setSectors(uniqueSectors.sort())
-            setMeals(uniqueMeals.sort())
 
             setAllGroups(allGroups)
             applyFilters(allGroups)
@@ -199,47 +196,47 @@ export default function AllGroups() {
         })
 
         setGroups(filtered)
-        updateFilterOptions(filtered)
+        // updateFilterOptions(filtered)
     }
 
-    const updateFilterOptions = (filteredGroups) => {
-        // Create a copy of current filters to determine which filters to respect
-        let dataForOptions = [...allGroups]
+    // const updateFilterOptions = (filteredGroups) => {
+    //     // Create a copy of current filters to determine which filters to respect
+    //     let dataForOptions = [...allGroups]
 
-        // Apply each filter except the one being updated to get dynamic options
-        if (filters.airline) {
-            dataForOptions = dataForOptions.filter(g => g.airline?.airline_name === filters.airline)
-        }
-        if (filters.sector) {
-            dataForOptions = dataForOptions.filter(g => g.sector === filters.sector)
-        }
-        if (filters.meal) {
-            dataForOptions = dataForOptions.filter(g => g.meal?.toLowerCase() === filters.meal.toLowerCase())
-        }
-        if (filters.fromDate) {
-            dataForOptions = dataForOptions.filter(g => {
-                const deptDate = new Date(g.dept_date)
-                const fromDate = new Date(filters.fromDate)
-                return deptDate >= fromDate
-            })
-        }
-        if (filters.toDate) {
-            dataForOptions = dataForOptions.filter(g => {
-                const deptDate = new Date(g.dept_date)
-                const toDate = new Date(filters.toDate)
-                return deptDate <= toDate
-            })
-        }
+    //     // Apply each filter except the one being updated to get dynamic options
+    //     if (filters.airline) {
+    //         dataForOptions = dataForOptions.filter(g => g.airline?.airline_name === filters.airline)
+    //     }
+    //     if (filters.sector) {
+    //         dataForOptions = dataForOptions.filter(g => g.sector === filters.sector)
+    //     }
+    //     if (filters.meal) {
+    //         dataForOptions = dataForOptions.filter(g => g.meal?.toLowerCase() === filters.meal.toLowerCase())
+    //     }
+    //     if (filters.fromDate) {
+    //         dataForOptions = dataForOptions.filter(g => {
+    //             const deptDate = new Date(g.dept_date)
+    //             const fromDate = new Date(filters.fromDate)
+    //             return deptDate >= fromDate
+    //         })
+    //     }
+    //     if (filters.toDate) {
+    //         dataForOptions = dataForOptions.filter(g => {
+    //             const deptDate = new Date(g.dept_date)
+    //             const toDate = new Date(filters.toDate)
+    //             return deptDate <= toDate
+    //         })
+    //     }
 
-        // Extract unique values for dropdowns from filtered data
-        const uniqueAirlines = [...new Set(dataForOptions.map(g => g.airline?.airline_name).filter(Boolean))]
-        const uniqueSectors = [...new Set(dataForOptions.map(g => g.sector).filter(Boolean))]
-        const uniqueMeals = [...new Set(dataForOptions.map(g => g.meal).filter(Boolean))]
+    //     // Extract unique values for dropdowns from filtered data
+    //     const uniqueAirlines = [...new Set(dataForOptions.map(g => g.airline?.airline_name).filter(Boolean))]
+    //     const uniqueSectors = [...new Set(dataForOptions.map(g => g.sector).filter(Boolean))]
+    //     const uniqueMeals = [...new Set(dataForOptions.map(g => g.meal).filter(Boolean))]
 
-        setAirlines(uniqueAirlines.sort())
-        setSectors(uniqueSectors.sort())
-        setMeals(uniqueMeals.sort())
-    }
+    //     setAirlines(uniqueAirlines.sort())
+    //     setSectors(uniqueSectors.sort())
+    //     setMeals(uniqueMeals.sort())
+    // }
 
     const handleFilterChange = (filterName, value) => {
         const newFilters = { ...filters, [filterName]: value }
@@ -365,9 +362,8 @@ export default function AllGroups() {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="">All</option>
-                                {meals.map(meal => (
-                                    <option key={meal} value={meal}>{meal}</option>
-                                ))}
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
                             </select>
                         </div>
 
