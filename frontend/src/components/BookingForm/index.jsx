@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import axiosInstance from '../../api/axios'
+import { toast } from 'react-toastify'
 
 export default function BookingForm() {
     const navigate = useNavigate()
     const location = useLocation()
     const groupData = location.state?.groupData
-    console.log('BookingForm groupData:', groupData)
 
     const [formData, setFormData] = useState({
         contactPersonName: '',
@@ -14,6 +15,8 @@ export default function BookingForm() {
         infants: 0,
         passengers: []
     })
+
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const totalPassengers = parseInt(formData.adults) + parseInt(formData.children) + parseInt(formData.infants)
 
@@ -103,12 +106,90 @@ export default function BookingForm() {
     const calculateChildTotal = () => (parseInt(formData.children) || 0) * (groupData?.childPrice || groupData?.price || 0)
     const calculateInfantTotal = () => (parseInt(formData.infants) || 0) * (groupData?.infantPrice || (groupData?.price * 0.24) || 0)
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
-        console.log('Booking Data:', { ...formData, groupData })
-        // Add API call here
-        alert('Booking submitted successfully!')
-        navigate('/dashboard/all-groups')
+        
+        // Validate all passenger details are filled
+        const hasEmptyFields = formData.passengers.some(passenger => 
+            !passenger.givenName || 
+            !passenger.surName || 
+            !passenger.passport || 
+            !passenger.dateOfBirth || 
+            !passenger.passportExpiry
+        )
+
+        if (hasEmptyFields) {
+            toast.error('Please fill in all passenger details')
+            return
+        }
+
+        setIsSubmitting(true)
+
+        try {
+            // Prepare booking data according to API schema
+            const bookingData = {
+                groupId: groupData.id,
+                groupType: groupData.type,
+                airline: {
+                    name: groupData.airline?.airline_name || '',
+                    logoUrl: groupData.airline?.logo_url || ''
+                },
+                sector: groupData.sector,
+                pnr: groupData.pnr || '',
+                contactPersonName: formData.contactPersonName,
+                adultsCount: parseInt(formData.adults),
+                childrenCount: parseInt(formData.children),
+                infantsCount: parseInt(formData.infants),
+                totalPassengers: totalPassengers,
+                pricing: {
+                    adultPrice: groupData.price || 0,
+                    childPrice: groupData.childPrice || 0,
+                    infantPrice: groupData.infantPrice || (groupData.price * 0.24) || 0,
+                    adultTotal: calculateAdultTotal(),
+                    childTotal: calculateChildTotal(),
+                    infantTotal: Math.round(calculateInfantTotal()),
+                    grandTotal: Math.round(calculateTotalPrice())
+                },
+                passengers: formData.passengers,
+                flights: groupData.details?.map(flight => ({
+                    flightNo: flight.flight_no,
+                    flightDate: flight.flight_date,
+                    depDate: flight.dep_date,
+                    depTime: flight.dept_time,
+                    origin: flight.origin,
+                    destination: flight.destination,
+                    arrDate: flight.arv_date,
+                    arrTime: flight.arv_time,
+                    baggage: flight.baggage,
+                    meal: flight.meal
+                })) || [],
+                departureDate: groupData.dept_date,
+                arrivalDate: groupData.arv_date
+            }
+
+            console.log('Submitting booking data:', bookingData)
+
+            const response = await axiosInstance.post('/bookings', bookingData)
+
+            if (response.data.success) {
+                toast.success(`Booking confirmed! Reference: ${response.data.data.bookingReference}`)
+                // Navigate to bookings page or show confirmation
+                setTimeout(() => {
+                    navigate('/dashboard/all-groups', { 
+                        state: { 
+                            bookingSuccess: true, 
+                            bookingReference: response.data.data.bookingReference 
+                        } 
+                    })
+                }, 1500)
+            }
+        } catch (error) {
+            console.error('Error creating booking:', error)
+            const errorMessage = error.response?.data?.message || 'Failed to create booking. Please try again.'
+            toast.error(errorMessage)
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     if (!groupData) {
@@ -448,11 +529,16 @@ export default function BookingForm() {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="px-6 py-5 bg-linear-to-r from-gray-50 to-white border-t border-gray-200 rounded-b-lg flex justify-end gap-4">
+                    <div className="px-6 py-5 bg-gradient-to-r from-gray-50 to-white border-t border-gray-200 rounded-b-lg flex justify-end gap-4">
                         <button
                             type="button"
                             onClick={() => navigate('/dashboard/all-groups')}
-                            className="px-8 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 hover:scale-105 active:scale-95 transition-all duration-300 font-semibold shadow-sm hover:shadow-md flex items-center gap-2 transform"
+                            disabled={isSubmitting}
+                            className={`px-8 py-3 border-2 rounded-lg font-semibold shadow-sm flex items-center gap-2 transform transition-all duration-300
+                                ${isSubmitting
+                                    ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
+                                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 hover:scale-105 hover:shadow-md active:scale-95'
+                                }`}
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -461,12 +547,29 @@ export default function BookingForm() {
                         </button>
                         <button
                             type="submit"
-                            className="px-10 py-3 bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f] text-white rounded-lg hover:from-[#2d5a8f] hover:to-[#1e3a5f] hover:scale-105 active:scale-95 transition-all duration-300 font-bold shadow-lg hover:shadow-2xl flex items-center gap-2 transform"
+                            disabled={isSubmitting}
+                            className={`px-10 py-3 rounded-lg font-bold shadow-lg flex items-center gap-2 transform transition-all duration-300
+                                ${isSubmitting
+                                    ? 'bg-gray-400 text-white cursor-not-allowed'
+                                    : 'bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8f] text-white hover:from-[#2d5a8f] hover:to-[#1e3a5f] hover:scale-105 hover:shadow-2xl active:scale-95'
+                                }`}
                         >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                            Confirm Booking
+                            {isSubmitting ? (
+                                <>
+                                    <svg className="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Processing...
+                                </>
+                            ) : (
+                                <>
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Confirm Booking
+                                </>
+                            )}
                         </button>
                     </div>
                 </form>

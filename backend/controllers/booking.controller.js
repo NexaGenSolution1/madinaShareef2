@@ -1,0 +1,497 @@
+import Booking from '../models/Booking.js';
+
+// Create a new booking
+const createBooking = async (req, res) => {
+    try {
+        const {
+            groupId,
+            groupType,
+            airline,
+            sector,
+            pnr,
+            contactPersonName,
+            adultsCount,
+            childrenCount,
+            infantsCount,
+            totalPassengers,
+            pricing,
+            passengers,
+            flights,
+            departureDate,
+            arrivalDate
+        } = req.body;
+
+        // Validate passenger count matches passenger details
+        if (passengers.length !== totalPassengers) {
+            return res.status(400).json({
+                success: false,
+                message: 'Passenger count does not match passenger details'
+            });
+        }
+
+        // Validate pricing totals
+        const calculatedTotal = pricing.adultTotal + pricing.childTotal + pricing.infantTotal;
+        if (Math.abs(calculatedTotal - pricing.grandTotal) > 0.01) {
+            return res.status(400).json({
+                success: false,
+                message: 'Price calculation mismatch'
+            });
+        }
+
+        // Create new booking
+        const booking = new Booking({
+            groupId,
+            groupType,
+            airline,
+            sector,
+            pnr,
+            contactPersonName,
+            adultsCount,
+            childrenCount,
+            infantsCount,
+            totalPassengers,
+            pricing,
+            passengers,
+            flights,
+            departureDate,
+            arrivalDate,
+            userId: req.user._id,
+            status: 'pending'
+        });
+
+        await booking.save();
+
+        res.status(201).json({
+            success: true,
+            message: 'Booking created successfully',
+            data: booking
+        });
+    } catch (error) {
+        console.error('Error creating booking:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to create booking',
+            error: error.message
+        });
+    }
+};
+
+// Get all bookings (with filters and pagination)
+const getAllBookings = async (req, res) => {
+    try {
+        const {
+            page = 1,
+            limit = 10,
+            status,
+            sector,
+            airline,
+            fromDate,
+            toDate,
+            search
+        } = req.query;
+
+        const query = {};
+
+        // Apply filters
+        if (status) {
+            query.status = status;
+        }
+
+        if (sector) {
+            query.sector = sector;
+        }
+
+        if (airline) {
+            query['airline.name'] = airline;
+        }
+
+        if (fromDate || toDate) {
+            query.departureDate = {};
+            if (fromDate) {
+                query.departureDate.$gte = new Date(fromDate);
+            }
+            if (toDate) {
+                query.departureDate.$lte = new Date(toDate);
+            }
+        }
+
+        if (search) {
+            query.$or = [
+                { bookingReference: { $regex: search, $options: 'i' } },
+                { contactPersonName: { $regex: search, $options: 'i' } },
+                { pnr: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        // If not admin, filter by user
+        if (req.user.role !== 'admin') {
+            query.userId = req.user._id;
+        }
+
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
+        const bookings = await Booking.find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(parseInt(limit))
+            .populate('userId', 'name email');
+
+        const total = await Booking.countDocuments(query);
+
+        res.json({
+            success: true,
+            data: bookings,
+            pagination: {
+                currentPage: parseInt(page),
+                totalPages: Math.ceil(total / parseInt(limit)),
+                totalBookings: total,
+                limit: parseInt(limit)
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching bookings:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch bookings',
+            error: error.message
+        });
+    }
+};
+
+// Get booking by ID
+const getBookingById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const booking = await Booking.findById(id).populate('userId', 'name email');
+
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: 'Booking not found'
+            });
+        }
+
+        // Check if user has permission to view this booking
+        if (req.user.role !== 'admin' && booking.userId._id.toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to view this booking'
+            });
+        }
+
+        res.json({
+            success: true,
+            data: booking
+        });
+    } catch (error) {
+        console.error('Error fetching booking:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch booking',
+            error: error.message
+        });
+    }
+};
+
+// Get booking by reference
+const getBookingByReference = async (req, res) => {
+    try {
+        const { reference } = req.params;
+
+        const booking = await Booking.findOne({ bookingReference: reference })
+            .populate('userId', 'name email');
+
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: 'Booking not found'
+            });
+        }
+
+        // Check if user has permission to view this booking
+        if (req.user.role !== 'admin' && booking.userId._id.toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to view this booking'
+            });
+        }
+
+        res.json({
+            success: true,
+            data: booking
+        });
+    } catch (error) {
+        console.error('Error fetching booking:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch booking',
+            error: error.message
+        });
+    }
+};
+
+// Update booking status
+const updateBookingStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status, notes } = req.body;
+
+        const booking = await Booking.findById(id);
+
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: 'Booking not found'
+            });
+        }
+
+        // Only admin can update booking status
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to update booking status'
+            });
+        }
+
+        booking.status = status;
+        if (notes) {
+            booking.notes = notes;
+        }
+
+        await booking.save();
+
+        res.json({
+            success: true,
+            message: 'Booking status updated successfully',
+            data: booking
+        });
+    } catch (error) {
+        console.error('Error updating booking:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update booking',
+            error: error.message
+        });
+    }
+};
+
+// Update booking details (limited fields)
+const updateBooking = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { contactPersonName, notes } = req.body;
+
+        const booking = await Booking.findById(id);
+
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: 'Booking not found'
+            });
+        }
+
+        // Check permissions
+        if (req.user.role !== 'admin' && booking.userId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to update this booking'
+            });
+        }
+
+        // Only allow updates if booking is pending
+        if (booking.status !== 'pending') {
+            return res.status(400).json({
+                success: false,
+                message: 'Can only update pending bookings'
+            });
+        }
+
+        if (contactPersonName) {
+            booking.contactPersonName = contactPersonName;
+        }
+        if (notes !== undefined) {
+            booking.notes = notes;
+        }
+
+        await booking.save();
+
+        res.json({
+            success: true,
+            message: 'Booking updated successfully',
+            data: booking
+        });
+    } catch (error) {
+        console.error('Error updating booking:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update booking',
+            error: error.message
+        });
+    }
+};
+
+// Cancel booking
+const cancelBooking = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const booking = await Booking.findById(id);
+
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: 'Booking not found'
+            });
+        }
+
+        // Check permissions
+        if (req.user.role !== 'admin' && booking.userId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to cancel this booking'
+            });
+        }
+
+        // Cannot cancel already completed or cancelled bookings
+        if (booking.status === 'completed' || booking.status === 'cancelled') {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot cancel ${booking.status} booking`
+            });
+        }
+
+        booking.status = 'cancelled';
+        await booking.save();
+
+        res.json({
+            success: true,
+            message: 'Booking cancelled successfully',
+            data: booking
+        });
+    } catch (error) {
+        console.error('Error cancelling booking:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to cancel booking',
+            error: error.message
+        });
+    }
+};
+
+// Delete booking (admin only)
+const deleteBooking = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Only admin can delete bookings
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to delete bookings'
+            });
+        }
+
+        const booking = await Booking.findByIdAndDelete(id);
+
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: 'Booking not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Booking deleted successfully'
+        });
+    } catch (error) {
+        console.error('Error deleting booking:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to delete booking',
+            error: error.message
+        });
+    }
+};
+
+// Get booking statistics (admin only)
+const getBookingStatistics = async (req, res) => {
+    try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized'
+            });
+        }
+
+        const totalBookings = await Booking.countDocuments();
+        const pendingBookings = await Booking.countDocuments({ status: 'pending' });
+        const confirmedBookings = await Booking.countDocuments({ status: 'confirmed' });
+        const cancelledBookings = await Booking.countDocuments({ status: 'cancelled' });
+        const completedBookings = await Booking.countDocuments({ status: 'completed' });
+
+        // Get total revenue from confirmed and completed bookings
+        const revenueData = await Booking.aggregate([
+            {
+                $match: {
+                    status: { $in: ['confirmed', 'completed'] }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalRevenue: { $sum: '$pricing.grandTotal' }
+                }
+            }
+        ]);
+
+        const totalRevenue = revenueData.length > 0 ? revenueData[0].totalRevenue : 0;
+
+        // Get bookings by sector
+        const bookingsBySector = await Booking.aggregate([
+            {
+                $group: {
+                    _id: '$sector',
+                    count: { $sum: 1 },
+                    revenue: { $sum: '$pricing.grandTotal' }
+                }
+            },
+            {
+                $sort: { count: -1 }
+            }
+        ]);
+
+        res.json({
+            success: true,
+            data: {
+                totalBookings,
+                pendingBookings,
+                confirmedBookings,
+                cancelledBookings,
+                completedBookings,
+                totalRevenue,
+                bookingsBySector
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching statistics:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch statistics',
+            error: error.message
+        });
+    }
+};
+
+export {
+    createBooking,
+    getAllBookings,
+    getBookingById,
+    getBookingByReference,
+    updateBookingStatus,
+    updateBooking,
+    cancelBooking,
+    deleteBooking,
+    getBookingStatistics
+};
