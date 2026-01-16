@@ -32,6 +32,16 @@ const airlineStorage = new CloudinaryStorage({
   }
 });
 
+// Configure storage for profile logos
+const profileStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'profile-logos',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'],
+    transformation: [{ width: 500, height: 500, crop: 'limit' }]
+  }
+});
+
 // Default storage (can be used for both)
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
@@ -43,5 +53,8 @@ const storage = new CloudinaryStorage({
 });
 
 const upload = multer({ storage: storage });
+const uploadBankLogo = multer({ storage: bankStorage });
+const uploadAirlineLogo = multer({ storage: airlineStorage });
+const uploadProfileLogo = multer({ storage: profileStorage });
 
-export { cloudinary, upload };
+export { cloudinary, upload, uploadBankLogo, uploadAirlineLogo, uploadProfileLogo };

@@ -16,6 +16,7 @@ import {
 } from "../controllers/auth.controller.js";
 
 import { protect, adminOnly } from "../middleware/auth.middleware.js";
+import { uploadProfileLogo } from "../config/cloudinary.js";
 
 const router = express.Router();
 
@@ -28,10 +29,14 @@ router.post("/login", loginUser);
 
 router.get("/profile", protect, getProfile);
 
+// Update own profile (for logged-in users)
+// Supports both base64 in body or file upload via multipart/form-data
+router.put("/profile", protect, uploadProfileLogo.single('logo'), updateUserProfile);
+
 router.get("/users", protect, adminOnly, getAllUsers);
 router.get("/users/:id", protect, adminOnly, getUserById);
 
-router.put("/users/:id", protect, adminOnly, updateUserProfile);
+router.put("/users/:id", protect, adminOnly, uploadProfileLogo.single('logo'), updateUserProfile);
 
 router.patch("/users/:id/status", protect, adminOnly, updateUserStatus);
 

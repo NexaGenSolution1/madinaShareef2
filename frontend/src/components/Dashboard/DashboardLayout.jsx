@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { FaBars, FaTimes, FaUniversity, FaMoneyBillWave, FaSignOutAlt, FaHome, FaUsers, FaBook, FaKey } from 'react-icons/fa';
+import { FaBars, FaTimes, FaUniversity, FaMoneyBillWave, FaSignOutAlt, FaHome, FaUsers, FaBook, FaKey, FaUserCircle } from 'react-icons/fa';
 import './DashboardLayout.css';
 import logo from '../../assets/images/logo.webp';
 
@@ -24,6 +24,7 @@ const DashboardLayout = ({ user, handleLogout }) => {
     { path: '/dashboard/banks', icon: <FaUniversity />, label: 'Bank' },
     { path: '/dashboard/payment', icon: <FaMoneyBillWave />, label: 'Payment' },
     { path: '/dashboard/ledger', icon: <FaBook />, label: 'Ledger' },
+    { path: '/dashboard/profile', icon: <FaUserCircle />, label: 'My Profile' },
     { path: '/dashboard/change-password', icon: <FaKey />, label: 'Change Password' },
   ];
 

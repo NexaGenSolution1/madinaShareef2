@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { FaUniversity, FaMoneyBillWave, FaUsers, FaBook } from 'react-icons/fa';
+import { FaUniversity, FaMoneyBillWave, FaUsers, FaBook, FaUserCircle } from 'react-icons/fa';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -31,13 +31,20 @@ const Dashboard = () => {
       icon: <FaBook />,
       link: '/dashboard/ledger',
       color: '#8b5cf6'
+    },
+    {
+      title: 'Profile',
+      description: 'View and update your profile information',
+      icon: <FaUserCircle />,
+      link: '/dashboard/profile',
+      color: '#ec4899'
     }
   ];
 
   return (
     <div className="dashboard-home">
       <div className="dashboard-welcome">
-        <h2>Welcome to Your Dashboard</h2>
+        <h2>Welcome to Agent Dashboard</h2>
         <p>Manage your bookings, payments, and account information</p>
       </div>
 

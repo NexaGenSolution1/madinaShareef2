@@ -34,7 +34,9 @@ app.use(
     maxAge: 86400 // 24 hours
   })
 );
-app.use(express.json());
+// Increase body-parser limit for file uploads (base64 images)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser());
 
 

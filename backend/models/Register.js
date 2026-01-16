@@ -73,6 +73,12 @@ const RegisterSchema = new mongoose.Schema(
       default: ""
     },
 
+    logo: {
+      type: String,
+      trim: true,
+      default: ""
+    },
+
     agencyCode: {
       type: String,
       unique: true,

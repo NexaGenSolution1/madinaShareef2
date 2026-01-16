@@ -278,10 +278,13 @@ export const updateUserProfile = async (req, res) => {
       flightMarginAmount,
       status,
       password,
-      registeredFrom
+      registeredFrom,
+      logo
     } = req.body;
 
-    const user = await Register.findById(req.params.id).select("+password");
+    // If req.params.id exists, use it (admin updating user), otherwise use req.user.id (user updating own profile)
+    const userId = req.params.id || req.user.id;
+    const user = await Register.findById(userId).select("+password");
 
     if (!user) {
       return res.status(404).json({
@@ -302,6 +305,14 @@ export const updateUserProfile = async (req, res) => {
     if (flightMarginPercent !== undefined) user.flightMarginPercent = flightMarginPercent;
     if (flightMarginAmount !== undefined) user.flightMarginAmount = flightMarginAmount;
     if (status !== undefined) user.status = status;
+    
+    // Handle logo upload (supports base64 or Cloudinary URL from file upload)
+    if (logo !== undefined) {
+      user.logo = logo;
+    } else if (req.file) {
+      // If using Cloudinary multer upload
+      user.logo = req.file.path;
+    }
 
     if (registeredFrom !== undefined) {
       user.registeredFrom = {
