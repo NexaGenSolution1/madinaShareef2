@@ -12,6 +12,7 @@ import Payment from './Payment'
 import DashboardLayout from '../../components/Dashboard/DashboardLayout'
 import Dashboard from './Dashboard'
 import Ledger from './Ledger'
+import ChangePassword from '../../components/ChangePassword/ChnagePassword'
 
 export default function Frontend() {
     const [user, setUser] = useState(null);
@@ -104,6 +105,7 @@ export default function Frontend() {
                 <Route path="banks" element={<Bank />} />
                 <Route path="payment" element={<Payment />} />
                 <Route path="ledger" element={<Ledger />} />
+                <Route path="change-password" element={<ChangePassword />} />
             </Route>
 
             {/* 404 Page */}
