@@ -12,14 +12,14 @@ import madinaImg from '../../assets/images/madina.webp'
 export default function HeroSection() {
     return (
         <section
-            style={{ backgroundImage: `url(${heroImg})` }}
+            // style={{ backgroundImage: `url(${heroImg})` }}
+            style={{ backgroundImage: `url(https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)` }}
             className='relative bg-cover bg-center mt-17 md:mt-21 z-1'
         >
             <div className='realtive main-container min-h-[60vh] text-white py-18 sm:py-24 z-10'>
                 <div className='flex justify-center'>
                     <div className='relative w-fit'>
-                        <h1 className='relative text-[#2A166D] text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-center font-semibold! z-1'>Brother's International Travels</h1>
-                        {/* <div className='absolute bottom-0 left-0 w-full h-[35%] bg-[#d6d30b] rounded-md z-0'></div> */}
+                        <h1 className='relative text-white bg-linear-to-br from-black/60 via-black/50 to-black/60 backdrop-blur-md border-2 border-[#2A166D]/20 rounded-3xl px-6 py-5 text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-center font-semibold! tracking-wide shadow-2xl shadow-black/50 z-1' >Brother's International Travels</h1>
                     </div>
                 </div>
 
