@@ -44,7 +44,6 @@ app.use("/api/bank", bankRoutes);
 app.use("/api/sector", sectorRoutes);
 app.use("/api/airline", airlineRoutes);
 app.use("/api/payment", paymentRoutes);
-app.use("/api/booking", bookingRoutes);
 app.use("/api/al-haider", alHaiderAPIRoutes);
 app.use("/api/bookings", bookingRoutes);
 
