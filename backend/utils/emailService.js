@@ -183,7 +183,7 @@ export const sendPasswordResetEmail = async (email, resetToken, userId, userName
     console.log(`📤 Attempting to send password reset email to: ${email}`);
 
     // Construct reset link
-    const frontendURL = process.env.FRONTEND_URL || "http://localhost:5173";
+    const frontendURL = process.env.FRONTEND_URL || "https://brothersinttvl.com";
     const resetLink = `${frontendURL}/auth/forgot-password?token=${resetToken}&userId=${userId}`;
 
     const mailOptions = {
@@ -337,7 +337,7 @@ const getCredentialsEmailHTML = (agentCode, email, password, userName, companyNa
           </div>
 
           <div style="text-align: center;">
-            <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/login" class="button">Login to Your Account</a>
+            <a href="${process.env.FRONTEND_URL || 'https://brothersinttvl.com'}/auth/login" class="button">Login to Your Account</a>
           </div>
 
           <div class="warning">
@@ -388,7 +388,7 @@ export const sendCredentialsEmail = async (email, agentCode, password, userName,
       to: email,
       subject: "Your Agent Credentials - Brother International",
       html: getCredentialsEmailHTML(agentCode, email, password, userName, companyName),
-      text: `Hello ${userName},\n\nWelcome to Brother International! Your agency account has been created successfully.\n\nCompany: ${companyName}\n\nYour Login Credentials:\nAgent Code: ${agentCode}\nEmail: ${email}\nPassword: ${password}\n\nLogin URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/login\n\nSecurity Tips:\n- Keep your credentials safe and secure\n- Do not share your password with anyone\n- We recommend changing your password after first login\n\nBest regards,\nBrother International Team`,
+      text: `Hello ${userName},\n\nWelcome to Brother International! Your agency account has been created successfully.\n\nCompany: ${companyName}\n\nYour Login Credentials:\nAgent Code: ${agentCode}\nEmail: ${email}\nPassword: ${password}\n\nLogin URL: ${process.env.FRONTEND_URL || 'https://brothersinttvl.com'}/auth/login\n\nSecurity Tips:\n- Keep your credentials safe and secure\n- Do not share your password with anyone\n- We recommend changing your password after first login\n\nBest regards,\nBrother International Team`,
     };
 
     const info = await transporter.sendMail(mailOptions);
