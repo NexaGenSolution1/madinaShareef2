@@ -373,7 +373,7 @@ const Payment = () => {
             </div>
 
             {/* Submit Button */}
-            <div className="flex justify-center">
+            <div className="flex justify-end">
               <button
                 type="submit"
                 disabled={submitting}
@@ -481,7 +481,7 @@ const Payment = () => {
 
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8f]">
+              <thead className="bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f]">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                         #

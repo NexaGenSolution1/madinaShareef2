@@ -27,6 +27,14 @@ const Ledger = () => {
     return { debit, credit, closingBalance };
   };
 
+  // Format currency
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-PK", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
   const fetchLedger = async () => {
     try {
       setFetching(true);
@@ -49,6 +57,7 @@ const Ledger = () => {
       });
 
       if (response.data.success) {
+        console.log('Fetched ledger data:', response.data.data);
         setLedgerData(response.data.data || []);
       }
     } catch (error) {
@@ -88,11 +97,11 @@ const Ledger = () => {
       
       if (type === 'copy') {
         const tableData = filteredData.map(entry => 
-          `${entry.voucherId || '-'}\t${entry.date ? new Date(entry.date).toLocaleDateString() : '-'}\t${entry.ticketNumber || '-'}\t${entry.description || '-'}\t${entry.debit > 0 ? entry.debit.toFixed(2) : ''}\t${entry.credit > 0 ? entry.credit.toFixed(2) : ''}`
+          `${entry.voucherId || '-'}\t${entry.date ? new Date(entry.date).toLocaleDateString() : '-'}\t${entry.ticketNumber || '-'}\t${entry.description || '-'}\t${entry.debit > 0 ? formatCurrency(entry.debit) : ''}\t${entry.credit > 0 ? formatCurrency(entry.credit) : ''}`
         ).join('\n');
         
         const header = 'Voucher Id\tDate\tTicket #\tDescription\tDebit\tCredit\n';
-        const totals = `\nTotal\t\t\t\t${calculateTotals().debit.toFixed(2)}\t${calculateTotals().credit.toFixed(2)}`;
+        const totals = `\nTotal\t\t\t\t${formatCurrency(calculateTotals().debit)}\t${formatCurrency(calculateTotals().credit)}`;
         const fullText = `Ledger of ${userName.toUpperCase()}\nFrom ${filters.dateFrom} To ${filters.dateTo}\n\n${header}${tableData}${totals}`;
         
         await navigator.clipboard.writeText(fullText);
@@ -159,6 +168,7 @@ const Ledger = () => {
       </div>
     );
   }
+  
 
   if (error && ledgerData.length === 0) {
     return (
@@ -353,10 +363,10 @@ const Ledger = () => {
                       {item.description || "-"}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-semibold text-gray-900">
-                      {item.debit ? item.debit.toFixed(2) : ""}
+                      {item.debit ? formatCurrency(item.debit) : ""}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-semibold text-gray-900">
-                      {item.credit ? item.credit.toFixed(2) : ""}
+                      {item.credit ? formatCurrency(item.credit) : ""}
                     </td>
                   </tr>
                 ))
@@ -368,10 +378,10 @@ const Ledger = () => {
                   Total:
                 </td>
                 <td className="px-4 py-3 text-sm font-bold text-right text-gray-900">
-                  {totals.debit.toFixed(2)}
+                  {formatCurrency(totals.debit)}
                 </td>
                 <td className="px-4 py-3 text-sm font-bold text-right text-gray-900">
-                  {totals.credit.toFixed(2)}
+                  {formatCurrency(totals.credit)}
                 </td>
               </tr>
             </tfoot>
@@ -383,16 +393,16 @@ const Ledger = () => {
       <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-lg shadow p-4">
           <div className="text-sm text-gray-600 mb-1">Total Debit</div>
-          <div className="text-2xl font-bold text-blue-600">{totals.debit.toFixed(2)}</div>
+          <div className="text-2xl font-bold text-blue-600">{formatCurrency(totals.debit)}</div>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
           <div className="text-sm text-gray-600 mb-1">Total Credit</div>
-          <div className="text-2xl font-bold text-green-600">{totals.credit.toFixed(2)}</div>
+          <div className="text-2xl font-bold text-green-600">{formatCurrency(totals.credit)}</div>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
           <div className="text-sm text-gray-600 mb-1">Closing Balance</div>
           <div className={`text-2xl font-bold ${totals.closingBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {totals.closingBalance.toFixed(2)}
+            {formatCurrency(totals.closingBalance)}
           </div>
         </div>
       </div>

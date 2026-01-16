@@ -92,6 +92,7 @@ export const getPayments = async (req, res) => {
 
     // Calculate total amount
     const total = payments.reduce((sum, payment) => sum + payment.amount, 0);
+    console.log('Payments Data:', payments);
 
     res.status(200).json({
       success: true,
@@ -254,7 +255,7 @@ export const getLedgerByUser = async (req, res) => {
 
     // Format ledger entries
     const ledgerEntries = payments.map(payment => ({
-      voucherId: payment._id,
+      voucherId: payment.voucherId,
       date: payment.date,
       description: payment.description,
       debit: payment.status === "Posted" ? payment.amount : 0,
@@ -293,7 +294,7 @@ export const exportLedgerCSV = async (req, res) => {
       .sort({ date: 1 });
 
     const ledgerEntries = payments.map(payment => ({
-      voucherId: payment._id,
+      voucherId: payment.voucherId,
       date: payment.date,
       description: payment.description,
       debit: payment.status === "Posted" ? payment.amount : 0,
@@ -352,7 +353,7 @@ export const exportLedgerExcel = async (req, res) => {
       .sort({ date: 1 });
 
     const ledgerEntries = payments.map(payment => ({
-      voucherId: payment._id.toString(),
+      voucherId: payment.voucherId,
       date: payment.date,
       description: payment.description,
       debit: payment.status === "Posted" ? payment.amount : 0,
@@ -470,7 +471,7 @@ export const exportLedgerPDF = async (req, res) => {
     const openingBalance = 0; // Replace with actual calculation if needed
 
     const ledgerEntries = payments.map(payment => ({
-      voucherId: payment._id.toString(),
+      voucherId: payment.voucherId,
       date: payment.date,
       description: payment.description,
       debit: payment.status === "Posted" ? payment.amount : 0,
