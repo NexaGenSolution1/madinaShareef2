@@ -19,7 +19,7 @@ export default function HeroSection() {
             <div className='realtive main-container min-h-[60vh] text-white py-18 sm:py-24 z-10'>
                 <div className='flex justify-center'>
                     <div className='relative w-fit'>
-                        <h1 className='relative text-white bg-linear-to-br from-black/60 via-black/50 to-black/60 backdrop-blur-md border-2 border-[#2A166D]/20 rounded-3xl px-6 py-5 text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-center font-semibold! tracking-wide shadow-2xl shadow-black/50 z-1' >Brother's International Travels</h1>
+                        <h1 className='relative text-white bg-linear-to-br from-black/60 via-black/50 to-black/60 backdrop-blur-md border-2 border-white/40 rounded-3xl px-6 py-5 text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-center font-semibold! tracking-wide shadow-2xl shadow-black/50 z-1' >Brother's International Travels</h1>
                     </div>
                 </div>
 
