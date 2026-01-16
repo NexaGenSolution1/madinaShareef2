@@ -100,7 +100,7 @@ export default function Frontend() {
             }>
                 <Route index element={<Dashboard />} />
                 <Route path="all-groups" element={<AllGroups />} />
-                <Route path="booking" element={<BookingForm />} />
+                <Route path="booking" element={<BookingForm user={user} />} />
                 <Route path="banks" element={<Bank />} />
                 <Route path="payment" element={<Payment />} />
                 <Route path="ledger" element={<Ledger />} />

@@ -6,6 +6,10 @@ import {
   getPaymentById,
   updatePayment,
   deletePayment,
+  getLedgerByUser,
+  exportLedgerCSV,
+  exportLedgerExcel,
+  exportLedgerPDF,
 } from "../controllers/payment.controller.js";
 
 const router = express.Router();
@@ -24,5 +28,13 @@ router.put("/:id", upload.single("receipt"), updatePayment);
 
 // Delete payment
 router.delete("/:id", deletePayment);
+
+// Get ledger for a specific user
+router.get("/ledger/:userId", getLedgerByUser);
+
+// Export ledger in different formats
+router.get("/ledger/:userId/export/csv", exportLedgerCSV);
+router.get("/ledger/:userId/export/excel", exportLedgerExcel);
+router.get("/ledger/:userId/export/pdf", exportLedgerPDF);
 
 export default router;
