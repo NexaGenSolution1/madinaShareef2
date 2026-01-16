@@ -9,7 +9,6 @@ import bankRoutes from "./routes/bank.routes.js";
 import sectorRoutes from "./routes/sector.routes.js";
 import airlineRoutes from "./routes/airline.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
-import bookingRoutes from "./routes/booking.routes.js";
 import testEmail from "./utils/testEmail.js";
 import alHaiderAPIRoutes from "./routes/alHaiderAPI.routes.js";
 import bookingRoutes from "./routes/booking.routes.js";
