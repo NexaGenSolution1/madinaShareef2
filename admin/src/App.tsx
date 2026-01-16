@@ -35,6 +35,8 @@ import ViewPaymentVoucher from "./pages/ViewPaymentVoucher";
 import EditPaymentVoucher from "./pages/EditPaymentVoucher";
 import ViewAccounts from "./pages/ViewAccounts";
 import Ledger from "./pages/Ledger";
+import AllBookings from "./pages/AllBookings";
+import BookingDetail from "./pages/BookingDetail";
 
 export default function App() {
   return (
@@ -57,6 +59,8 @@ export default function App() {
                 <Route path="/add-bank" element={<AddBank />} />
                 <Route path="/sector" element={<Sector />} />
                 <Route path="/airline" element={<Airline />} />
+                <Route path="/all-bookings" element={<AllBookings />} />
+                <Route path="/booking-detail/:id" element={<BookingDetail />} />
                 <Route path="/group-ticketing" element={<GroupTicketing />} />
                 <Route path="/group-ticketing/create" element={<GroupTicketingForm />} />
                 <Route path="/group-ticketing/edit/:id" element={<GroupTicketingForm />} />

@@ -27,11 +27,11 @@ const passengerSchema = new mongoose.Schema({
         trim: true
     },
     dateOfBirth: {
-        type: String,
+        type: Date,
         required: true
     },
     passportExpiry: {
-        type: String,
+        type: Date,
         required: true
     }
 });
@@ -47,6 +47,7 @@ const bookingSchema = new mongoose.Schema({
         required: true
     },
     airline: {
+        id: String,
         name: {
             type: String,
             required: true

@@ -14,6 +14,8 @@ import Dashboard from './Dashboard'
 import Ledger from './Ledger'
 import ChangePassword from '../../components/ChangePassword/ChnagePassword'
 import Profile from '../../components/Profile/Profile'
+import MyBookings from '../MyBookings'
+import BookingDetail from '../BookingDetail'
 
 export default function Frontend() {
     const [user, setUser] = useState(null);
@@ -106,6 +108,9 @@ export default function Frontend() {
                 <Route path="banks" element={<Bank />} />
                 <Route path="payment" element={<Payment />} />
                 <Route path="ledger" element={<Ledger />} />
+                <Route path="my-bookings" element={<MyBookings />} />
+                <Route path="booking-detail/:id" element={<BookingDetail />} />
+                <Route path="edit-booking/:id" element={<BookingForm />} />
                 <Route path="change-password" element={<ChangePassword />} />
                 <Route path="profile" element={<Profile />} />
             </Route>

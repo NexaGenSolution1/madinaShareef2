@@ -87,10 +87,10 @@ export default function AllGroups() {
                         meal: flight.meal
                     })),
                     airline: {
-                        id: null,
+                        id: adminAirlineApiResponse.data.data.find(airline => airline.airlineName === group.airline)?._id || null,
                         airline_name: group.airline,
-                        short_name: null,
-                        logo_url: adminAirlineApiResponse.data.data.filter(airline => airline.airlineName === group.airline)[0]?.logo || null
+                        short_name: adminAirlineApiResponse.data.data.find(airline => airline.airlineName === group.airline)?.shortCode || null,
+                        logo_url: adminAirlineApiResponse.data.data.find(airline => airline.airlineName === group.airline)?.logo || null
                     }
                 }))
 

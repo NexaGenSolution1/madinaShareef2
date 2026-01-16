@@ -56,7 +56,7 @@ const createBooking = async (req, res) => {
             flights,
             departureDate,
             arrivalDate,
-            userId: req.user._id.toString(),
+            userId: req.user._id,
             status: 'pending'
         });
 
@@ -134,7 +134,7 @@ const getAllBookings = async (req, res, next) => {
         }
 
         // If not admin, filter by user
-        if (req.user.role !== 'admin') {
+        if (req.user.role !== 'Admin') {
             query.userId = req.user._id;
         }
 
@@ -183,7 +183,15 @@ const getBookingById = async (req, res, next) => {
         }
 
         // Check if user has permission to view this booking
-        if (req.user.role !== 'admin' && booking.userId._id.toString() !== req.user._id.toString()) {
+        const bookingUserId = booking.userId._id ? booking.userId._id.toString() : booking.userId.toString();
+        console.log('Authorization check:', {
+            userRole: req.user.role,
+            bookingUserId,
+            requestUserId: req.user._id.toString(),
+            isMatch: bookingUserId === req.user._id.toString()
+        });
+        
+        if (req.user.role !== 'Admin' && bookingUserId !== req.user._id.toString()) {
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized to view this booking'
@@ -220,7 +228,8 @@ const getBookingByReference = async (req, res, next) => {
         }
 
         // Check if user has permission to view this booking
-        if (req.user.role !== 'admin' && booking.userId._id.toString() !== req.user._id.toString()) {
+        const bookingUserId = booking.userId._id ? booking.userId._id.toString() : booking.userId.toString();
+        if (req.user.role !== 'Admin' && bookingUserId !== req.user._id.toString()) {
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized to view this booking'
@@ -257,7 +266,7 @@ const updateBookingStatus = async (req, res, next) => {
         }
 
         // Only admin can update booking status
-        if (req.user.role !== 'admin') {
+        if (req.user.role !== 'Admin') {
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized to update booking status'
@@ -290,7 +299,7 @@ const updateBookingStatus = async (req, res, next) => {
 const updateBooking = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { contactPersonName, notes } = req.body;
+        const { contactPersonName, notes, adultsCount, childrenCount, infantsCount, passengers, pricing } = req.body;
 
         const booking = await Booking.findById(id);
 
@@ -302,7 +311,7 @@ const updateBooking = async (req, res, next) => {
         }
 
         // Check permissions
-        if (req.user.role !== 'admin' && booking.userId.toString() !== req.user._id.toString()) {
+        if (req.user.role !== 'Admin' && booking.userId.toString() !== req.user._id.toString()) {
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized to update this booking'
@@ -322,6 +331,22 @@ const updateBooking = async (req, res, next) => {
         }
         if (notes !== undefined) {
             booking.notes = notes;
+        }
+        if (adultsCount !== undefined) {
+            booking.adultsCount = adultsCount;
+        }
+        if (childrenCount !== undefined) {
+            booking.childrenCount = childrenCount;
+        }
+        if (infantsCount !== undefined) {
+            booking.infantsCount = infantsCount;
+        }
+        if (passengers !== undefined) {
+            booking.passengers = passengers;
+            booking.totalPassengers = adultsCount + childrenCount + infantsCount;
+        }
+        if (pricing !== undefined) {
+            booking.pricing = pricing;
         }
 
         await booking.save();
@@ -356,15 +381,15 @@ const cancelBooking = async (req, res, next) => {
         }
 
         // Check permissions
-        if (req.user.role !== 'admin' && booking.userId.toString() !== req.user._id.toString()) {
+        if (req.user.role !== 'Admin' && booking.userId.toString() !== req.user._id.toString()) {
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized to cancel this booking'
             });
         }
 
-        // Cannot cancel already completed or cancelled bookings
-        if (booking.status === 'completed' || booking.status === 'cancelled') {
+        // Cannot cancel already cancelled bookings
+        if (booking.status === 'cancelled') {
             return res.status(400).json({
                 success: false,
                 message: `Cannot cancel ${booking.status} booking`
@@ -395,7 +420,7 @@ const deleteBooking = async (req, res, next) => {
         const { id } = req.params;
 
         // Only admin can delete bookings
-        if (req.user.role !== 'admin') {
+        if (req.user.role !== 'Admin') {
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized to delete bookings'
@@ -428,7 +453,7 @@ const deleteBooking = async (req, res, next) => {
 // Get booking statistics (admin only)
 const getBookingStatistics = async (req, res, next) => {
     try {
-        if (req.user.role !== 'admin') {
+        if (req.user.role !== 'Admin') {
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized'
@@ -439,13 +464,12 @@ const getBookingStatistics = async (req, res, next) => {
         const pendingBookings = await Booking.countDocuments({ status: 'pending' });
         const confirmedBookings = await Booking.countDocuments({ status: 'confirmed' });
         const cancelledBookings = await Booking.countDocuments({ status: 'cancelled' });
-        const completedBookings = await Booking.countDocuments({ status: 'completed' });
 
-        // Get total revenue from confirmed and completed bookings
+        // Get total revenue from confirmed bookings
         const revenueData = await Booking.aggregate([
             {
                 $match: {
-                    status: { $in: ['confirmed', 'completed'] }
+                    status: 'confirmed'
                 }
             },
             {
@@ -479,7 +503,6 @@ const getBookingStatistics = async (req, res, next) => {
                 pendingBookings,
                 confirmedBookings,
                 cancelledBookings,
-                completedBookings,
                 totalRevenue,
                 bookingsBySector
             }

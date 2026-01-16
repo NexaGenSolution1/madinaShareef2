@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import axiosInstance from '../../api/axios'
 import { toast } from 'react-toastify'
 
 export default function BookingForm() {
     const navigate = useNavigate()
     const location = useLocation()
-    const groupData = location.state?.groupData
-    console.log('BookingForm loaded with groupData:', groupData)
-
+    const { id: bookingId } = useParams()
+    const isEditMode = !!bookingId
+    
     const [formData, setFormData] = useState({
         contactPersonName: '',
         adults: 1,
@@ -18,6 +18,92 @@ export default function BookingForm() {
     })
 
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [loadingBooking, setLoadingBooking] = useState(isEditMode)
+    const [existingBooking, setExistingBooking] = useState(null)
+    const [groupData, setGroupData] = useState(location.state?.groupData || null)
+    
+    console.log('BookingForm loaded with groupData:', groupData, 'editMode:', isEditMode, 'bookingId:', bookingId)
+
+    // Load existing booking if in edit mode
+    useEffect(() => {
+        if (isEditMode && bookingId) {
+            fetchBookingForEdit()
+        }
+    }, [bookingId, isEditMode])
+
+    const fetchBookingForEdit = async () => {
+        try {
+            setLoadingBooking(true)
+            const response = await axiosInstance.get(`/bookings/${bookingId}`)
+            
+            if (response.data.success) {
+                const booking = response.data.data
+                
+                // Check if booking can be edited
+                if (booking.status !== 'pending') {
+                    toast.error('Can only edit pending bookings')
+                    navigate('/dashboard/my-bookings')
+                    return
+                }
+
+                setExistingBooking(booking)
+                
+                // Reconstruct groupData from booking for display and pricing
+                const reconstructedGroupData = {
+                    id: booking.groupId,
+                    type: booking.groupType,
+                    airline: {
+                        id: booking.airline?.id || null,
+                        airline_name: booking.airline?.name || '',
+                        logo_url: booking.airline?.logoUrl || ''
+                    },
+                    sector: booking.sector,
+                    pnr: booking.pnr,
+                    price: booking.pricing?.adultPrice || 0,
+                    childPrice: booking.pricing?.childPrice || 0,
+                    infantPrice: booking.pricing?.infantPrice || 0,
+                    dept_date: booking.departureDate,
+                    arv_date: booking.arrivalDate,
+                    details: booking.flights?.map(flight => ({
+                        flight_no: flight.flightNo,
+                        flight_date: flight.flightDate,
+                        dep_date: flight.depDate,
+                        dept_time: flight.depTime,
+                        origin: flight.origin,
+                        destination: flight.destination,
+                        arv_date: flight.arrDate,
+                        arv_time: flight.arrTime,
+                        baggage: flight.baggage,
+                        meal: flight.meal
+                    })) || [],
+                    available_no_of_pax: 50 // Set a high limit for editing
+                }
+                
+                setGroupData(reconstructedGroupData)
+                
+                // Convert date strings to YYYY-MM-DD format for date inputs
+                const formattedPassengers = booking.passengers?.map(passenger => ({
+                    ...passenger,
+                    dateOfBirth: passenger.dateOfBirth ? new Date(passenger.dateOfBirth).toISOString().split('T')[0] : '',
+                    passportExpiry: passenger.passportExpiry ? new Date(passenger.passportExpiry).toISOString().split('T')[0] : ''
+                })) || []
+                
+                setFormData({
+                    contactPersonName: booking.contactPersonName,
+                    adults: booking.adultsCount,
+                    children: booking.childrenCount,
+                    infants: booking.infantsCount,
+                    passengers: formattedPassengers
+                })
+            }
+        } catch (error) {
+            console.error('Error fetching booking:', error)
+            toast.error('Failed to load booking')
+            navigate('/dashboard/my-bookings')
+        } finally {
+            setLoadingBooking(false)
+        }
+    }
 
     const totalPassengers = parseInt(formData.adults) + parseInt(formData.children) + parseInt(formData.infants)
 
@@ -34,9 +120,17 @@ export default function BookingForm() {
 
     // Initialize passenger array when counts change
     useEffect(() => {
+        const currentPassengers = formData.passengers || []
+        const targetAdults = parseInt(formData.adults) || 0
+        const targetChildren = parseInt(formData.children) || 0
+        const targetInfants = parseInt(formData.infants) || 0
+        
         const passengers = []
-        for (let i = 0; i < formData.adults; i++) {
-            passengers.push({
+        
+        // Add adults - preserve existing data if available
+        for (let i = 0; i < targetAdults; i++) {
+            const existing = currentPassengers.find((p, idx) => p.type === 'Adult' && currentPassengers.filter((x, xIdx) => xIdx < idx && x.type === 'Adult').length === i)
+            passengers.push(existing || {
                 type: 'Adult',
                 title: 'Mr',
                 givenName: '',
@@ -46,10 +140,12 @@ export default function BookingForm() {
                 passportExpiry: ''
             })
         }
-        // Only add children if price is available
-        if (isChildPriceAvailable()) {
-            for (let i = 0; i < formData.children; i++) {
-                passengers.push({
+        
+        // Add children - preserve existing data if available (only if price available in create mode)
+        if (!isEditMode || isChildPriceAvailable()) {
+            for (let i = 0; i < targetChildren; i++) {
+                const existing = currentPassengers.find((p, idx) => p.type === 'Child' && currentPassengers.filter((x, xIdx) => xIdx < idx && x.type === 'Child').length === i)
+                passengers.push(existing || {
                     type: 'Child',
                     title: 'Mr',
                     givenName: '',
@@ -60,10 +156,12 @@ export default function BookingForm() {
                 })
             }
         }
-        // Only add infants if price is available
-        if (isInfantPriceAvailable()) {
-            for (let i = 0; i < formData.infants; i++) {
-                passengers.push({
+        
+        // Add infants - preserve existing data if available (only if price available in create mode)
+        if (!isEditMode || isInfantPriceAvailable()) {
+            for (let i = 0; i < targetInfants; i++) {
+                const existing = currentPassengers.find((p, idx) => p.type === 'Infant' && currentPassengers.filter((x, xIdx) => xIdx < idx && x.type === 'Infant').length === i)
+                passengers.push(existing || {
                     type: 'Infant',
                     title: 'INF',
                     givenName: '',
@@ -74,8 +172,9 @@ export default function BookingForm() {
                 })
             }
         }
+        
         setFormData(prev => ({ ...prev, passengers }))
-    }, [formData.adults, formData.children, formData.infants])
+    }, [formData.adults, formData.children, formData.infants, isEditMode])
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -109,6 +208,11 @@ export default function BookingForm() {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
+
+        if (isEditMode) {
+            // Edit mode - simplified update
+            return handleUpdate()
+        }
         
         // Validate passenger count excluding infants
         const payingPassengers = parseInt(formData.adults) + parseInt(formData.children)
@@ -139,6 +243,7 @@ export default function BookingForm() {
                 groupId: groupData.id,
                 groupType: groupData.type,
                 airline: {
+                    id: groupData.airline?.id || null,
                     name: groupData.airline?.airline_name || '',
                     logoUrl: groupData.airline?.logo_url || ''
                 },
@@ -200,7 +305,48 @@ export default function BookingForm() {
         }
     }
 
-    if (!groupData) {
+    const handleUpdate = async () => {
+        setIsSubmitting(true)
+
+        try {
+            const updateData = {
+                contactPersonName: formData.contactPersonName,
+                adultsCount: parseInt(formData.adults),
+                childrenCount: parseInt(formData.children),
+                infantsCount: parseInt(formData.infants),
+                passengers: formData.passengers,
+                // Recalculate pricing based on new passenger counts
+                pricing: {
+                    adultPrice: groupData?.price || 0,
+                    childPrice: groupData?.childPrice || 0,
+                    infantPrice: groupData?.infantPrice || 0,
+                    adultTotal: calculateAdultTotal(),
+                    childTotal: calculateChildTotal(),
+                    infantTotal: Math.round(calculateInfantTotal()),
+                    grandTotal: Math.round(calculateTotalPrice())
+                }
+            }
+
+            console.log('Updating booking:', updateData)
+
+            const response = await axiosInstance.put(`/bookings/${bookingId}`, updateData)
+
+            if (response.data.success) {
+                toast.success('Booking updated successfully')
+                setTimeout(() => {
+                    navigate('/dashboard/my-bookings')
+                }, 1500)
+            }
+        } catch (error) {
+            console.error('Error updating booking:', error)
+            const errorMessage = error.response?.data?.message || 'Failed to update booking'
+            toast.error(errorMessage)
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    if (!groupData && !isEditMode) {
         return (
             <div className="w-full min-h-screen bg-gray-50 py-8 flex items-center justify-center">
                 <div className="text-center">
@@ -216,6 +362,17 @@ export default function BookingForm() {
         )
     }
 
+    if (loadingBooking) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading booking...</p>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="w-full min-h-screen">
             <div className="mx-auto p-6">
@@ -224,22 +381,30 @@ export default function BookingForm() {
                     <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-linear-to-r from-blue-50 to-white">
                         <div className="flex-1">
                             <h2 className="text-xl font-bold text-gray-900 mb-2">
-                                Book Seats
+                                {isEditMode ? 'Edit Booking' : 'Book Seats'}
                             </h2>
-                            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-                                <span className="text-gray-700">
-                                    <span className="font-semibold">Group:</span> <span className="text-blue-600">{groupData.airline?.airline_name}-{groupData.sector}</span>
-                                </span>
-                                <span className="text-gray-700">
-                                    <span className="font-semibold">Available Seats:</span> <span className="text-green-600 font-semibold">{groupData.available_no_of_pax || 0}</span>
-                                </span>
-                                <span className="text-gray-700">
-                                    <span className="font-semibold">Sector:</span> {groupData.sector}
-                                </span>
-                            </div>
+                            {!isEditMode && groupData && (
+                                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                                    <span className="text-gray-700">
+                                        <span className="font-semibold">Group:</span> <span className="text-blue-600">{groupData.airline?.airline_name}-{groupData.sector}</span>
+                                    </span>
+                                    <span className="text-gray-700">
+                                        <span className="font-semibold">Available Seats:</span> <span className="text-green-600 font-semibold">{groupData.available_no_of_pax || 0}</span>
+                                    </span>
+                                    <span className="text-gray-700">
+                                        <span className="font-semibold">Sector:</span> {groupData.sector}
+                                    </span>
+                                </div>
+                            )}
+                            {isEditMode && existingBooking && (
+                                <div className="text-sm text-gray-600">
+                                    <span className="font-semibold">Reference:</span> {existingBooking.bookingReference} | 
+                                    <span className="font-semibold ml-2">Sector:</span> {existingBooking.sector}
+                                </div>
+                            )}
                         </div>
                         <button
-                            onClick={() => navigate('/dashboard/all-groups')}
+                            onClick={() => navigate(isEditMode ? '/dashboard/my-bookings' : '/dashboard/all-groups')}
                             className="ml-4 text-gray-400 hover:text-gray-600 transition-colors p-1"
                             title="Close"
                         >
@@ -250,13 +415,14 @@ export default function BookingForm() {
                     </div>
 
                     {/* Airline Info */}
-                    <div className="px-6 py-4 flex items-center justify-between bg-linear-to-r from-gray-50 to-white border-b border-gray-200">
-                        <div className="flex items-center gap-4">
-                            {groupData.airline?.logo_url && (
-                                <div className="bg-white p-2 rounded-lg shadow-sm border border-gray-200">
-                                    <img src={groupData.airline.logo_url} alt={groupData.airline.airline_name} className="h-10" />
-                                </div>
-                            )}
+                    {groupData && (
+                        <div className="px-6 py-4 flex items-center justify-between bg-linear-to-r from-gray-50 to-white border-b border-gray-200">
+                            <div className="flex items-center gap-4">
+                                {groupData.airline?.logo_url && (
+                                    <div className="bg-white p-2 rounded-lg shadow-sm border border-gray-200">
+                                        <img src={groupData.airline.logo_url} alt={groupData.airline.airline_name} className="h-10" />
+                                    </div>
+                                )}
                             <div>
                                 <p className="text-xs text-gray-500 uppercase tracking-wide">Airline</p>
                                 <p className="font-bold text-gray-900 text-lg">{groupData.airline?.airline_name}</p>
@@ -274,10 +440,12 @@ export default function BookingForm() {
                             </p>
                         </div>
                     </div>
+                    )}
 
                     {/* Sector Details */}
-                    <div className="px-6 py-4 bg-blue-50 border-b border-gray-200">
-                        <p className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
+                    {groupData && (
+                        <div className="px-6 py-4 bg-blue-50 border-b border-gray-200">
+                            <p className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
                             <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
                             </svg>
@@ -293,6 +461,7 @@ export default function BookingForm() {
                             </div>
                         )}
                     </div>
+                )}
                 </div>
 
                 {/* Form */}
@@ -330,12 +499,12 @@ export default function BookingForm() {
                                             name="adults"
                                             value={formData.adults}
                                             onChange={handleChange}
-                                            min="0"
-                                            max={groupData?.available_no_of_pax || 10}
+                                            min="1"
+                                            max={groupData?.available_no_of_pax || 50}
                                             className="w-20 px-3 py-1 bg-gray-50 border border-gray-300 rounded-lg text-center text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         />
                                     </div>
-                                    {isChildPriceAvailable() && (
+                                    {(isEditMode || isChildPriceAvailable()) && (
                                         <div className="flex justify-between items-center px-4 py-2 border-b border-gray-200 hover:bg-gray-50 transition-colors">
                                             <span className="text-sm font-medium text-gray-700">Children:</span>
                                             <input
@@ -344,12 +513,12 @@ export default function BookingForm() {
                                                 value={formData.children}
                                                 onChange={handleChange}
                                                 min="0"
-                                                max={groupData?.available_no_of_pax || 10}
+                                                max={groupData?.available_no_of_pax || 50}
                                                 className="w-20 px-3 py-1 bg-gray-50 border border-gray-300 rounded-lg text-center text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </div>
                                     )}
-                                    {isInfantPriceAvailable() && (
+                                    {(isEditMode || isInfantPriceAvailable()) && (
                                         <div className="flex justify-between items-center px-4 py-2 border-b border-gray-200 hover:bg-gray-50 transition-colors">
                                             <span className="text-sm font-medium text-gray-700">Infants:</span>
                                             <input
@@ -358,7 +527,7 @@ export default function BookingForm() {
                                                 value={formData.infants}
                                                 onChange={handleChange}
                                                 min="0"
-                                                max={groupData?.available_no_of_pax || 10}
+                                                max={groupData?.available_no_of_pax || 50}
                                                 className="w-20 px-3 py-1 bg-gray-50 border border-gray-300 rounded-lg text-center text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </div>
@@ -431,7 +600,7 @@ export default function BookingForm() {
                         </div>
                     </div>
 
-                    {/* Passenger Details Table */}
+                    {/* Passenger Details Table */
                     <div className="px-6 py-6">
                         <h3 className="text-base font-bold text-gray-900 mb-4">Passenger Details</h3>
                         <div className="overflow-x-auto rounded-lg border border-gray-300 shadow-sm">
@@ -512,30 +681,34 @@ export default function BookingForm() {
                                                 </td>
                                                 <td className="px-4 py-3 border-r border-gray-200">
                                                     <input
-                                                        type="text"
+                                                        type="date"
                                                         value={passenger.dateOfBirth}
                                                         onChange={(e) => handlePassengerChange(index, 'dateOfBirth', e.target.value)}
-                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                        placeholder="DD-MM-YYYY"
+                                                        max={new Date().toISOString().split('T')[0]}
+                                                        onClick={(e) => e.target.showPicker?.()}
+                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+                                                        title="Click to select date of birth"
                                                     />
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <input
-                                                        type="text"
+                                                        type="date"
                                                         value={passenger.passportExpiry}
                                                         onChange={(e) => handlePassengerChange(index, 'passportExpiry', e.target.value)}
-                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                        placeholder="DD-MM-YYYY"
+                                                        min={new Date().toISOString().split('T')[0]}
+                                                        onClick={(e) => e.target.showPicker?.()}
+                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+                                                        title="Click to select passport expiry date"
                                                     />
                                                 </td>
                                             </tr>
-                                        )
+                                        );
                                     })}
                                 </tbody>
                             </table>
                         </div>
                     </div>
-
+                }
                     {/* Action Buttons */}
                     <div className="px-6 py-5 bg-linear-to-r from-gray-50 to-white border-t border-gray-200 rounded-b-lg flex justify-end gap-4">
                         <button
@@ -575,7 +748,7 @@ export default function BookingForm() {
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
-                                    Confirm Booking
+                                    {isEditMode ? 'Update Booking' : 'Confirm Booking'}
                                 </>
                             )}
                         </button>

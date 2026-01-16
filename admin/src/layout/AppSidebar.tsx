@@ -47,6 +47,11 @@ const navItems: NavItem[] = [
   },
   {
     icon: <TableIcon />,
+    name: "Bookings",
+    path: "/all-bookings",
+  },
+  {
+    icon: <TableIcon />,
     name: "Group Ticketing",
     subItems: [
       { name: "View Groups", path: "/group-ticketing", pro: false },
