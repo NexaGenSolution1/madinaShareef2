@@ -151,7 +151,7 @@ const bookingSchema = new mongoose.Schema({
     // Booking Status
     status: {
         type: String,
-        enum: ['pending', 'confirmed', 'cancelled', 'completed'],
+        enum: ['pending', 'confirmed', 'cancelled'],
         default: 'pending'
     },
     
@@ -177,13 +177,12 @@ const bookingSchema = new mongoose.Schema({
 });
 
 // Generate booking reference before saving
-bookingSchema.pre('save', async function(next) {
+bookingSchema.pre('save', async function() {
     if (!this.bookingReference) {
         const timestamp = Date.now().toString(36).toUpperCase();
         const random = Math.random().toString(36).substring(2, 6).toUpperCase();
         this.bookingReference = `BK${timestamp}${random}`;
     }
-    next();
 });
 
 // Index for faster queries

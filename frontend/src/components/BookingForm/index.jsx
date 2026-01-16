@@ -7,6 +7,7 @@ export default function BookingForm() {
     const navigate = useNavigate()
     const location = useLocation()
     const groupData = location.state?.groupData
+    console.log('BookingForm loaded with groupData:', groupData)
 
     const [formData, setFormData] = useState({
         contactPersonName: '',
@@ -108,6 +109,13 @@ export default function BookingForm() {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
+        
+        // Validate passenger count excluding infants
+        const payingPassengers = parseInt(formData.adults) + parseInt(formData.children)
+        if (payingPassengers > (groupData?.available_no_of_pax || 0)) {
+            toast.error(`Adults and Children (${payingPassengers}) cannot exceed available seats (${groupData?.available_no_of_pax || 0})`)
+            return
+        }
         
         // Validate all passenger details are filled
         const hasEmptyFields = formData.passengers.some(passenger => 
@@ -529,7 +537,7 @@ export default function BookingForm() {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="px-6 py-5 bg-gradient-to-r from-gray-50 to-white border-t border-gray-200 rounded-b-lg flex justify-end gap-4">
+                    <div className="px-6 py-5 bg-linear-to-r from-gray-50 to-white border-t border-gray-200 rounded-b-lg flex justify-end gap-4">
                         <button
                             type="button"
                             onClick={() => navigate('/dashboard/all-groups')}
@@ -551,7 +559,7 @@ export default function BookingForm() {
                             className={`px-10 py-3 rounded-lg font-bold shadow-lg flex items-center gap-2 transform transition-all duration-300
                                 ${isSubmitting
                                     ? 'bg-gray-400 text-white cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8f] text-white hover:from-[#2d5a8f] hover:to-[#1e3a5f] hover:scale-105 hover:shadow-2xl active:scale-95'
+                                    : 'bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f] text-white hover:from-[#2d5a8f] hover:to-[#1e3a5f] hover:scale-105 hover:shadow-2xl active:scale-95'
                                 }`}
                         >
                             {isSubmitting ? (

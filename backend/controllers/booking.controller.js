@@ -1,4 +1,5 @@
 import Booking from '../models/Booking.js';
+import GroupTicketing from '../models/GroupTicketing.js';
 
 // Create a new booking
 const createBooking = async (req, res) => {
@@ -55,11 +56,18 @@ const createBooking = async (req, res) => {
             flights,
             departureDate,
             arrivalDate,
-            userId: req.user._id,
+            userId: req.user._id.toString(),
             status: 'pending'
         });
 
         await booking.save();
+
+        // Update GroupTicketing totalSeats - subtract only adults + children (ignore infants)
+        const seatsToReduce = adultsCount + childrenCount;
+        await GroupTicketing.updateOne(
+            { _id: groupId },
+            { $inc: { totalSeats: -seatsToReduce } }
+        );
 
         res.status(201).json({
             success: true,
@@ -68,16 +76,18 @@ const createBooking = async (req, res) => {
         });
     } catch (error) {
         console.error('Error creating booking:', error);
+        console.error('Error stack:', error.stack);
         res.status(500).json({
             success: false,
             message: 'Failed to create booking',
-            error: error.message
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 };
 
 // Get all bookings (with filters and pagination)
-const getAllBookings = async (req, res) => {
+const getAllBookings = async (req, res, next) => {
     try {
         const {
             page = 1,
@@ -159,7 +169,7 @@ const getAllBookings = async (req, res) => {
 };
 
 // Get booking by ID
-const getBookingById = async (req, res) => {
+const getBookingById = async (req, res, next) => {
     try {
         const { id } = req.params;
 
@@ -195,7 +205,7 @@ const getBookingById = async (req, res) => {
 };
 
 // Get booking by reference
-const getBookingByReference = async (req, res) => {
+const getBookingByReference = async (req, res, next) => {
     try {
         const { reference } = req.params;
 
@@ -232,7 +242,7 @@ const getBookingByReference = async (req, res) => {
 };
 
 // Update booking status
-const updateBookingStatus = async (req, res) => {
+const updateBookingStatus = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { status, notes } = req.body;
@@ -277,7 +287,7 @@ const updateBookingStatus = async (req, res) => {
 };
 
 // Update booking details (limited fields)
-const updateBooking = async (req, res) => {
+const updateBooking = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { contactPersonName, notes } = req.body;
@@ -332,7 +342,7 @@ const updateBooking = async (req, res) => {
 };
 
 // Cancel booking
-const cancelBooking = async (req, res) => {
+const cancelBooking = async (req, res, next) => {
     try {
         const { id } = req.params;
 
@@ -380,7 +390,7 @@ const cancelBooking = async (req, res) => {
 };
 
 // Delete booking (admin only)
-const deleteBooking = async (req, res) => {
+const deleteBooking = async (req, res, next) => {
     try {
         const { id } = req.params;
 
@@ -416,7 +426,7 @@ const deleteBooking = async (req, res) => {
 };
 
 // Get booking statistics (admin only)
-const getBookingStatistics = async (req, res) => {
+const getBookingStatistics = async (req, res, next) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({
