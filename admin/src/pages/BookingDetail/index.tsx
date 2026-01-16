@@ -35,6 +35,7 @@ interface Booking {
         givenName: string
         surName: string
         passport: string
+        passportExpiry?: string
         dateOfBirth: string
     }>
     flights?: Array<{
@@ -318,6 +319,7 @@ export default function BookingDetail() {
                                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Name</th>
                                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Type</th>
                                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Passport</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Passport Expiry</th>
                                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DOB</th>
                                             </tr>
                                         </thead>
@@ -335,8 +337,9 @@ export default function BookingDetail() {
                                                         </span>
                                                     </td>
                                                     <td className="px-4 py-3 text-sm text-gray-600">{passenger.passport || 'N/A'}</td>
+                                                    <td className="px-4 py-3 text-sm text-gray-600">{formatDate(passenger.passportExpiry)}</td>
                                                     <td className="px-4 py-3 text-sm text-gray-600">
-                                                        {passenger.dateOfBirth ? new Date(passenger.dateOfBirth).toLocaleDateString('en-GB') : 'N/A'}
+                                                        {formatDate(passenger.dateOfBirth)}
                                                     </td>
                                                 </tr>
                                             ))}
