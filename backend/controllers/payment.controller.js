@@ -41,7 +41,7 @@ export const createPayment = async (req, res) => {
 
     // Create new payment
     const newPayment = await Payment.create(paymentData);
-    
+
     // Populate bank account and user details
     await newPayment.populate(["bankAccount", "user"]);
 
@@ -304,12 +304,12 @@ export const exportLedgerCSV = async (req, res) => {
     let csvContent = `Ledger of ${userName || 'User'}\n`;
     csvContent += `From ${dateFrom} To ${dateTo}\n\n`;
     csvContent += "Voucher Id,Date,Description,Debit,Credit\n";
-    
+
     ledgerEntries.forEach(entry => {
       const formattedDate = new Date(entry.date).toLocaleDateString();
       csvContent += `${entry.voucherId},${formattedDate},"${entry.description}",${entry.debit},${entry.credit}\n`;
     });
-    
+
     csvContent += `\nTotal,,,${totalDebit.toFixed(2)},${totalCredit.toFixed(2)}\n`;
     csvContent += `\nClosing Balance,,,${closingBalance.toFixed(2)}\n`;
 
@@ -453,7 +453,7 @@ export const exportLedgerPDF = async (req, res) => {
       if (dateFrom) filter.date.$gte = new Date(dateFrom);
       if (dateTo) filter.date.$lte = new Date(dateTo);
     }
-const user =await RegisterSchema.findById(userId);
+    const user = await RegisterSchema.findById(userId);
 
     const payments = await Payment.find(filter)
       .populate("bankAccount", "bankName accountNumber")
@@ -488,7 +488,7 @@ const user =await RegisterSchema.findById(userId);
 
     // Add print date in top right
     doc.fontSize(8).fillColor('black')
-       .text(`Print Date: ${new Date().toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: '2-digit' })}`, 430, 50);
+      .text(`Print Date: ${new Date().toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: '2-digit' })}`, 430, 50);
 
     // Add company logo (left side)
     try {
@@ -498,39 +498,39 @@ const user =await RegisterSchema.findById(userId);
       console.error('Logo error:', err);
       // Fallback to text if logo not found
       doc.fontSize(16).font('Helvetica-Bold').fillColor('black')
-         .text('LOGO', 80, 80);
+        .text('LOGO', 80, 80);
     }
 
     // Add company details (right side) - Dynamic user data
     doc.fontSize(10).font('Helvetica-Bold').fillColor('black')
-       .text(user.companyName || 'N/A', 180, 75);
-    
+      .text(user.companyName || 'N/A', 180, 75);
+
     doc.fontSize(9).font('Helvetica').fillColor('black')
-       .text(`${user.address || ''}, ${user.city || ''}`, 180, 95, { width: 250 })
-       .text(`Phone: ${user.phone || 'N/A'}`, 180, 110, { width: 250 })
-       .text(`Email: ${user.email || 'N/A'}`, 180, 125, { width: 250 })
-       .text(`Agency Code: ${user.agencyCode || 'N/A'}`, 180, 140, { width: 250 });
+      .text(`${user.address || ''}, ${user.city || ''}`, 180, 95, { width: 250 })
+      .text(`Phone: ${user.phone || 'N/A'}`, 180, 110, { width: 250 })
+      .text(`Email: ${user.email || 'N/A'}`, 180, 125, { width: 250 })
+      .text(`Agency Code: ${user.agencyCode || 'N/A'}`, 180, 140, { width: 250 });
 
     // Opening balance box (top right)
     // doc.rect(460, 105, 100, 35).stroke();
     // doc.fontSize(9).text('Opening Balance', 465, 110, { width: 90, align: 'center' });
     // doc.fontSize(11).font('Helvetica-Bold')
-      //  .text(`${openingBalance} DR`, 465, 125, { width: 90, align: 'center' });
-// 
+    //  .text(`${openingBalance} DR`, 465, 125, { width: 90, align: 'center' });
+    // 
     // doc.moveDown(4);
 
     // Blue header bar
     const headerY = 170;
     doc.rect(30, headerY, 550, 25).fillAndStroke('#4472C4', '#4472C4');
     doc.fontSize(11).font('Helvetica-Bold').fillColor('white')
-       .text('Account Statement of Visa Income', 35, headerY + 7)
-       .text(`From ${new Date(dateFrom).toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })} To ${new Date(dateTo).toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}`, 
-             350, headerY + 7, { width: 225, align: 'right' });
+      .text('Account Statement of Visa Income', 35, headerY + 7)
+      .text(`From ${new Date(dateFrom).toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })} To ${new Date(dateTo).toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}`,
+        350, headerY + 7, { width: 225, align: 'right' });
 
     // Table header (gray background)
     const tableHeaderY = headerY + 35;
     doc.rect(30, tableHeaderY, 550, 20).fillAndStroke('#D3D3D3', '#000000');
-    
+
     const col1X = 50;
     const col2X = 110;
     const col3X = 200;
@@ -552,7 +552,7 @@ const user =await RegisterSchema.findById(userId);
 
     ledgerEntries.forEach((entry, index) => {
       runningBalance = runningBalance - entry.credit + entry.debit;
-      
+
       doc.fontSize(8).font('Helvetica').fillColor('black');
       doc.text(new Date(entry.date).toLocaleDateString('en-GB'), col1X, currentY);
       doc.text(entry.voucherId.substring(0, 8), col2X, currentY);
@@ -560,8 +560,8 @@ const user =await RegisterSchema.findById(userId);
       doc.text(entry.debit > 0 ? entry.debit.toFixed(0) : '0', col4X, currentY, { width: 60, align: 'right' });
       doc.text(entry.credit > 0 ? entry.credit.toFixed(0) : '0', col5X, currentY, { width: 40, align: 'right' });
       doc.fillColor(runningBalance > 0 ? 'black' : 'red')
-         .text(`${Math.abs(runningBalance).toFixed(0)} ${runningBalance > 0 ? 'DR' : 'CR'}`, col6X, currentY, { width: 50, align: 'right' });
-      
+        .text(`${Math.abs(runningBalance).toFixed(0)} ${runningBalance > 0 ? 'DR' : 'CR'}`, col6X, currentY, { width: 50, align: 'right' });
+
       currentY += 18;
 
       if (currentY > 720) {
@@ -573,10 +573,10 @@ const user =await RegisterSchema.findById(userId);
     // Closing balance row
     doc.rect(30, currentY, 550, 20).stroke('#000000');
     doc.fontSize(9).font('Helvetica-Bold').fillColor('black');
-    doc.text('Closing Balance as on ' + new Date(dateTo).toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }), 
-             col1X, currentY + 5);
+    doc.text('Closing Balance as on ' + new Date(dateTo).toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }),
+      col1X, currentY + 5);
     doc.fillColor(closingBalance > 0 ? 'black' : 'red')
-       .text(`${Math.abs(closingBalance).toFixed(0)} ${closingBalance > 0 ? 'DR' : 'CR'}`, col6X, currentY + 5, { width: 50, align: 'right' });
+      .text(`${Math.abs(closingBalance).toFixed(0)} ${closingBalance > 0 ? 'DR' : 'CR'}`, col6X, currentY + 5, { width: 50, align: 'right' });
 
     // Total row
     currentY += 25;
@@ -586,13 +586,13 @@ const user =await RegisterSchema.findById(userId);
     doc.text(totalDebit > 0 ? totalDebit.toFixed(0) : '0', col4X, currentY + 5, { width: 60, align: 'right' });
     doc.text(totalCredit > 0 ? totalCredit.toFixed(0) : '0', col5X, currentY + 5, { width: 40, align: 'right' });
     doc.fillColor(closingBalance > 0 ? 'black' : 'red')
-       .text(`${Math.abs(closingBalance).toFixed(0)} ${closingBalance > 0 ? 'DR' : 'CR'}`, col6X, currentY + 5, { width: 50, align: 'right' });
+      .text(`${Math.abs(closingBalance).toFixed(0)} ${closingBalance > 0 ? 'DR' : 'CR'}`, col6X, currentY + 5, { width: 50, align: 'right' });
 
     doc.end();
   } catch (error) {
     console.error("Error exporting PDF:", error);
     console.error("Error stack:", error.stack);
-    
+
     if (!res.headersSent) {
       res.status(500).json({
         success: false,
