@@ -120,11 +120,20 @@ const AddBank = () => {
       let response;
       if (isEditing && editingBank) {
         // Update existing bank
-        response = await axiosInstance.put(`/bank/${editingBank._id}`, submitData);
+        response = await axiosInstance.put(`/bank/${editingBank._id}`, submitData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
       } else {
         // Add new bank
-        response = await axiosInstance.post("/bank/add", submitData);
+        response = await axiosInstance.post("/bank/add", submitData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
       }
+    
 
       if (response.data.success) {
         setMessage({
