@@ -275,7 +275,7 @@ const AppSidebar: React.FC = () => {
           {isExpanded || isHovered || isMobileOpen ? (
             <>
               <img
-                className="dark:hidden"
+                // className="dark:hidden"
                 src="/admin-portal/images/logo/logo.webp"
                 alt="Logo"
                 width={150}
