@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import { useNavigate } from 'react-router'
 import axiosInstance from '../../Api/axios'
 
@@ -17,17 +17,128 @@ interface Booking {
     status: string
 }
 
-interface Pagination {
-    currentPage?: number
-    totalPages?: number
-    totalBookings?: number
-}
-
 interface StatusOption {
     value: string
     label: string
     color: string
 }
+
+interface BookingsTableProps {
+    bookings: Booking[]
+    getStatusBadge: (status: string) => StatusOption
+    formatDate: (dateStr: string | undefined) => string
+    navigate: (path: string) => void
+}
+
+const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate }: BookingsTableProps) => {
+    return (
+        <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f]">
+                <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                        Reference
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                        Customer
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                        Sector
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                        Airline
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                        Passengers
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                        Departure
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                        Total Price
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                        Status
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                        Action
+                    </th>
+                </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+                {bookings.length === 0 ? (
+                    <tr>
+                        <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
+                            No bookings found
+                        </td>
+                    </tr>
+                ) : (
+                    bookings.map((booking) => {
+                        const statusBadge = getStatusBadge(booking.status)
+                        return (
+                            <tr key={booking._id} className="hover:bg-gray-50 transition-colors">
+                                <td className="px-4 py-3 whitespace-nowrap">
+                                    <span className="font-semibold text-blue-600">{booking.bookingReference}</span>
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                                    <div>
+                                        <p className="font-medium">{booking.contactPersonName}</p>
+                                        <p className="text-xs text-gray-500">{typeof booking.userId === 'object' ? booking.userId?.email : booking.userId || 'N/A'}</p>
+                                    </div>
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                                    {booking.sector}
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                                    {booking.airline?.name || 'N/A'}
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                                    <div className="flex gap-1">
+                                        {booking.adultsCount > 0 && (
+                                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                                                A: {booking.adultsCount}
+                                            </span>
+                                        )}
+                                        {booking.childrenCount > 0 && (
+                                            <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+                                                C: {booking.childrenCount}
+                                            </span>
+                                        )}
+                                        {booking.infantsCount > 0 && (
+                                            <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">
+                                                I: {booking.infantsCount}
+                                            </span>
+                                        )}
+                                    </div>
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                                    {formatDate(booking.departureDate)}
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900">
+                                    PKR {booking.pricing.grandTotal.toLocaleString()}
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap">
+                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusBadge.color}`}>
+                                        {statusBadge.label}
+                                    </span>
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-sm">
+                                    <button
+                                        onClick={() => navigate(`/booking-detail/${booking._id}`)}
+                                        className="text-blue-600 hover:text-blue-800 font-medium"
+                                    >
+                                        View
+                                    </button>
+                                </td>
+                            </tr>
+                        )
+                    })
+                )}
+            </tbody>
+        </table>
+    )
+})
+
+BookingsTable.displayName = 'BookingsTable'
 
 export default function AllBookings() {
     const navigate = useNavigate()
@@ -44,8 +155,6 @@ export default function AllBookings() {
     })
     const [uniqueSectors, setUniqueSectors] = useState<string[]>([])
     const [uniqueAirlines, setUniqueAirlines] = useState<string[]>([])
-    const [currentPage, setCurrentPage] = useState(1)
-    const [pagination, setPagination] = useState<Pagination>({})
 
     const statusOptions: StatusOption[] = [
         { value: 'pending', label: 'Pending', color: 'bg-yellow-100 text-yellow-800' },
@@ -55,7 +164,7 @@ export default function AllBookings() {
 
     useEffect(() => {
         fetchBookings()
-    }, [filters, currentPage, activeStatus, searchQuery])
+    }, [filters, activeStatus, searchQuery])
 
     useEffect(() => {
         // Extract unique sectors and airlines from bookings
@@ -70,8 +179,6 @@ export default function AllBookings() {
             setFetching(true)
 
             const params = new URLSearchParams({
-                page: currentPage.toString(),
-                limit: '15',
                 ...(activeStatus && { status: activeStatus }),
                 ...(filters.sector && { sector: filters.sector }),
                 ...(filters.airline && { airline: filters.airline }),
@@ -84,7 +191,6 @@ export default function AllBookings() {
 
             if (response.data.success) {
                 setBookings(response.data.data)
-                setPagination(response.data.pagination)
             }
         } catch (err) {
             console.error('Error fetching bookings:', err)
@@ -96,7 +202,6 @@ export default function AllBookings() {
 
     const handleFilterChange = (filterName: string, value: string) => {
         setFilters(prev => ({ ...prev, [filterName]: value }))
-        setCurrentPage(1)
     }
 
     const resetFilters = () => {
@@ -108,7 +213,6 @@ export default function AllBookings() {
             fromDate: '',
             toDate: ''
         })
-        setCurrentPage(1)
     }
 
     const getStatusBadge = (status: string): StatusOption => {
@@ -149,7 +253,7 @@ export default function AllBookings() {
                 <div className="border-b border-gray-200">
                     <nav className="flex -mb-px">
                         <button
-                            onClick={() => { setActiveStatus(''); setCurrentPage(1); }}
+                            onClick={() => setActiveStatus('')}
                             className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors ${
                                 activeStatus === '' 
                                     ? 'border-blue-600 text-blue-600' 
@@ -161,7 +265,7 @@ export default function AllBookings() {
                         {statusOptions.map(option => (
                             <button
                                 key={option.value}
-                                onClick={() => { setActiveStatus(option.value); setCurrentPage(1); }}
+                                onClick={() => setActiveStatus(option.value)}
                                 className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors ${
                                     activeStatus === option.value
                                         ? 'border-blue-600 text-blue-600'
@@ -256,20 +360,13 @@ export default function AllBookings() {
 
             {/* Search Bar Above Table */}
             <div className="mb-4 bg-white rounded-lg shadow p-4">
-                <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                            placeholder="Search by reference, PNR, or customer name..."
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <div className="text-sm text-gray-600">
-                        {pagination.totalBookings || 0} total bookings
-                    </div>
-                </div>
+                <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by reference, PNR, or customer name..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
             </div>
 
             {/* Bookings Table */}
@@ -280,156 +377,14 @@ export default function AllBookings() {
                     </div>
                 )}
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f]">
-                            <tr>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                                    Reference
-                                </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                                    Customer
-                                </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                                    Sector
-                                </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                                    Airline
-                                </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                                    Passengers
-                                </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                                    Departure
-                                </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                                    Total Price
-                                </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                                    Status
-                                </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                                    Action
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {bookings.length === 0 ? (
-                                <tr>
-                                    <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
-                                        No bookings found
-                                    </td>
-                                </tr>
-                            ) : (
-                                bookings.map((booking) => {
-                                    const statusBadge = getStatusBadge(booking.status)
-                                    return (
-                                        <tr key={booking._id} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-4 py-3 whitespace-nowrap">
-                                                <span className="font-semibold text-blue-600">{booking.bookingReference}</span>
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                                <div>
-                                                    <p className="font-medium">{booking.contactPersonName}</p>
-                                                    <p className="text-xs text-gray-500">{typeof booking.userId === 'object' ? booking.userId?.email : booking.userId || 'N/A'}</p>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                                {booking.sector}
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                                {booking.airline?.name || 'N/A'}
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                                <div className="flex gap-1">
-                                                    {booking.adultsCount > 0 && (
-                                                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
-                                                            A: {booking.adultsCount}
-                                                        </span>
-                                                    )}
-                                                    {booking.childrenCount > 0 && (
-                                                        <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
-                                                            C: {booking.childrenCount}
-                                                        </span>
-                                                    )}
-                                                    {booking.infantsCount > 0 && (
-                                                        <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">
-                                                            I: {booking.infantsCount}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                                {formatDate(booking.departureDate)}
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900">
-                                                PKR {booking.pricing.grandTotal.toLocaleString()}
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap">
-                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusBadge.color}`}>
-                                                    {statusBadge.label}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-sm">
-                                                <button
-                                                    onClick={() => navigate(`/booking-detail/${booking._id}`)}
-                                                    className="text-blue-600 hover:text-blue-800 font-medium"
-                                                >
-                                                    View
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    )
-                                })
-                            )}
-                        </tbody>
-                    </table>
+                    <BookingsTable 
+                        bookings={bookings}
+                        getStatusBadge={getStatusBadge}
+                        formatDate={formatDate}
+                        navigate={navigate}
+                    />
                 </div>
-
-                {/* Pagination */}
-                {bookings.length > 0 && pagination.totalPages && pagination.totalPages > 1 && (
-                    <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-                        <div className="flex-1 flex justify-between sm:hidden">
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                disabled={currentPage === 1}
-                                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                            >
-                                Previous
-                            </button>
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages || 1))}
-                                disabled={currentPage === pagination.totalPages}
-                                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                            >
-                                Next
-                            </button>
-                        </div>
-                        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                            <div>
-                                <p className="text-sm text-gray-700">
-                                    Showing page <span className="font-medium">{pagination.currentPage}</span> of{' '}
-                                    <span className="font-medium">{pagination.totalPages}</span> ({pagination.totalBookings} total)
-                                </p>
-                            </div>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                    disabled={currentPage === 1}
-                                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                                >
-                                    Previous
-                                </button>
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages || 1))}
-                                    disabled={currentPage === pagination.totalPages}
-                                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                                >
-                                    Next
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}            </div>
+            </div>
         </div>
     )
 }

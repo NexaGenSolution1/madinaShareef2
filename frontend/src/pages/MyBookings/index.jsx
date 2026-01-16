@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axiosInstance from '../../api/axios'
 import { toast } from 'react-toastify'
-
 export default function MyBookings() {
     const navigate = useNavigate()
     const [bookings, setBookings] = useState([])
     const [initialLoading, setInitialLoading] = useState(true)
     const [fetching, setFetching] = useState(false)
-    const [error, setError] = useState(null)
     const [searchQuery, setSearchQuery] = useState('')
     const [activeStatus, setActiveStatus] = useState('')
     const [filters, setFilters] = useState({
@@ -19,8 +17,6 @@ export default function MyBookings() {
     })
     const [uniqueSectors, setUniqueSectors] = useState([])
     const [uniqueAirlines, setUniqueAirlines] = useState([])
-    const [currentPage, setCurrentPage] = useState(1)
-    const [pagination, setPagination] = useState({})
 
     const statusOptions = [
         { value: 'pending', label: 'Pending', color: 'bg-yellow-100 text-yellow-800' },
@@ -30,7 +26,7 @@ export default function MyBookings() {
 
     useEffect(() => {
         fetchBookings()
-    }, [filters, currentPage, activeStatus, searchQuery])
+    }, [filters, activeStatus, searchQuery])
 
     useEffect(() => {
         // Extract unique sectors and airlines from bookings
@@ -46,8 +42,6 @@ export default function MyBookings() {
             setError(null)
 
             const params = new URLSearchParams({
-                page: currentPage,
-                limit: 10,
                 ...(searchQuery && { search: searchQuery }),
                 ...(activeStatus && { status: activeStatus }),
                 ...(filters.sector && { sector: filters.sector }),
@@ -60,7 +54,6 @@ export default function MyBookings() {
 
             if (response.data.success) {
                 setBookings(response.data.data)
-                setPagination(response.data.pagination)
             }
         } catch (err) {
             console.error('Error fetching bookings:', err)
@@ -74,7 +67,6 @@ export default function MyBookings() {
 
     const handleFilterChange = (filterName, value) => {
         setFilters(prev => ({ ...prev, [filterName]: value }))
-        setCurrentPage(1)
     }
 
     const resetFilters = () => {
@@ -86,7 +78,6 @@ export default function MyBookings() {
             fromDate: '',
             toDate: ''
         })
-        setCurrentPage(1)
     }
 
     const getStatusBadge = (status) => {
@@ -128,11 +119,10 @@ export default function MyBookings() {
                     <nav className="flex -mb-px">
                         <button
                             onClick={() => { setActiveStatus(''); setCurrentPage(1); }}
-                            className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors ${
-                                activeStatus === '' 
-                                    ? 'border-blue-600 text-blue-600' 
+                            className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors ${activeStatus === ''
+                                    ? 'border-blue-600 text-blue-600'
                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                            }`}
+                                }`}
                         >
                             All Bookings
                         </button>
@@ -140,11 +130,10 @@ export default function MyBookings() {
                             <button
                                 key={option.value}
                                 onClick={() => { setActiveStatus(option.value); setCurrentPage(1); }}
-                                className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors ${
-                                    activeStatus === option.value
+                                className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors ${activeStatus === option.value
                                         ? 'border-blue-600 text-blue-600'
                                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
+                                    }`}
                             >
                                 {option.label}
                             </button>
@@ -234,30 +223,30 @@ export default function MyBookings() {
 
             {/* Search Bar Above Table */}
             <div className="mb-4 bg-white rounded-lg shadow p-4">
-                <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                            placeholder="Search by reference or booking ID..."
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <div className="text-sm text-gray-600">
-                        {pagination.totalBookings || 0} total bookings
-                    </div>
-                </div>
+                <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by reference or booking ID..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
             </div>
 
             {/* Bookings Table */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-white rounded-lg shadow overflow-hidden relative">
                 {fetching && (
                     <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                     </div>
                 )}
                 <div className="overflow-x-auto">
+                    {/* <BookingsTable 
+                        bookings={bookings}
+                        getStatusBadge={getStatusBadge}
+                        formatDate={formatDate}
+                        navigate={navigate}
+                    /> */}
+
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f]">
                             <tr>
@@ -363,52 +352,6 @@ export default function MyBookings() {
                         </tbody>
                     </table>
                 </div>
-
-                {/* Pagination */}
-                {pagination.totalPages > 1 && (
-                    <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-                        <div className="flex-1 flex justify-between sm:hidden">
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                disabled={currentPage === 1}
-                                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                            >
-                                Previous
-                            </button>
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
-                                disabled={currentPage === pagination.totalPages}
-                                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                            >
-                                Next
-                            </button>
-                        </div>
-                        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                            <div>
-                                <p className="text-sm text-gray-700">
-                                    Showing page <span className="font-medium">{pagination.currentPage}</span> of{' '}
-                                    <span className="font-medium">{pagination.totalPages}</span> ({pagination.totalBookings} total)
-                                </p>
-                            </div>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                    disabled={currentPage === 1}
-                                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                                >
-                                    Previous
-                                </button>
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
-                                    disabled={currentPage === pagination.totalPages}
-                                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                                >
-                                    Next
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     )
