@@ -2,6 +2,12 @@ import Payment from "../models/Payment.js";
 import { cloudinary } from "../config/cloudinary.js";
 import PDFDocument from 'pdfkit';
 import ExcelJS from 'exceljs';
+import RegisterSchema from "../models/Register.js";
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Create new payment
 export const createPayment = async (req, res) => {
@@ -35,7 +41,7 @@ export const createPayment = async (req, res) => {
 
     // Create new payment
     const newPayment = await Payment.create(paymentData);
-    
+
     // Populate bank account and user details
     await newPayment.populate(["bankAccount", "user"]);
 
@@ -298,12 +304,12 @@ export const exportLedgerCSV = async (req, res) => {
     let csvContent = `Ledger of ${userName || 'User'}\n`;
     csvContent += `From ${dateFrom} To ${dateTo}\n\n`;
     csvContent += "Voucher Id,Date,Description,Debit,Credit\n";
-    
+
     ledgerEntries.forEach(entry => {
       const formattedDate = new Date(entry.date).toLocaleDateString();
       csvContent += `${entry.voucherId},${formattedDate},"${entry.description}",${entry.debit},${entry.credit}\n`;
     });
-    
+
     csvContent += `\nTotal,,,${totalDebit.toFixed(2)},${totalCredit.toFixed(2)}\n`;
     csvContent += `\nClosing Balance,,,${closingBalance.toFixed(2)}\n`;
 
@@ -447,12 +453,16 @@ export const exportLedgerPDF = async (req, res) => {
       if (dateFrom) filter.date.$gte = new Date(dateFrom);
       if (dateTo) filter.date.$lte = new Date(dateTo);
     }
+    const user = await RegisterSchema.findById(userId);
 
     const payments = await Payment.find(filter)
       .populate("bankAccount", "bankName accountNumber")
       .sort({ date: 1 });
 
     console.log('Found payments:', payments.length);
+
+    // Calculate opening balance (you may need to adjust this logic)
+    const openingBalance = 0; // Replace with actual calculation if needed
 
     const ledgerEntries = payments.map(payment => ({
       voucherId: payment._id.toString(),
@@ -464,83 +474,125 @@ export const exportLedgerPDF = async (req, res) => {
 
     const totalDebit = ledgerEntries.reduce((sum, entry) => sum + entry.debit, 0);
     const totalCredit = ledgerEntries.reduce((sum, entry) => sum + entry.credit, 0);
-    const closingBalance = totalDebit - totalCredit;
+    const closingBalance = openingBalance - totalCredit + totalDebit;
 
     // Create PDF
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
 
-    // Set response headers with CORS support
+    // Set response headers
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="ledger-${userId}-${Date.now()}.pdf"`);
     res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition, Content-Type');
 
-    // Pipe PDF to response
     doc.pipe(res);
 
-    // Add title
-    doc.fontSize(20).fillColor('red').text(`Ledger of ${(userName || 'User').toUpperCase()}`, { align: 'center' });
-    doc.moveDown(0.5);
-    doc.fontSize(12).fillColor('green').text(`From ${dateFrom} To ${dateTo}`, { align: 'center' });
-    doc.moveDown(2);
+    // Add print date in top right
+    doc.fontSize(8).fillColor('black')
+      .text(`Print Date: ${new Date().toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: '2-digit' })}`, 430, 50);
 
-    // Table headers
-    const tableTop = doc.y;
+    // Add company logo (left side)
+    try {
+      const logoPath = path.join(__dirname, '..', 'assests', 'logo.png');
+      doc.image(logoPath, 50, 65, { width: 100, height: 100 });
+    } catch (err) {
+      console.error('Logo error:', err);
+      // Fallback to text if logo not found
+      doc.fontSize(16).font('Helvetica-Bold').fillColor('black')
+        .text('LOGO', 80, 80);
+    }
+
+    // Add company details (right side) - Dynamic user data
+    doc.fontSize(10).font('Helvetica-Bold').fillColor('black')
+      .text(user.companyName || 'N/A', 180, 75);
+
+    doc.fontSize(9).font('Helvetica').fillColor('black')
+      .text(`${user.address || ''}, ${user.city || ''}`, 180, 95, { width: 250 })
+      .text(`Phone: ${user.phone || 'N/A'}`, 180, 110, { width: 250 })
+      .text(`Email: ${user.email || 'N/A'}`, 180, 125, { width: 250 })
+      .text(`Agency Code: ${user.agencyCode || 'N/A'}`, 180, 140, { width: 250 });
+
+    // Opening balance box (top right)
+    // doc.rect(460, 105, 100, 35).stroke();
+    // doc.fontSize(9).text('Opening Balance', 465, 110, { width: 90, align: 'center' });
+    // doc.fontSize(11).font('Helvetica-Bold')
+    //  .text(`${openingBalance} DR`, 465, 125, { width: 90, align: 'center' });
+    // 
+    // doc.moveDown(4);
+
+    // Blue header bar
+    const headerY = 170;
+    doc.rect(30, headerY, 550, 25).fillAndStroke('#4472C4', '#4472C4');
+    doc.fontSize(11).font('Helvetica-Bold').fillColor('white')
+      .text('Account Statement of Visa Income', 35, headerY + 7)
+      .text(`From ${new Date(dateFrom).toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })} To ${new Date(dateTo).toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}`,
+        350, headerY + 7, { width: 225, align: 'right' });
+
+    // Table header (gray background)
+    const tableHeaderY = headerY + 35;
+    doc.rect(30, tableHeaderY, 550, 20).fillAndStroke('#D3D3D3', '#000000');
+
     const col1X = 50;
-    const col2X = 150;
-    const col3X = 250;
-    const col4X = 420;
-    const col5X = 500;
+    const col2X = 110;
+    const col3X = 200;
+    const col4X = 400;
+    const col5X = 470;
+    const col6X = 520;
 
-    doc.fontSize(10).fillColor('black').font('Helvetica-Bold');
-    doc.text('Voucher Id', col1X, tableTop, { width: 90 });
-    doc.text('Date', col2X, tableTop, { width: 90 });
-    doc.text('Description', col3X, tableTop, { width: 160 });
-    doc.text('Debit', col4X, tableTop, { width: 70, align: 'right' });
-    doc.text('Credit', col5X, tableTop, { width: 70, align: 'right' });
-
-    doc.moveTo(50, doc.y + 5).lineTo(550, doc.y + 5).stroke();
-    doc.moveDown();
+    doc.fontSize(9).font('Helvetica-Bold').fillColor('black');
+    doc.text('Date', col1X, tableHeaderY + 5);
+    doc.text('V no', col2X, tableHeaderY + 5);
+    doc.text('Details', col3X, tableHeaderY + 5);
+    doc.text('Debit', col4X, tableHeaderY + 5, { width: 60, align: 'right' });
+    doc.text('Credit', col5X, tableHeaderY + 5, { width: 40, align: 'right' });
+    doc.text('Balance', col6X, tableHeaderY + 5, { width: 50, align: 'right' });
 
     // Table rows
-    ledgerEntries.forEach(entry => {
-      const y = doc.y;
-      doc.fontSize(9).font('Helvetica');
-      doc.text(entry.voucherId.substring(0, 10), col1X, y, { width: 90 });
-      doc.text(new Date(entry.date).toLocaleDateString(), col2X, y, { width: 90 });
-      doc.text(entry.description.substring(0, 50), col3X, y, { width: 160 });
-      doc.text(entry.debit > 0 ? entry.debit.toFixed(2) : '', col4X, y, { width: 70, align: 'right' });
-      doc.text(entry.credit > 0 ? entry.credit.toFixed(2) : '', col5X, y, { width: 70, align: 'right' });
-      doc.moveDown(0.8);
+    let currentY = tableHeaderY + 25;
+    let runningBalance = openingBalance;
 
-      // Add new page if needed
-      if (doc.y > 700) {
+    ledgerEntries.forEach((entry, index) => {
+      runningBalance = runningBalance - entry.credit + entry.debit;
+
+      doc.fontSize(8).font('Helvetica').fillColor('black');
+      doc.text(new Date(entry.date).toLocaleDateString('en-GB'), col1X, currentY);
+      doc.text(entry.voucherId.substring(0, 8), col2X, currentY);
+      doc.text(entry.description.substring(0, 40), col3X, currentY, { width: 190 });
+      doc.text(entry.debit > 0 ? entry.debit.toFixed(0) : '0', col4X, currentY, { width: 60, align: 'right' });
+      doc.text(entry.credit > 0 ? entry.credit.toFixed(0) : '0', col5X, currentY, { width: 40, align: 'right' });
+      doc.fillColor(runningBalance > 0 ? 'black' : 'red')
+        .text(`${Math.abs(runningBalance).toFixed(0)} ${runningBalance > 0 ? 'DR' : 'CR'}`, col6X, currentY, { width: 50, align: 'right' });
+
+      currentY += 18;
+
+      if (currentY > 720) {
         doc.addPage();
+        currentY = 50;
       }
     });
 
-    // Total row
-    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-    doc.moveDown();
-    const totalY = doc.y;
-    doc.fontSize(10).font('Helvetica-Bold');
-    doc.text('Total:', col3X, totalY, { width: 160, align: 'right' });
-    doc.text(totalDebit.toFixed(2), col4X, totalY, { width: 70, align: 'right' });
-    doc.text(totalCredit.toFixed(2), col5X, totalY, { width: 70, align: 'right' });
+    // Closing balance row
+    doc.rect(30, currentY, 550, 20).stroke('#000000');
+    doc.fontSize(9).font('Helvetica-Bold').fillColor('black');
+    doc.text('Closing Balance as on ' + new Date(dateTo).toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }),
+      col1X, currentY + 5);
+    doc.fillColor(closingBalance > 0 ? 'black' : 'red')
+      .text(`${Math.abs(closingBalance).toFixed(0)} ${closingBalance > 0 ? 'DR' : 'CR'}`, col6X, currentY + 5, { width: 50, align: 'right' });
 
-    // Closing balance
-    doc.moveDown(2);
-    doc.fontSize(12).font('Helvetica-Bold');
-    const balanceY = doc.y;
-    doc.fillColor('black').text('Closing Balance:', col3X, balanceY, { width: 160, align: 'right' });
-    doc.fillColor(closingBalance >= 0 ? 'green' : 'red')
-       .text(closingBalance.toFixed(2), col4X, balanceY, { width: 150, align: 'left' });
+    // Total row
+    currentY += 25;
+    doc.rect(30, currentY, 550, 20).stroke('#000000');
+    doc.fontSize(9).font('Helvetica-Bold').fillColor('black');
+    doc.text('Total', col3X, currentY + 5, { width: 190, align: 'right' });
+    doc.text(totalDebit > 0 ? totalDebit.toFixed(0) : '0', col4X, currentY + 5, { width: 60, align: 'right' });
+    doc.text(totalCredit > 0 ? totalCredit.toFixed(0) : '0', col5X, currentY + 5, { width: 40, align: 'right' });
+    doc.fillColor(closingBalance > 0 ? 'black' : 'red')
+      .text(`${Math.abs(closingBalance).toFixed(0)} ${closingBalance > 0 ? 'DR' : 'CR'}`, col6X, currentY + 5, { width: 50, align: 'right' });
 
     doc.end();
   } catch (error) {
     console.error("Error exporting PDF:", error);
     console.error("Error stack:", error.stack);
-    
-    // If headers haven't been sent yet, send error response
+
     if (!res.headersSent) {
       res.status(500).json({
         success: false,

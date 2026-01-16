@@ -44,7 +44,7 @@ const RegisteredAgencies = () => {
   const [approvalLoading, setApprovalLoading] = useState<string | null>(null);
   const [sendingCredentials, setSendingCredentials] = useState<string | null>(null);
   const [entriesPerPage, setEntriesPerPage] = useState(50);
-  const frontendUrl = import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173";
+  const frontendUrl = import.meta.env.VITE_FRONTEND_URL || "https://brothersinttvl.com";
 
   useEffect(() => {
     fetchUsers();
