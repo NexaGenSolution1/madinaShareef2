@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { FaUniversity, FaMoneyBillWave, FaUsers, FaBook, FaUserCircle } from 'react-icons/fa';
-import './Dashboard.css';
 
 const Dashboard = () => {
   const cards = [
@@ -9,54 +8,66 @@ const Dashboard = () => {
       description: 'View and manage all group bookings',
       icon: <FaUsers />,
       link: '/dashboard/all-groups',
-      color: '#3b82f6'
+      color: 'from-blue-500 to-blue-600'
     },
     {
       title: 'Bank Details',
       description: 'View bank account information',
       icon: <FaUniversity />,
       link: '/dashboard/banks',
-      color: '#10b981'
+      color: 'from-green-500 to-green-600'
     },
     {
       title: 'Payment',
       description: 'Make payments and view payment history',
       icon: <FaMoneyBillWave />,
       link: '/dashboard/payment',
-      color: '#f59e0b'
+      color: 'from-amber-500 to-amber-600'
     },
     {
       title: 'Ledger',
       description: 'View your account ledger and transactions',
       icon: <FaBook />,
       link: '/dashboard/ledger',
-      color: '#8b5cf6'
+      color: 'from-purple-500 to-purple-600'
     },
     {
       title: 'Profile',
       description: 'View and update your profile information',
       icon: <FaUserCircle />,
       link: '/dashboard/profile',
-      color: '#ec4899'
+      color: 'from-pink-500 to-pink-600'
     }
   ];
 
   return (
-    <div className="dashboard-home">
-      <div className="dashboard-welcome">
-        <h2>Welcome to Agent Dashboard</h2>
-        <p>Manage your bookings, payments, and account information</p>
+    <div className="w-full min-h-screen mx-auto">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to Agent Dashboard</h1>
+        <p className="text-gray-600">Manage your bookings, payments, and account information</p>
       </div>
 
-      <div className="dashboard-cards">
+      {/* Dashboard Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {cards.map((card, index) => (
-          <Link to={card.link} key={index} className="dashboard-card">
-            <div className="card-icon" style={{ backgroundColor: card.color }}>
-              {card.icon}
+          <Link
+            to={card.link}
+            key={index}
+            className="group bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <div className={`bg-gradient-to-r ${card.color} p-6 flex items-center justify-center`}>
+              <div className="text-white text-5xl group-hover:scale-110 transition-transform duration-300">
+                {card.icon}
+              </div>
             </div>
-            <div className="card-content">
-              <h3>{card.title}</h3>
-              <p>{card.description}</p>
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                {card.title}
+              </h3>
+              <p className="text-gray-600 text-sm">
+                {card.description}
+              </p>
             </div>
           </Link>
         ))}

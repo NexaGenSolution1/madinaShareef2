@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 // Create new payment
 export const createPayment = async (req, res) => {
   try {
-    const { date, description, bankAccount, amount, status, remarks, user } = req.body;
+    const { date, description, bankAccount, amount, status, remarks, user, booking } = req.body;
 
     // Validate required fields
     if (!date || !description || !bankAccount || !amount || !user) {
@@ -33,6 +33,11 @@ export const createPayment = async (req, res) => {
       remarks: remarks || "",
     };
 
+    // Add booking if provided
+    if (booking) {
+      paymentData.booking = booking;
+    }
+
     // Add receipt if uploaded
     if (req.file) {
       paymentData.receipt = req.file.path;
@@ -42,8 +47,8 @@ export const createPayment = async (req, res) => {
     // Create new payment
     const newPayment = await Payment.create(paymentData);
 
-    // Populate bank account and user details
-    await newPayment.populate(["bankAccount", "user"]);
+    // Populate bank account, user, and booking details
+    await newPayment.populate(["bankAccount", "user", "booking"]);
 
     res.status(201).json({
       success: true,

@@ -25,6 +25,11 @@ const paymentSchema = new mongoose.Schema(
       ref: "Register",
       required: true,
     },
+    booking: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Booking",
+      default: null,
+    },
     amount: {
       type: Number,
       required: true,

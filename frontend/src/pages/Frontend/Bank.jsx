@@ -3,14 +3,14 @@ import axiosInstance from "../../api/axios";
 
 const Bank = () => {
   const [banks, setBanks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Fetch all banks
   const fetchBanks = async () => {
     try {
-      setLoading(true);
       setError(null);
+      
       const response = await axiosInstance.get("/bank");
       if (response.data.success) {
         // Filter only active banks for frontend
@@ -19,20 +19,17 @@ const Bank = () => {
         );
         setBanks(activeBanks);
       } else {
-        // If response is not successful but no error thrown, set empty array
         setBanks([]);
       }
     } catch (error) {
       console.error("Error fetching banks:", error);
-      // Only show error for actual network/server errors
-      // If it's a 404 or empty response, just show empty state
       if (error.response && error.response.status === 404) {
         setBanks([]);
       } else {
         setError("Failed to fetch bank details. Please try again later.");
       }
     } finally {
-      setLoading(false);
+      setInitialLoading(false);
     }
   };
 
@@ -40,12 +37,12 @@ const Bank = () => {
     fetchBanks();
   }, []);
 
-  if (loading) {
+  if (initialLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="w-full min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading bank details...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading bank details...</p>
         </div>
       </div>
     );
@@ -53,97 +50,114 @@ const Bank = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center text-red-500">
-          <p>{error}</p>
+      <div className="w-full min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={fetchBanks}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen  px-4 sm:px-6 lg:px-8">
-      <div className="max-w-full mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Bank Details</h1>
+    <div className="w-full min-h-screen mx-auto">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Bank Details</h1>
+        <p className="text-gray-600">View your registered bank account information</p>
+      </div>
 
-        {banks.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No bank details available.</p>
+      {banks.length === 0 ? (
+        <div className="bg-white rounded-lg shadow p-12 text-center">
+          <div className="text-gray-400 mb-4">
+            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {banks.map((bank) => (
-              <div
-                key={bank._id}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
-              >
-                {/* Bank Logo Section */}
-                <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6 flex items-center justify-center h-40">
-                  {bank.logo ? (
-                    <img
-                      src={bank.logo}
-                      alt={`${bank.bankName} logo`}
-                      className="max-h-full max-w-full object-contain"
-                    />
-                  ) : (
-                    <div className="text-4xl font-bold text-gray-400">
-                      {bank.bankName.charAt(0)}
-                    </div>
-                  )}
-                </div>
+          <p className="text-gray-500 text-lg">No bank details available.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {banks.map((bank) => (
+            <div
+              key={bank._id}
+              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+            >
+              {/* Bank Logo Section */}
+              <div className="bg-linear-to-br from-gray-50 to-gray-100 p-6 flex items-center justify-center h-40 border-b border-gray-200">
+                {bank.logo ? (
+                  <img
+                    src={bank.logo}
+                    alt={`${bank.bankName} logo`}
+                    className="max-h-full max-w-full object-contain"
+                  />
+                ) : (
+                  <div className="text-6xl font-bold text-gray-400">
+                    {bank.bankName.charAt(0)}
+                  </div>
+                )}
+              </div>
 
-                {/* Bank Details Section */}
-                <div className="p-6">
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-500">
-                        Bank Name:
-                      </p>
-                      <p className="text-base font-semibold text-gray-900">
-                        {bank.bankName}
-                      </p>
-                    </div>
+              {/* Bank Details Section */}
+              <div className="p-6">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase mb-1">
+                      Bank Name
+                    </p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {bank.bankName}
+                    </p>
+                  </div>
 
-                    <div>
-                      <p className="text-sm font-semibold text-gray-500">
-                        Account Title:
-                      </p>
-                      <p className="text-base text-gray-700">
-                        {bank.accountTitle}
-                      </p>
-                    </div>
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase mb-1">
+                      Account Title
+                    </p>
+                    <p className="text-base text-gray-700 font-medium">
+                      {bank.accountTitle}
+                    </p>
+                  </div>
 
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm font-semibold text-gray-500">
-                        Account Number:
+                      <p className="text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Account Number
                       </p>
-                      <p className="text-base text-gray-700">
+                      <p className="text-base text-gray-700 font-mono">
                         {bank.accountNo}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-sm font-semibold text-gray-500">
-                        IBN:
+                      <p className="text-xs font-semibold text-gray-500 uppercase mb-1">
+                        IBN
                       </p>
-                      <p className="text-base text-gray-700">{bank.ibn}</p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm font-semibold text-gray-500">
-                        Address:
-                      </p>
-                      <p className="text-base text-gray-700">
-                        {bank.bankAddress}
+                      <p className="text-base text-gray-700 font-mono">
+                        {bank.ibn}
                       </p>
                     </div>
                   </div>
+
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase mb-1">
+                      Address
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      {bank.bankAddress}
+                    </p>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

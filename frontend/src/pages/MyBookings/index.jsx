@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import  { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axiosInstance from '../../api/axios'
 import { toast } from 'react-toastify'
@@ -39,7 +39,6 @@ export default function MyBookings() {
     const fetchBookings = async () => {
         try {
             setFetching(true)
-            setError(null)
 
             const params = new URLSearchParams({
                 ...(searchQuery && { search: searchQuery }),
@@ -57,7 +56,6 @@ export default function MyBookings() {
             }
         } catch (err) {
             console.error('Error fetching bookings:', err)
-            setError('Failed to load bookings')
             toast.error('Failed to load bookings')
         } finally {
             setInitialLoading(false)

@@ -15,6 +15,7 @@ const Payment = () => {
     bankAccount: "",
     amount: "",
     receipt: null,
+    booking: "",
   });
 
   // Filter States
@@ -27,7 +28,10 @@ const Payment = () => {
   // Data States
   const [payments, setPayments] = useState([]);
   const [banks, setBanks] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [bookings, setBookings] = useState([]);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [fetching, setFetching] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [total, setTotal] = useState(0);
 
@@ -43,16 +47,54 @@ const Payment = () => {
     }
   };
 
+  // Fetch user's bookings
+  const fetchBookings = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('frontend_user'));
+      const userId = user?._id || user?.id;
+      
+      if (!userId) {
+        console.error('User not authenticated');
+        return;
+      }
+
+      const response = await axiosInstance.get("/bookings", {
+        params: {
+          userId: userId
+        }
+      });
+
+      if (response.data.success) {
+        setBookings(response.data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+    }
+  };
+
   // Fetch payments based on filters
   const fetchPayments = async () => {
     try {
-      setLoading(true);
+      setFetching(true);
       setError(null);
+      
+      // Get user ID from localStorage
+      const user = JSON.parse(localStorage.getItem('frontend_user'));
+      const userId = user?._id || user?.id;
+      
+      if (!userId) {
+        setError("User not authenticated");
+        setInitialLoading(false);
+        setFetching(false);
+        return;
+      }
+      
       const response = await axiosInstance.get("/payment", {
         params: {
           dateFrom: filters.dateFrom,
           dateTo: filters.dateTo,
           status: filters.status,
+          userId: userId,
         },
       });
 
@@ -64,12 +106,14 @@ const Payment = () => {
       console.error("Error fetching payments:", error);
       setError("Failed to fetch payments");
     } finally {
-      setLoading(false);
+      setFetching(false);
+      setInitialLoading(false);
     }
   };
 
   useEffect(() => {
     fetchBanks();
+    fetchBookings();
     fetchPayments();
   }, []);
 
@@ -134,7 +178,7 @@ const Payment = () => {
     }
 
     try {
-      setLoading(true);
+      setSubmitting(true);
       const submitData = new FormData();
       submitData.append("date", formData.date);
       submitData.append("description", formData.description);
@@ -142,6 +186,10 @@ const Payment = () => {
       submitData.append("amount", formData.amount);
       submitData.append("status", "Un Posted");
       submitData.append("user", user.id || user._id);
+      
+      if (formData.booking) {
+        submitData.append("booking", formData.booking);
+      }
       
       if (formData.receipt) {
         submitData.append("receipt", formData.receipt);
@@ -162,6 +210,7 @@ const Payment = () => {
           bankAccount: "",
           amount: "",
           receipt: null,
+          booking: "",
         });
         // Reset file input
         document.querySelector('input[type="file"]').value = "";
@@ -172,7 +221,7 @@ const Payment = () => {
       console.error("Error adding payment:", error);
       alert(error.response?.data?.message || "Failed to add payment");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -198,20 +247,24 @@ const Payment = () => {
     return `${day} ${month} ${year}`;
   };
 
-  return (
-    <div className="min-h-screen px-4 sm:px-6 lg:px-8">
-      <div className="max-w-full mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Add Payments</h1>
-          <div className="text-sm text-gray-600">
-            <a href="/" className="text-blue-600 hover:underline">
-              Home
-            </a>
-            <span className="mx-2">/</span>
-            <span>Add Payments</span>
-          </div>
+  if (initialLoading) {
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading payments...</p>
         </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full min-h-screen mx-auto">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Add Payments</h1>
+        <p className="text-gray-600">Submit and manage your payment records</p>
+      </div>
 
         {/* Add Payment Form */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -269,6 +322,26 @@ const Payment = () => {
                 </select>
               </div>
 
+              {/* Booking */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Booking
+                </label>
+                <select
+                  name="booking"
+                  value={formData.booking}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select Booking</option>
+                  {bookings.map((booking) => (
+                    <option key={booking._id} value={booking._id}>
+                      {booking.bookingReference} - {booking.sector || 'N/A'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Amount */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -303,21 +376,37 @@ const Payment = () => {
             <div className="flex justify-center">
               <button
                 type="submit"
-                disabled={loading}
-                className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={submitting}
+                className="px-8 py-3 bg-linear-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 hover:scale-105 active:scale-95 transition-all duration-300 font-semibold shadow-md hover:shadow-lg transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                {loading ? "Submitting..." : "Submit"}
+                {submitting ? "Submitting..." : "Submit"}
               </button>
             </div>
           </form>
         </div>
 
         {/* Filters Section */}
-        <div className="bg-blue-600 rounded-lg shadow-md p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div className="bg-white rounded-lg shadow p-4 mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
+            <button
+              onClick={() => {
+                setFilters({
+                  dateFrom: getCurrentYearStart(),
+                  dateTo: new Date().toISOString().split("T")[0],
+                  status: "All",
+                });
+                fetchPayments();
+              }}
+              className="text-sm text-red-600 hover:text-red-800 font-medium"
+            >
+              Reset All
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Date From */}
             <div>
-              <label className="block text-sm font-semibold text-white mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Date From
               </label>
               <input
@@ -325,13 +414,13 @@ const Payment = () => {
                 name="dateFrom"
                 value={filters.dateFrom}
                 onChange={handleFilterChange}
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             {/* Date To */}
             <div>
-              <label className="block text-sm font-semibold text-white mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Date To
               </label>
               <input
@@ -339,20 +428,20 @@ const Payment = () => {
                 name="dateTo"
                 value={filters.dateTo}
                 onChange={handleFilterChange}
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             {/* Status */}
             <div>
-              <label className="block text-sm font-semibold text-white mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Status
               </label>
               <select
                 name="status"
                 value={filters.status}
                 onChange={handleFilterChange}
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="All">All</option>
                 <option value="Posted">Posted</option>
@@ -361,35 +450,38 @@ const Payment = () => {
             </div>
 
             {/* Filter Button */}
-            <div>
+            <div className="flex items-end">
               <button
                 onClick={handleFilter}
-                disabled={loading}
-                className="w-full px-4 py-2 bg-yellow-500 text-gray-900 font-semibold rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50"
+                disabled={fetching}
+                className="w-full px-4 py-2 bg-linear-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 hover:scale-105 active:scale-95 transition-all duration-300 text-sm font-semibold shadow-md hover:shadow-lg transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                Filter
+                Apply Filters
               </button>
             </div>
           </div>
         </div>
 
         {/* Payments Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="bg-white rounded-lg shadow overflow-hidden relative">
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
               {error}
             </div>
           )}
 
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-500"></div>
+          {fetching && (
+            <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-2 text-sm text-gray-600">Loading...</p>
+              </div>
             </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-800">
+          )}
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8f]">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                         #
@@ -478,29 +570,26 @@ const Payment = () => {
                         </tr>
                       ))
                     )}
-                  </tbody>
-                </table>
-              </div>
+                </tbody>
+              </table>
+            </div>
 
-              {/* Total Section */}
-              <div className="bg-gray-100 px-6 py-4">
-                <div className="flex justify-end">
-                  <div className="text-right">
-                    <span className="text-sm font-semibold text-gray-700 mr-4">
-                      Total:
-                    </span>
-                    <span className="text-lg font-bold text-gray-900">
-                      PKR: {formatCurrency(total)}
-                    </span>
-                  </div>
+            {/* Total Section */}
+            <div className="bg-gray-100 px-6 py-4">
+              <div className="flex justify-end">
+                <div className="text-right">
+                  <span className="text-sm font-semibold text-gray-700 mr-4">
+                    Total:
+                  </span>
+                  <span className="text-lg font-bold text-gray-900">
+                    PKR: {formatCurrency(total)}
+                  </span>
                 </div>
               </div>
-            </>
-          )}
+            </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 export default Payment;

@@ -23,7 +23,7 @@ export default function Home() {
       {/* Top Cards Section */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mb-6">
         {/* Agents Card */}
-        <div className="bg-gradient-to-br from-teal-500 to-emerald-600 dark:from-teal-600 dark:to-emerald-700 rounded-lg p-6 text-white relative shadow-lg">
+        <div className="bg-linear-to-br from-teal-500 to-emerald-600 dark:from-teal-600 dark:to-emerald-700 rounded-lg p-6 text-white relative shadow-lg">
           <div className="absolute top-6 right-6 opacity-20">
             <UsersIcon className="w-16 h-16" />
           </div>
@@ -35,7 +35,7 @@ export default function Home() {
         </div>
 
         {/* Index Cards */}
-        <div className="bg-gradient-to-br from-slate-500 to-blue-600 dark:from-slate-600 dark:to-blue-700 rounded-lg p-6 text-white relative shadow-lg">
+        <div className="bg-linear-to-br from-slate-500 to-blue-600 dark:from-slate-600 dark:to-blue-700 rounded-lg p-6 text-white relative shadow-lg">
           <div className="absolute top-6 right-6 opacity-20">
             <IdentificationIcon className="w-16 h-16" />
           </div>
@@ -54,7 +54,7 @@ export default function Home() {
 
       {/* View Sections */}
       <div className="grid grid-cols-1 gap-4 mb-6">
-        <button className="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-semibold py-4 px-6 rounded-lg transition-all shadow-lg text-lg">
+        <button className="bg-linear-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-semibold py-4 px-6 rounded-lg transition-all shadow-lg text-lg">
           View All Groups
         </button>
       </div>

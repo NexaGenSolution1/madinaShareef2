@@ -244,7 +244,7 @@ const RegisteredAgencies = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-3">
         {/* Active Agents Card */}
-        <div className="flex items-center gap-4 p-6 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl shadow-lg">
+        <div className="flex items-center gap-4 p-6 bg-linear-to-br from-emerald-400 to-teal-500 rounded-xl shadow-lg">
           <div className="flex items-center justify-center w-14 h-14 bg-white/90 rounded-full shadow-md">
             <svg className="w-7 h-7 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
@@ -257,7 +257,7 @@ const RegisteredAgencies = () => {
         </div>
 
         {/* Pending Agents Card */}
-        <div className="flex items-center gap-4 p-6 bg-gradient-to-br from-sky-400 to-blue-500 rounded-xl shadow-lg">
+        <div className="flex items-center gap-4 p-6 bg-linear-to-br from-sky-400 to-blue-500 rounded-xl shadow-lg">
           <div className="flex items-center justify-center w-14 h-14 bg-white/90 rounded-full shadow-md">
             <svg className="w-7 h-7 text-sky-500" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
@@ -270,7 +270,7 @@ const RegisteredAgencies = () => {
         </div>
 
         {/* De-Active Agents Card */}
-        <div className="flex items-center gap-4 p-6 bg-gradient-to-br from-rose-400 to-pink-500 rounded-xl shadow-lg">
+        <div className="flex items-center gap-4 p-6 bg-linear-to-br from-rose-400 to-pink-500 rounded-xl shadow-lg">
           <div className="flex items-center justify-center w-14 h-14 bg-white/90 rounded-full shadow-md">
             <svg className="w-7 h-7 text-rose-500" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
