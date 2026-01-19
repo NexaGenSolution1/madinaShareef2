@@ -176,54 +176,80 @@ export default function BookingForm() {
         setFormData(prev => ({ ...prev, passengers }))
     }, [formData.adults, formData.children, formData.infants, isEditMode])
 
-    // Validate available seats in real-time
-    useEffect(() => {
-        if (!isEditMode && groupData?.available_no_of_pax) {
-            const payingPassengers = parseInt(formData.adults || 0) + parseInt(formData.children || 0)
-            const availableSeats = groupData.available_no_of_pax || 0
-            
-            if (payingPassengers > availableSeats) {
-                toast.error(
-                    `Seats not available! You selected ${payingPassengers} seats but only ${availableSeats} seats are available.`,
-                    { toastId: 'seat-limit' }
-                )
-            }
-        }
-    }, [formData.adults, formData.children, groupData?.available_no_of_pax, isEditMode])
+    // Helper function to validate passenger input
+    const validatePassengerInput = (name, value) => {
+        // Allow empty string during editing
+        if (value === '') return true
+        
+        const numValue = parseInt(value)
+        
+        // Block negative values
+        if (numValue < 0) return false
+        
+        // Adults must be at least 1
+        if (name === 'adults' && numValue === 0) return false
+        
+        return true
+    }
+
+    // Helper function to get default passenger value
+    const getDefaultPassengerValue = (name) => {
+        return name === 'adults' ? 1 : 0
+    }
+
+    // Helper function to validate seat limits
+    const validateSeatLimit = (adults, children) => {
+        if (isEditMode) return true
+        
+        const totalSeats = adults + children
+        const availableSeats = groupData?.available_no_of_pax || 0
+        
+        return totalSeats <= availableSeats
+    }
 
     const handleChange = (e) => {
         const { name, value } = e.target
+        
+        // Validate passenger count fields
+        if (['adults', 'children', 'infants'].includes(name)) {
+            if (!validatePassengerInput(name, value)) {
+                return // Block invalid input
+            }
+        }
+        
         setFormData(prev => ({ ...prev, [name]: value }))
     }
 
     const handlePassengerBlur = (e) => {
         const { name, value } = e.target
         
-        // Ensure minimum values are set
-        if (value === '' || parseInt(value) < 0) {
-            const defaultValue = name === 'adults' ? 1 : 0
+        // Not a passenger field
+        if (!['adults', 'children', 'infants'].includes(name)) return
+        
+        // Set default if empty or invalid
+        if (value === '' || parseInt(value) < 0 || (name === 'adults' && parseInt(value) === 0)) {
+            const defaultValue = getDefaultPassengerValue(name)
             setFormData(prev => ({ ...prev, [name]: defaultValue }))
             return
         }
         
-        // Ensure adults is at least 1
-        if (name === 'adults' && parseInt(value) === 0) {
-            setFormData(prev => ({ ...prev, [name]: 1 }))
-            return
-        }
-
-        // Validate seat limit (adults + children, excluding infants)
-        if (name === 'adults' || name === 'children') {
-            const adults = name === 'adults' ? (parseInt(value) || 0) : (parseInt(formData.adults) || 0)
-            const children = name === 'children' ? (parseInt(value) || 0) : (parseInt(formData.children) || 0)
-            const totalSeats = adults + children
-            const availableSeats = groupData?.available_no_of_pax || 0
-
-            if (totalSeats > availableSeats) {
-                toast.error(`Adults and Children (${totalSeats}) cannot exceed available seats (${availableSeats})`)
-                // Reset to previous valid value
-                const previousValue = name === 'adults' ? 1 : 0
-                setFormData(prev => ({ ...prev, [name]: previousValue }))
+        // Validate seat limit for adults and children (excluding infants)
+        if (!isEditMode && (name === 'adults' || name === 'children')) {
+            const adults = name === 'adults' ? parseInt(value) : (parseInt(formData.adults) || 0)
+            const children = name === 'children' ? parseInt(value) : (parseInt(formData.children) || 0)
+            
+            if (!validateSeatLimit(adults, children)) {
+                const totalSeats = adults + children
+                const availableSeats = groupData?.available_no_of_pax || 0
+                
+                toast.error(
+                    `Seats not available! You selected ${totalSeats} seats but only ${availableSeats} are available.`,
+                    { toastId: 'seat-limit-error' }
+                )
+                
+                // Reset to default value
+                const defaultValue = getDefaultPassengerValue(name)
+                setFormData(prev => ({ ...prev, [name]: defaultValue }))
                 e.target.focus()
             }
         }

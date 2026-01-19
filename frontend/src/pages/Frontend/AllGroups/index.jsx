@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import axiosInstance from '../../../api/axios'
 import { toast } from 'react-toastify'
-import { MdAirlineSeatReclineNormal } from 'react-icons/md'
 
 export default function AllGroups() {
     const [searchParams, setSearchParams] = useSearchParams()
@@ -69,8 +68,6 @@ export default function AllGroups() {
                     showSeat: group.showSeat || false,
                     sector: group.sector,
                     type: group.groupType,
-                    totalSeats: group.totalSeats || 0,
-                    showSeat: group.showSeat || false,
                     price: group.price?.sellingAdultPriceB2B || 0,
                     childPrice: group.price?.sellingChildPriceB2B || 0,
                     infantPrice: group.price?.sellingInfantPriceB2B || 0,
@@ -299,7 +296,7 @@ export default function AllGroups() {
                                 ? `${searchParams.get('group_type').toUpperCase()} Groups`
                                 : 'All Groups'}
                         </h2>
-                        <p className="text-sm font-bold text-gray-600">
+                        <p className="text-sm text-gray-600">
                             Showing {groups.length} of {allGroups.length} {groups.length === 1 ? 'group' : 'groups'}
                         </p>
                     </div>
@@ -308,10 +305,10 @@ export default function AllGroups() {
                 {/* Filters Section */}
                 <div className="mb-6 bg-white rounded-lg shadow p-4">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-bold text-gray-900">Filters</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
                         <button
                             onClick={resetFilters}
-                            className="text-sm text-red-600 hover:text-red-800 font-bold"
+                            className="text-sm text-red-600 hover:text-red-800 font-medium"
                         >
                             Reset All
                         </button>
@@ -320,7 +317,7 @@ export default function AllGroups() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         {/* Sector Filter */}
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Sector
                             </label>
                             <select
@@ -337,7 +334,7 @@ export default function AllGroups() {
 
                         {/* Airline Filter */}
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Airline
                             </label>
                             <select
@@ -354,7 +351,7 @@ export default function AllGroups() {
 
                         {/* Meal Filter */}
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Meal
                             </label>
                             <select
@@ -370,7 +367,7 @@ export default function AllGroups() {
 
                         {/* Date Range */}
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Departure Date Range
                             </label>
                             <div className="flex gap-2">
@@ -398,32 +395,29 @@ export default function AllGroups() {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f]">
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                                         Flight#
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                                         Date
                                     </th>
 
-                                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                                         Origin-Destination
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                                         Time
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                                         Baggage
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                                         Meal
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                                        Available Seats
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                                         Price
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                                         Action
                                     </th>
                                 </tr>
@@ -431,7 +425,7 @@ export default function AllGroups() {
                             <tbody className="bg-white">
                                 {groups.length === 0 ? (
                                     <tr>
-                                        <td colSpan="8" className="px-6 py-8 text-center text-gray-500 font-bold">
+                                        <td colSpan="8" className="px-6 py-8 text-center text-gray-500">
                                             No groups available at the moment
                                         </td>
                                     </tr>
@@ -470,7 +464,7 @@ export default function AllGroups() {
                                                         <div className="flex justify-center items-center gap-2">
                                                             {/* <span className="text-green-600 text-xl">✈</span> */}
                                                             <img src={data.logo_url} className='w-28' />
-                                                            <span className="font-bold text-gray-700">
+                                                            <span className="font-semibold text-gray-700">
                                                                 {/* {data.airline} |  */}
                                                                 {data.sector}
                                                             </span>
@@ -488,40 +482,30 @@ export default function AllGroups() {
                                                             onMouseLeave={() => setHoveredGroup(null)}
                                                         >
 
-                                                            <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900">
+                                                            <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                                                                 {flight.flight_no}
                                                             </td>
-                                                            <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900">
+                                                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                                                                 <div className="flex items-center gap-2">
                                                                     <span className="text-green-500">✈</span>
                                                                     {formatDate(flight.flight_date)}
                                                                 </div>
                                                             </td>
-                                                            <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900">
+                                                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                                                                 {flight.origin}-{flight.destination}
                                                             </td>
-                                                            <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900">
+                                                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                                                                 {flight.dept_time?.substring(0, 5)}-{flight.arv_time?.substring(0, 5)}
                                                             </td>
-                                                            <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900">
+                                                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                                                                 {`${flight.baggage ? `${flight.baggage} KG` : 'N/A'}`}
                                                             </td>
-                                                            <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900">
+                                                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                                                                 {flight.meal || 'No'}
                                                             </td>
                                                             {flightIndex === 0 && (
                                                                 <>
-                                                                    <td rowSpan={group.details.length} className="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900 align-middle text-center">
-                                                                        {group.showSeat ? (
-                                                                            <span className="flex items-center gap-2">
-                                                                                <MdAirlineSeatReclineNormal className="text-xl text-blue-600" />
-                                                                                <span>{group.totalSeats || 0}</span>
-                                                                            </span>
-                                                                        ) : (
-                                                                            <MdAirlineSeatReclineNormal className="text-xl text-blue-600" />
-                                                                        )}
-                                                                    </td>
-                                                                    <td rowSpan={group.details.length} className="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900 align-middle ">
+                                                                    <td rowSpan={group.details.length} className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900 align-middle text-center">
                                                                         PKR {group.price?.toLocaleString()}
                                                                     </td>
                                                                     <td rowSpan={group.details.length} className="px-4 py-3 whitespace-nowrap text-sm align-middle text-center">
