@@ -81,29 +81,43 @@ const ChangePassword = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Change Password</h2>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Current Password */}
-        <div>
-          <label
-            htmlFor="currentPassword"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Current Password <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <input
-              type={showPasswords.current ? "text" : "password"}
-              id="currentPassword"
-              name="currentPassword"
-              value={formData.currentPassword}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              placeholder="Enter current password"
-              required
-            />
+    <div className="w-full min-h-screen bg-gray-50 py-8">
+      <div className="max-w-2xl mx-auto px-6">
+        {/* Header */}
+        <div className="bg-white border border-gray-300 rounded-lg shadow-sm mb-6">
+          <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-white border-b border-gray-200">
+            <h1 className="text-2xl font-bold text-gray-900">change password</h1>
+            <p className="text-sm text-gray-600 mt-1">update your account password</p>
+          </div>
+        </div>
+
+        {/* Form */}
+        <div className="bg-white border border-gray-300 rounded-lg shadow-sm">
+          <div className="px-6 py-4 bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8f] border-b border-gray-200">
+            <h2 className="text-lg font-bold text-white">password information</h2>
+          </div>
+
+          <div className="px-6 py-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Current Password */}
+              <div>
+                <label
+                  htmlFor="currentPassword"
+                  className="block text-sm font-bold text-gray-900 mb-2"
+                >
+                  Current Password <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPasswords.current ? "text" : "password"}
+                    id="currentPassword"
+                    name="currentPassword"
+                    value={formData.currentPassword}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2.5 pr-12 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter current password"
+                    required
+                  />
             <button
               type="button"
               onClick={() => togglePasswordVisibility("current")}
@@ -149,25 +163,25 @@ const ChangePassword = () => {
           </div>
         </div>
 
-        {/* New Password */}
-        <div>
-          <label
-            htmlFor="newPassword"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            New Password <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <input
-              type={showPasswords.new ? "text" : "password"}
-              id="newPassword"
-              name="newPassword"
-              value={formData.newPassword}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              placeholder="Enter new password"
-              required
-            />
+              {/* New Password */}
+              <div>
+                <label
+                  htmlFor="newPassword"
+                  className="block text-sm font-bold text-gray-900 mb-2"
+                >
+                  New Password <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPasswords.new ? "text" : "password"}
+                    id="newPassword"
+                    name="newPassword"
+                    value={formData.newPassword}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2.5 pr-12 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter new password"
+                    required
+                  />
             <button
               type="button"
               onClick={() => togglePasswordVisibility("new")}
@@ -213,25 +227,25 @@ const ChangePassword = () => {
           </div>
         </div>
 
-        {/* Retype Password */}
-        <div>
-          <label
-            htmlFor="retypePassword"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Re-type Password <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <input
-              type={showPasswords.retype ? "text" : "password"}
-              id="retypePassword"
-              name="retypePassword"
-              value={formData.retypePassword}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              placeholder="Re-enter new password"
-              required
-            />
+              {/* Retype Password */}
+              <div>
+                <label
+                  htmlFor="retypePassword"
+                  className="block text-sm font-bold text-gray-900 mb-2"
+                >
+                  Re-type Password <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPasswords.retype ? "text" : "password"}
+                    id="retypePassword"
+                    name="retypePassword"
+                    value={formData.retypePassword}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2.5 pr-12 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Re-enter new password"
+                    required
+                  />
             <button
               type="button"
               onClick={() => togglePasswordVisibility("retype")}
@@ -277,55 +291,63 @@ const ChangePassword = () => {
           </div>
         </div>
 
-        {/* Password requirements info */}
-        <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
-          <p className="font-medium mb-1">Password requirements:</p>
-          <ul className="list-disc list-inside space-y-1">
-            <li>At least 6 characters long</li>
-            <li>Must be different from current password</li>
-            <li>New password and re-type password must match</li>
-          </ul>
-        </div>
+              {/* Password requirements info */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  Password Requirements:
+                </p>
+                <ul className="text-sm text-gray-700 space-y-1 ml-7">
+                  <li className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                    At least 6 characters long
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                    Must be different from current password
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                    New password and re-type password must match
+                  </li>
+                </ul>
+              </div>
 
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={loading}
-          className={`w-full py-3 px-4 rounded-md text-white font-medium transition-colors ${
-            loading
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700 active:bg-blue-800"
-          }`}
-        >
-          {loading ? (
-            <span className="flex items-center justify-center">
-              <svg
-                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              Changing Password...
-            </span>
-          ) : (
-            "Change Password"
-          )}
-        </button>
-      </form>
+              {/* Submit Button */}
+              <div className="flex justify-end pt-4 border-t border-gray-200">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`px-10 py-3 rounded-lg font-bold shadow-lg flex items-center gap-2 transform transition-all duration-300 ${
+                    loading
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : 'bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8f] text-white hover:from-[#2d5a8f] hover:to-[#1e3a5f] hover:scale-105 hover:shadow-2xl active:scale-95'
+                  }`}
+                >
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Changing Password...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                      </svg>
+                      Change Password
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

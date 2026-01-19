@@ -166,14 +166,14 @@ const Airline = () => {
         <PageBreadCrumb pageTitle="Add New Airline" />
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
-        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-4 md:p-6 mb-6 sm:mb-8">
+        <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">
           {isEditing ? "Edit Airline" : "Add New Airline"}
         </h2>
 
         {message.text && (
           <div
-            className={`mb-4 p-4 rounded-lg ${
+            className={`mb-4 p-3 sm:p-4 rounded-lg text-sm ${
               message.type === "success"
                 ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                 : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
@@ -184,11 +184,11 @@ const Airline = () => {
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
             <div>
               <label
                 htmlFor="airlineCode"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2"
               >
                 Airline Code
               </label>
@@ -199,7 +199,7 @@ const Airline = () => {
                 value={formData.airlineCode}
                 onChange={handleInputChange}
                 placeholder="Enter Code"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-2 sm:px-3 md:px-4 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 required
               />
             </div>
@@ -207,7 +207,7 @@ const Airline = () => {
             <div>
               <label
                 htmlFor="airlineName"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2"
               >
                 Airline Name
               </label>
@@ -218,7 +218,7 @@ const Airline = () => {
                 value={formData.airlineName}
                 onChange={handleInputChange}
                 placeholder="Airline Name"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-2 sm:px-3 md:px-4 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 required
               />
             </div>
@@ -226,7 +226,7 @@ const Airline = () => {
             <div>
               <label
                 htmlFor="shortCode"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2"
               >
                 ShortCode
               </label>
@@ -237,7 +237,7 @@ const Airline = () => {
                 value={formData.shortCode}
                 onChange={handleInputChange}
                 placeholder="Enter ShortCode"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-2 sm:px-3 md:px-4 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 required
               />
             </div>
@@ -245,7 +245,7 @@ const Airline = () => {
             <div>
               <label
                 htmlFor="logo"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2"
               >
                 Image
               </label>
@@ -255,17 +255,17 @@ const Airline = () => {
                 name="logo"
                 onChange={handleFileChange}
                 accept="image/*"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-2 sm:px-3 md:px-4 py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
           </div>
 
-          <div className="flex justify-center gap-3">
+          <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3">
             {isEditing && (
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                className="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition duration-200"
+                className="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 sm:px-6 rounded-lg transition duration-200 text-sm sm:text-base"
               >
                 Cancel
               </button>
@@ -273,7 +273,7 @@ const Airline = () => {
             <button
               type="submit"
               disabled={loading}
-              className="bg-[#000] hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto bg-[#000] hover:bg-blue-700 text-white font-medium py-2 px-4 sm:px-6 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
             >
               {loading ? (isEditing ? "Updating..." : "Adding...") : (isEditing ? "Update Airline" : "Add Airline")}
             </button>
@@ -283,41 +283,41 @@ const Airline = () => {
 
       {/* All Airlines Section */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+        <div className="p-3 sm:p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">
             All Airline
           </h2>
         </div>
 
         {fetchLoading ? (
           <div className="p-6 text-center">
-            <p className="text-gray-600 dark:text-gray-400">Loading airlines...</p>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Loading airlines...</p>
           </div>
         ) : airlines.length === 0 ? (
           <div className="p-6 text-center">
-            <p className="text-gray-600 dark:text-gray-400">No airlines found</p>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">No airlines found</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-900 dark:bg-black">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
                     Airline ID
                   </th>
-                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                   <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
                     Airline Code
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
                     Airline Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
                     Code
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
                     Logo
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
                     Actions
                   </th>
                 </tr>
@@ -325,24 +325,24 @@ const Airline = () => {
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {airlines.map((airline, index) => (
                   <tr key={airline._id} className={index % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50 dark:bg-gray-700"}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                    <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 dark:text-gray-100">
                       {index + 1}
                     </td>
-                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                     <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 dark:text-gray-100">
                       {airline.airlineCode}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                    <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 dark:text-gray-100">
                       {airline.airlineName}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                    <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 dark:text-gray-100">
                       {airline.shortCode}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 whitespace-nowrap text-xs sm:text-sm">
                       {airline.logo ? (
                         <img
                           src={airline.logo}
                           alt={airline.airlineName}
-                          className="h-10 w-auto object-contain"
+                          className="h-8 sm:h-10 w-auto object-contain"
                         />
                       ) : (
                         <span className="text-gray-400 dark:text-gray-500">
@@ -350,9 +350,9 @@ const Airline = () => {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 whitespace-nowrap text-xs sm:text-sm">
                       <button
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-1 px-4 rounded transition duration-200"
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-1 px-2 sm:px-4 rounded transition duration-200 text-xs sm:text-sm"
                         onClick={() => handleEdit(airline)}
                       >
                         Edit

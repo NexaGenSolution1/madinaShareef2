@@ -45,62 +45,49 @@ export default function Header({ user, handleLogout }) {
 
     return (
         <header className='fixed w-full top-0 left-0 shadow-md z-999'>
-            <div className='relative flex items-center justify-between gap-6 px-2.5 bg-white sm:px-4 py-2.5 overflow-visible'>
+            <div className='relative flex items-center justify-between gap-2 sm:gap-4 md:gap-6 px-2 sm:px-3 md:px-4 bg-white py-2 md:py-2.5 overflow-visible'>
                 {/* Left Part */}
-                <div className='relative flex items-center gap-6 z-1'>
-                    <Link to='/' className='w-12 md:w-16 block'>
+                <div className='relative flex items-center gap-2 sm:gap-4 md:gap-6 z-1'>
+                    <Link to='/' className='w-10 sm:w-12 md:w-14 lg:w-16 block flex-shrink-0'>
                         <img src={logo} alt="logo" className='w-full h-full object-contain' />
                     </Link>
 
                     {user &&
-                        <div className='hidden xl:block space-x-5'>
-                            <Link to='/all-groups' className='text-sm font-semibold hover:text-[#d6d30b]'>All Groups</Link>
-                            <Link to='/all-groups?group_type=uae&group_type=uae groups' className='text-sm font-semibold hover:text-[#d6d30b]'>UAE Groups</Link>
-                            <Link to='/all-groups?group_type=ksa oneway&group_type=ksa groups' className='text-sm font-semibold hover:text-[#d6d30b]'>KSA Groups</Link>
-                            <Link to='/all-groups?group_type=bahrain&group_type=bahrain groups' className='text-sm font-semibold hover:text-[#d6d30b]'>Bahrain Groups</Link>
-                            <Link to='/all-groups?group_type=muscat&group_type=muscat groups&group_type=mascat groups' className='text-sm font-semibold hover:text-[#d6d30b]'>Muscat Groups</Link>
-                            <Link to='/all-groups?group_type=qatar&group_type=qatar groups' className='text-sm font-semibold hover:text-[#d6d30b]'>Qatar Groups</Link>
-                            <Link to='/all-groups?group_type=uk&group_type=uk groups' className='text-sm font-semibold hover:text-[#d6d30b]'>UK Groups</Link>
-                            <Link to='/all-groups?group_type=umrah&group_type=umrah groups' className='text-sm font-semibold hover:text-[#d6d30b]'>Umrah Groups</Link>
-                            {
-                            /* <button className='text-sm font-semibold hover:text-[#d6d30b]'>Umrah Groups</button>
-                            <button className='text-sm font-semibold hover:text-[#d6d30b]'>UAE Groups</button>
-                            <button className='text-sm font-semibold hover:text-[#d6d30b]'>KSA Groups</button>
-                            <button className='text-sm font-semibold hover:text-[#d6d30b]'>Qatar Groups</button>
-                            <button className='text-sm font-semibold hover:text-[#d6d30b]'>UK Groups</button>
-                            <button className='text-sm font-semibold hover:text-[#d6d30b]'>Muscat Groups</button>
-                            <button className='text-sm font-semibold hover:text-[#d6d30b]'>Bahrain Groups</button>
-                            <button className='text-sm font-semibold hover:text-[#d6d30b]'>Banks</button>
-                            <button className='text-sm font-semibold hover:text-[#d6d30b]'>Deals</button> */}
+                        <div className='hidden xl:flex flex-wrap gap-x-3 lg:gap-x-5'>
+                            <Link to='/all-groups' className='text-xs lg:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'>All Groups</Link>
+                            <Link to='/all-groups?group_type=uae&group_type=uae groups' className='text-xs lg:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'>UAE Groups</Link>
+                            <Link to='/all-groups?group_type=ksa oneway&group_type=ksa groups' className='text-xs lg:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'>KSA Groups</Link>
+                            <Link to='/all-groups?group_type=bahrain&group_type=bahrain groups' className='text-xs lg:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'>Bahrain Groups</Link>
+                            <Link to='/all-groups?group_type=muscat&group_type=muscat groups&group_type=mascat groups' className='text-xs lg:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'>Muscat Groups</Link>
+                            <Link to='/all-groups?group_type=qatar&group_type=qatar groups' className='text-xs lg:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'>Qatar Groups</Link>
+                            <Link to='/all-groups?group_type=uk&group_type=uk groups' className='text-xs lg:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'>UK Groups</Link>
+                            <Link to='/all-groups?group_type=umrah&group_type=umrah groups' className='text-xs lg:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'>Umrah Groups</Link>
                         </div>
                     }
 
                 </div>
 
-                <div className='relative flex items-center gap-2 md:gap-4 z-1'>
+                <div className='relative flex items-center gap-1.5 sm:gap-2 md:gap-4 z-1'>
                     {/* Banks Link - Always Visible */}
 
 
                     {
-                        // user ? (
                         user && (
                             <div ref={profileRef} className='relative hidden md:flex items-center gap-2'>
-                                {/* <Link to='/banks' className='hidden md:block text-sm font-semibold hover:text-[#d6d30b]'>Banks</Link>
-                                <Link to='/payment' className='hidden md:block text-sm font-semibold hover:text-[#d6d30b]'>Payment</Link> */}
                                 <button
-                                    className='flex items-center gap-2 rounded-full border border-[#2A166D] px-3 py-2 text-sm text-[#2A166D] hover:bg-[#2A166D] hover:text-white'
+                                    className='flex items-center gap-1.5 sm:gap-2 rounded-full border border-[#2A166D] px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-[#2A166D] hover:bg-[#2A166D] hover:text-white transition-colors'
                                     onClick={() => setProfileOpen((p) => !p)}
                                 >
-                                    <span className='flex h-8 w-8 items-center justify-center rounded-full bg-[#2A166D] text-white font-semibold'>
+                                    <span className='flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-[#2A166D] text-white font-semibold text-xs sm:text-base flex-shrink-0'>
                                         {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                                     </span>
-                                    <span className='font-semibold'>{user.name || 'User'}</span>
+                                    <span className='font-semibold hidden lg:inline'>{user.name || 'User'}</span>
                                 </button>
                                 {profileOpen && (
                                     <div className='absolute right-0 top-12 w-48 rounded-lg border border-neutral-200 bg-white shadow-lg py-2 text-sm z-1000'>
                                         <div className='px-4 py-2 text-neutral-700'>
                                             Signed in as
-                                            <div className='font-semibold text-[#2A166D]'>{user.email}</div>
+                                            <div className='font-semibold text-[#2A166D] truncate'>{user.email}</div>
                                         </div>
                                         {user.role === 'Admin' && (
                                             <button
@@ -113,15 +100,6 @@ export default function Header({ user, handleLogout }) {
                                                 Admin Portal
                                             </button>
                                         )}
-                                        {/* <button
-                                            className='w-full text-left px-4 py-2 hover:bg-neutral-100'
-                                            onClick={() => {
-                                                setProfileOpen(false);
-                                                navigate('/');
-                                            }}
-                                        >
-                                            Home
-                                        </button> */}
                                            <button
                                             className='w-full text-left px-4 py-2 hover:bg-neutral-100 font-semibold'
                                             onClick={() => {
@@ -144,67 +122,119 @@ export default function Header({ user, handleLogout }) {
                                 )}
                             </div>
                         )
-                        // : (
-                        //     <div className='hidden md:flex gap-2'>
-                        //         <Link to="/auth/register" className='text-sm bg-[#2A166D] text-white border border-[#2A166D] px-6 py-2 rounded-xl hover:bg-[#d6d30b] hover:text-[#2A166D]'>
-                        //             Signup
-                        //         </Link>
-                        //         <Link to="/auth/login" className='flex items-center gap-1 text-sm text-[#2A166D] px-6 py-2 border border-[#2A166D] rounded-xl hover:bg-[#2A166D] hover:text-white'>
-                        //             Login <CiLogin />
-                        //         </Link>
-                        //     </div>
-                        // )
                     }
-                    <div className='block md:hidden'>
+                    <div className='flex items-center gap-2 md:hidden'>
                         {!user && (
-                            <Link to='/banks' className='text-sm font-semibold hover:text-[#d6d30b]'>Banks</Link>
+                            <Link to='/banks' className='text-xs sm:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'>Banks</Link>
                         )}
                         {user && (
-                            <button onClick={() => navigate('/')}>
-                                <HiOutlineUserCircle className='text-2xl text-neutral-700' />
+                            <button 
+                                onClick={() => navigate('/dashboard')}
+                                className='flex items-center justify-center'
+                            >
+                                <span className='flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-[#2A166D] text-white font-semibold text-xs sm:text-sm'>
+                                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                                </span>
                             </button>
-                        )
-                            // : (
-                            //     <Link to="/auth/login">
-                            //         <HiOutlineUserCircle className='text-2xl text-neutral-700' />
-                            //     </Link>
-                            // )
-                        }
+                        )}
                     </div>
                     {user &&
-                        <div className='block xl:hidden border border-neutral-100 p-2 rounded-lg' onClick={() => setOpen(!open)}>
-                            {open ? <AiOutlineClose className='text-neutral-700' /> : <CiMenuFries />}
-                        </div>
+                        <button 
+                            className='flex xl:hidden border border-neutral-300 p-1.5 sm:p-2 rounded-lg hover:bg-gray-50 transition-colors' 
+                            onClick={() => setOpen(!open)}
+                            aria-label="Toggle menu"
+                        >
+                            {open ? <AiOutlineClose className='text-neutral-700 text-lg sm:text-xl' /> : <CiMenuFries className='text-lg sm:text-xl' />}
+                        </button>
                     }
                 </div>
 
-                {/* Sub Header */}
-                <div className={`block xl:hidden fixed w-full h-[calc(100vh-68px)] md:h-[calc(100vh-84px)] top-17 md:top-20.5 left-0 bg-white overflow-y-auto z-999 transition-all duration-300 ease-in-out
-                ${open ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+                {/* Mobile Menu */}
+                <div className={`flex xl:hidden fixed w-full h-[calc(100vh-56px)] sm:h-[calc(100vh-64px)] md:h-[calc(100vh-72px)] top-[56px] sm:top-[64px] md:top-[72px] left-0 bg-white overflow-y-auto z-[998] transition-all duration-300 ease-in-out shadow-lg
+                ${open ? 'translate-x-0 opacity-100 visible' : 'translate-x-full opacity-0 invisible'}`}
                 >
-                    <div className='flex flex-col items-start gap-6 px-8 py-6 font-semibold'>
-                        <Link to='/all-groups' className='hover:text-[#d6d30b]'>All Groups</Link>
-                        <Link to='/all-groups?group_type=uae&group_type=uae groups' className='hover:text-[#d6d30b]'>UAE Groups</Link>
-                        <Link to='/all-groups?group_type=ksa oneway&group_type=ksa groups' className='hover:text-[#d6d30b]'>KSA Groups</Link>
-                        <Link to='/all-groups?group_type=bahrain&group_type=bahrain groups' className='hover:text-[#d6d30b]'>Bahrain Groups</Link>
-                        <Link to='/all-groups?group_type=muscat&group_type=muscat groups&group_type=mascat groups' className='hover:text-[#d6d30b]'>Muscat Groups</Link>
-                        <Link to='/all-groups?group_type=qatar&group_type=qatar groups' className='hover:text-[#d6d30b]'>Qatar Groups</Link>
-                        <Link to='/all-groups?group_type=uk&group_type=uk groups' className='hover:text-[#d6d30b]'>UK Groups</Link>
-                        <Link to='/all-groups?group_type=umrah&group_type=umrah groups' className='hover:text-[#d6d30b]'>Umrah Groups</Link>
+                    <div className='flex flex-col items-start gap-4 sm:gap-5 px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 font-semibold w-full'>
+                        <Link 
+                            to='/all-groups' 
+                            className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors'
+                            onClick={() => setOpen(false)}
+                        >
+                            All Groups
+                        </Link>
+                        <Link 
+                            to='/all-groups?group_type=uae&group_type=uae groups' 
+                            className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors'
+                            onClick={() => setOpen(false)}
+                        >
+                            UAE Groups
+                        </Link>
+                        <Link 
+                            to='/all-groups?group_type=ksa oneway&group_type=ksa groups' 
+                            className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors'
+                            onClick={() => setOpen(false)}
+                        >
+                            KSA Groups
+                        </Link>
+                        <Link 
+                            to='/all-groups?group_type=bahrain&group_type=bahrain groups' 
+                            className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors'
+                            onClick={() => setOpen(false)}
+                        >
+                            Bahrain Groups
+                        </Link>
+                        <Link 
+                            to='/all-groups?group_type=muscat&group_type=muscat groups&group_type=mascat groups' 
+                            className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors'
+                            onClick={() => setOpen(false)}
+                        >
+                            Muscat Groups
+                        </Link>
+                        <Link 
+                            to='/all-groups?group_type=qatar&group_type=qatar groups' 
+                            className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors'
+                            onClick={() => setOpen(false)}
+                        >
+                            Qatar Groups
+                        </Link>
+                        <Link 
+                            to='/all-groups?group_type=uk&group_type=uk groups' 
+                            className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors'
+                            onClick={() => setOpen(false)}
+                        >
+                            UK Groups
+                        </Link>
+                        <Link 
+                            to='/all-groups?group_type=umrah&group_type=umrah groups' 
+                            className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors'
+                            onClick={() => setOpen(false)}
+                        >
+                            Umrah Groups
+                        </Link>
 
-                        {/* <hr className='w-full border-t border-neutral-200' />
-                        <Link to='/banks' className='hover:text-[#d6d30b]'>Banks</Link>
-                        <Link to='/payment' className='hover:text-[#d6d30b]'>Payment</Link> */}
-
-                        {/* <button className='hover:text-[#d6d30b]'>Umrah Groups</button>
-                        <button className='hover:text-[#d6d30b]'>UAE Groups</button>
-                        <button className='hover:text-[#d6d30b]'>KSA Groups</button>
-                        <button className='hover:text-[#d6d30b]'>Qatar Groups</button>
-                        <button className='hover:text-[#d6d30b]'>UK Groups</button>
-                        <button className='hover:text-[#d6d30b]'>Muscat Groups</button>
-                        <button className='hover:text-[#d6d30b]'>Bahrain Groups</button>
-                        <button className='hover:text-[#d6d30b]'>Banks</button>
-                        <button className='hover:text-[#d6d30b]'>Deals</button> */}
+                        <hr className='w-full border-t border-gray-200 my-2' />
+                        
+                        {user && (
+                            <>
+                                <button
+                                    className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors text-left font-semibold'
+                                    onClick={() => {
+                                        setOpen(false);
+                                        navigate('/dashboard');
+                                    }}
+                                >
+                                    Agent Dashboard
+                                </button>
+                                <button
+                                    className='text-sm sm:text-base text-red-600 hover:text-red-700 w-full py-2 transition-colors text-left'
+                                    onClick={() => {
+                                        setOpen(false);
+                                        handleLogout();
+                                    }}
+                                >
+                                    Logout
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

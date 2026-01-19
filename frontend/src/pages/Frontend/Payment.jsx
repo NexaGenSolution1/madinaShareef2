@@ -259,20 +259,20 @@ const Payment = () => {
   }
 
   return (
-    <div className="w-full min-h-screen mx-auto">
+    <div className="w-full min-h-screen mx-auto px-2 sm:px-4 md:px-0">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Add Payments</h1>
-        <p className="text-gray-600">Submit and manage your payment records</p>
+      <div className="mb-4 sm:mb-6 md:mb-8">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">add payments</h1>
+        <p className="text-sm sm:text-base text-gray-600">Submit and manage your payment records</p>
       </div>
 
         {/* Add Payment Form */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 md:p-6 mb-4 sm:mb-6">
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
               {/* Date */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
                   Date
                 </label>
                 <input
@@ -280,14 +280,14 @@ const Payment = () => {
                   name="date"
                   value={formData.date}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
                   Description
                 </label>
                 <input
@@ -296,21 +296,21 @@ const Payment = () => {
                   value={formData.description}
                   onChange={handleInputChange}
                   placeholder="Enter description"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
 
               {/* Bank Account */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
                   Bank Account
                 </label>
                 <select
                   name="bankAccount"
                   value={formData.bankAccount}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
                   <option value="">Select Account</option>
@@ -324,14 +324,14 @@ const Payment = () => {
 
               {/* Booking */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
                   Booking
                 </label>
                 <select
                   name="booking"
                   value={formData.booking}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select Booking</option>
                   {bookings.map((booking) => (
@@ -344,7 +344,7 @@ const Payment = () => {
 
               {/* Amount */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
                   Amount
                 </label>
                 <input
@@ -353,22 +353,22 @@ const Payment = () => {
                   value={formData.amount ? parseFloat(formData.amount).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : ""}
                   onChange={handleInputChange}
                   placeholder="Enter amount"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
             </div>
 
             {/* Upload Image */}
-            <div className="mb-4">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <div className="mb-3 sm:mb-4">
+              <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
                 Upload Image
               </label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-2 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -377,7 +377,7 @@ const Payment = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-8 py-3 bg-linear-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 hover:scale-105 active:scale-95 transition-all duration-300 font-semibold shadow-md hover:shadow-lg transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="w-full sm:w-auto px-4 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 hover:scale-105 active:scale-95 transition-all duration-300 text-sm sm:text-base font-semibold shadow-md hover:shadow-lg transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {submitting ? "Submitting..." : "Submit"}
               </button>
@@ -386,9 +386,9 @@ const Payment = () => {
         </div>
 
         {/* Filters Section */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
+        <div className="bg-white rounded-lg shadow p-3 sm:p-4 mb-4 sm:mb-6">
+          <div className="flex justify-between items-center mb-3 sm:mb-4">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900">Filters</h3>
             <button
               onClick={() => {
                 setFilters({
@@ -398,15 +398,15 @@ const Payment = () => {
                 });
                 fetchPayments();
               }}
-              className="text-sm text-red-600 hover:text-red-800 font-medium"
+              className="text-xs sm:text-sm text-red-600 hover:text-red-800 font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
             >
               Reset All
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {/* Date From */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                 Date From
               </label>
               <input
@@ -414,13 +414,13 @@ const Payment = () => {
                 name="dateFrom"
                 value={filters.dateFrom}
                 onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             {/* Date To */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                 Date To
               </label>
               <input
@@ -428,20 +428,20 @@ const Payment = () => {
                 name="dateTo"
                 value={filters.dateTo}
                 onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             {/* Status */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                 Status
               </label>
               <select
                 name="status"
                 value={filters.status}
                 onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="All">All</option>
                 <option value="Posted">Posted</option>
@@ -454,7 +454,7 @@ const Payment = () => {
               <button
                 onClick={handleFilter}
                 disabled={fetching}
-                className="w-full px-4 py-2 bg-linear-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 hover:scale-105 active:scale-95 transition-all duration-300 text-sm font-semibold shadow-md hover:shadow-lg transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="w-full px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 hover:scale-105 active:scale-95 transition-all duration-300 text-xs sm:text-sm font-semibold shadow-md hover:shadow-lg transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 Apply Filters
               </button>
@@ -481,30 +481,30 @@ const Payment = () => {
 
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f]">
+              <thead className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8f]">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                      <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
                         #
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                      <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
                         Voucher Id
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                      <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
                         Date
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                      <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
                         Description
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                      <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
                         Amount
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                      <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
                         Status
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                      <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
                         Remarks
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                      <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
                         Receipt
                       </th>
                     </tr>
@@ -514,7 +514,7 @@ const Payment = () => {
                       <tr>
                         <td
                           colSpan="8"
-                          className="px-6 py-4 text-center text-sm text-gray-500"
+                          className="px-4 sm:px-6 py-3 sm:py-4 text-center text-xs sm:text-sm text-gray-500"
                         >
                           No payments found
                         </td>
@@ -522,22 +522,24 @@ const Payment = () => {
                     ) : (
                       payments.map((payment, index) => (
                         <tr key={payment._id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
                             {index + 1}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
                             {payment.voucherId}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
                             {formatDate(payment.date)}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-900">
-                            {payment.description}
+                          <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-xs sm:text-sm text-gray-900">
+                            <div className="max-w-xs truncate" title={payment.description}>
+                              {payment.description}
+                            </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
                             {formatCurrency(payment.amount)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 whitespace-nowrap">
                             <span
                               className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                                 payment.status === "Posted"
@@ -550,10 +552,12 @@ const Payment = () => {
                               {payment.status}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-900">
-                            {payment.remarks || "-"}
+                          <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-xs sm:text-sm text-gray-900">
+                            <div className="max-w-xs truncate" title={payment.remarks || "-"}>
+                              {payment.remarks || "-"}
+                            </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 whitespace-nowrap text-xs sm:text-sm">
                             {payment.receipt ? (
                               <a
                                 href={payment.receipt}
@@ -575,13 +579,13 @@ const Payment = () => {
             </div>
 
             {/* Total Section */}
-            <div className="bg-gray-100 px-6 py-4">
+            <div className="bg-gray-100 px-3 sm:px-4 md:px-6 py-3 sm:py-4">
               <div className="flex justify-end">
                 <div className="text-right">
-                  <span className="text-sm font-semibold text-gray-700 mr-4">
+                  <span className="text-xs sm:text-sm font-semibold text-gray-700 mr-2 sm:mr-4">
                     Total:
                   </span>
-                  <span className="text-lg font-bold text-gray-900">
+                  <span className="text-base sm:text-lg font-bold text-gray-900">
                     PKR: {formatCurrency(total)}
                   </span>
                 </div>
