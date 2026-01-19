@@ -93,7 +93,7 @@ export default function Frontend() {
                             <div className='w-full min-h-screen mx-auto pt-32 px-8'>
                                 <div className="mb-4 sm:mb-6 md:mb-8">
                                     <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">All Groups</h1>
-                                    <p className="text-sm sm:text-base text-gray-600">Submit and manage your payment records</p>
+                                    <p className="text-sm sm:text-base text-gray-600">Browse and book available flight groups</p>
                                 </div>
                                 <AllGroups />
                             </div>
