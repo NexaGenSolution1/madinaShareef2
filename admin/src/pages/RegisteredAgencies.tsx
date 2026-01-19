@@ -44,6 +44,8 @@ const RegisteredAgencies = () => {
   const [approvalLoading, setApprovalLoading] = useState<string | null>(null);
   const [sendingCredentials, setSendingCredentials] = useState<string | null>(null);
   const [entriesPerPage, setEntriesPerPage] = useState(50);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [downloadingExcel, setDownloadingExcel] = useState(false);
   const frontendUrl = import.meta.env.VITE_FRONTEND_URL || "https://brothersinttvl.com";
 
   useEffect(() => {
@@ -198,6 +200,78 @@ const RegisteredAgencies = () => {
     }
   };
 
+  const handleDownloadPDF = async () => {
+    try {
+      setDownloadingPDF(true);
+      const token = localStorage.getItem("admin_token");
+      
+      const params = new URLSearchParams({
+        searchTerm: searchTerm,
+        city: cityFilter,
+        status: statusFilter,
+      });
+      
+      const response = await axiosInstance.get(`/export/users/pdf?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        responseType: 'blob',
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `agencies-${Date.now()}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      window.alert("Failed to download PDF. Please try again.");
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
+
+  const handleDownloadExcel = async () => {
+    try {
+      setDownloadingExcel(true);
+      const token = localStorage.getItem("admin_token");
+      
+      const params = new URLSearchParams({
+        searchTerm: searchTerm,
+        city: cityFilter,
+        status: statusFilter,
+      });
+      
+      const response = await axiosInstance.get(`/export/users/excel?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        responseType: 'blob',
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `agencies-${Date.now()}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+    } catch (error) {
+      console.error("Error downloading Excel:", error);
+      window.alert("Failed to download Excel. Please try again.");
+    } finally {
+      setDownloadingExcel(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -335,7 +409,27 @@ const RegisteredAgencies = () => {
               </select>
               <span className="text-sm text-gray-600 dark:text-gray-400">entries</span>
             </div>
-            <div>
+            <div className="flex gap-2 items-center">
+              <button
+                onClick={handleDownloadPDF}
+                disabled={downloadingPDF}
+                className="flex items-center gap-2 rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+                {downloadingPDF ? "Downloading..." : "PDF"}
+              </button>
+              <button
+                onClick={handleDownloadExcel}
+                disabled={downloadingExcel}
+                className="flex items-center gap-2 rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+                {downloadingExcel ? "Downloading..." : "Excel"}
+              </button>
               <input
                 type="text"
                 placeholder="Filter Search"

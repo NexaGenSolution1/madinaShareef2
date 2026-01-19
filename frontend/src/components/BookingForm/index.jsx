@@ -176,28 +176,23 @@ export default function BookingForm() {
         setFormData(prev => ({ ...prev, passengers }))
     }, [formData.adults, formData.children, formData.infants, isEditMode])
 
-    const handleChange = (e) => {
-        const { name, value } = e.target
-        
-        // Prevent negative values for passenger fields, but allow empty string for editing
-        if (['adults', 'children', 'infants'].includes(name)) {
-            // Allow empty string during editing
-            if (value === '') {
-                setFormData(prev => ({ ...prev, [name]: value }))
-                return
-            }
+    // Validate available seats in real-time
+    useEffect(() => {
+        if (!isEditMode && groupData?.available_no_of_pax) {
+            const payingPassengers = parseInt(formData.adults || 0) + parseInt(formData.children || 0)
+            const availableSeats = groupData.available_no_of_pax || 0
             
-            // Block negative values
-            if (parseInt(value) < 0) {
-                return
-            }
-            
-            // Prevent adults from being set to 0 (but allow empty during editing)
-            if (name === 'adults' && parseInt(value) === 0) {
-                return
+            if (payingPassengers > availableSeats) {
+                toast.error(
+                    `Seats not available! You selected ${payingPassengers} seats but only ${availableSeats} seats are available.`,
+                    { toastId: 'seat-limit' }
+                )
             }
         }
-        
+    }, [formData.adults, formData.children, groupData?.available_no_of_pax, isEditMode])
+
+    const handleChange = (e) => {
+        const { name, value } = e.target
         setFormData(prev => ({ ...prev, [name]: value }))
     }
 
@@ -247,7 +242,7 @@ export default function BookingForm() {
         const adultPrice = groupData.price || 0
         const childPrice = groupData.childPrice || groupData.price || 0
         const infantPrice = groupData.infantPrice || (groupData.price * 0.24) || 0
-
+        
         return (
             (parseInt(formData.adults) || 0) * adultPrice +
             (parseInt(formData.children) || 0) * childPrice +
@@ -257,7 +252,7 @@ export default function BookingForm() {
 
     const calculateAdultTotal = () => (parseInt(formData.adults) || 0) * (groupData?.price || 0)
     const calculateChildTotal = () => (parseInt(formData.children) || 0) * (groupData?.childPrice || groupData?.price || 0)
-    const calculateInfantTotal = () => (parseInt(formData.infants) || 0) * (groupData?.infantPrice || (groupData?.price * 0.24) || 0)
+    const calculateInfantTotal = () => (parseInt(formData.infants) || 0) * (groupData?.infantPrice || ((groupData?.price || 0) * 0.24))
 
     const handleSubmit = async (e) => {
         e.preventDefault()

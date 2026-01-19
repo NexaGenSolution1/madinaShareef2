@@ -12,6 +12,7 @@ import paymentRoutes from "./routes/payment.routes.js";
 import testEmail from "./utils/testEmail.js";
 import alHaiderAPIRoutes from "./routes/alHaiderAPI.routes.js";
 import bookingRoutes from "./routes/booking.routes.js";
+import exportRoutes from "./routes/export.routes.js";
 
 
 const app = express();
@@ -48,6 +49,7 @@ app.use("/api/airline", airlineRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/al-haider", alHaiderAPIRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/export", exportRoutes);
 
 app.get('/', (req, res) => {
     res.send('Brother International API is running');
