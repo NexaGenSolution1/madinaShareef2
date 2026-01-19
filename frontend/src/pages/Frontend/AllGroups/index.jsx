@@ -65,6 +65,7 @@ export default function AllGroups() {
                 const transformedAdminGroups = adminApiResponse.data.data.map(group => ({
                     id: group._id,
                     available_no_of_pax: group.totalSeats || 0,
+                    showSeat: group.showSeat || false,
                     sector: group.sector,
                     type: group.groupType,
                     price: group.price?.sellingAdultPriceB2B || 0,

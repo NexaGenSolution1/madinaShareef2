@@ -8,7 +8,7 @@ export default function BookingForm() {
     const location = useLocation()
     const { id: bookingId } = useParams()
     const isEditMode = !!bookingId
-    
+
     const [formData, setFormData] = useState({
         contactPersonName: '',
         adults: 1,
@@ -21,7 +21,7 @@ export default function BookingForm() {
     const [loadingBooking, setLoadingBooking] = useState(isEditMode)
     const [existingBooking, setExistingBooking] = useState(null)
     const [groupData, setGroupData] = useState(location.state?.groupData || null)
-    
+
     console.log('BookingForm loaded with groupData:', groupData, 'editMode:', isEditMode, 'bookingId:', bookingId)
 
     // Load existing booking if in edit mode
@@ -35,10 +35,10 @@ export default function BookingForm() {
         try {
             setLoadingBooking(true)
             const response = await axiosInstance.get(`/bookings/${bookingId}`)
-            
+
             if (response.data.success) {
                 const booking = response.data.data
-                
+
                 // Check if booking can be edited
                 if (booking.status !== 'pending') {
                     toast.error('Can only edit pending bookings')
@@ -47,7 +47,7 @@ export default function BookingForm() {
                 }
 
                 setExistingBooking(booking)
-                
+
                 // Reconstruct groupData from booking for display and pricing
                 const reconstructedGroupData = {
                     id: booking.groupId,
@@ -78,16 +78,16 @@ export default function BookingForm() {
                     })) || [],
                     available_no_of_pax: 50 // Set a high limit for editing
                 }
-                
+
                 setGroupData(reconstructedGroupData)
-                
+
                 // Convert date strings to YYYY-MM-DD format for date inputs
                 const formattedPassengers = booking.passengers?.map(passenger => ({
                     ...passenger,
                     dateOfBirth: passenger.dateOfBirth ? new Date(passenger.dateOfBirth).toISOString().split('T')[0] : '',
                     passportExpiry: passenger.passportExpiry ? new Date(passenger.passportExpiry).toISOString().split('T')[0] : ''
                 })) || []
-                
+
                 setFormData({
                     contactPersonName: booking.contactPersonName,
                     adults: booking.adultsCount,
@@ -105,7 +105,7 @@ export default function BookingForm() {
         }
     }
 
-    const totalPassengers = parseInt(formData.adults) + parseInt(formData.children) + parseInt(formData.infants)
+    const totalPassengers = (parseInt(formData.adults) || 0) + (parseInt(formData.children) || 0) + (parseInt(formData.infants) || 0)
 
     // Helper functions to check if prices are available
     const isChildPriceAvailable = () => {
@@ -124,9 +124,9 @@ export default function BookingForm() {
         const targetAdults = parseInt(formData.adults) || 0
         const targetChildren = parseInt(formData.children) || 0
         const targetInfants = parseInt(formData.infants) || 0
-        
+
         const passengers = []
-        
+
         // Add adults - preserve existing data if available
         for (let i = 0; i < targetAdults; i++) {
             const existing = currentPassengers.find((p, idx) => p.type === 'Adult' && currentPassengers.filter((x, xIdx) => xIdx < idx && x.type === 'Adult').length === i)
@@ -140,7 +140,7 @@ export default function BookingForm() {
                 passportExpiry: ''
             })
         }
-        
+
         // Add children - preserve existing data if available (only if price available in create mode)
         if (!isEditMode || isChildPriceAvailable()) {
             for (let i = 0; i < targetChildren; i++) {
@@ -156,7 +156,7 @@ export default function BookingForm() {
                 })
             }
         }
-        
+
         // Add infants - preserve existing data if available (only if price available in create mode)
         if (!isEditMode || isInfantPriceAvailable()) {
             for (let i = 0; i < targetInfants; i++) {
@@ -172,13 +172,66 @@ export default function BookingForm() {
                 })
             }
         }
-        
+
         setFormData(prev => ({ ...prev, passengers }))
     }, [formData.adults, formData.children, formData.infants, isEditMode])
 
     const handleChange = (e) => {
         const { name, value } = e.target
+        
+        // Prevent negative values for passenger fields, but allow empty string for editing
+        if (['adults', 'children', 'infants'].includes(name)) {
+            // Allow empty string during editing
+            if (value === '') {
+                setFormData(prev => ({ ...prev, [name]: value }))
+                return
+            }
+            
+            // Block negative values
+            if (parseInt(value) < 0) {
+                return
+            }
+            
+            // Prevent adults from being set to 0 (but allow empty during editing)
+            if (name === 'adults' && parseInt(value) === 0) {
+                return
+            }
+        }
+        
         setFormData(prev => ({ ...prev, [name]: value }))
+    }
+
+    const handlePassengerBlur = (e) => {
+        const { name, value } = e.target
+        
+        // Ensure minimum values are set
+        if (value === '' || parseInt(value) < 0) {
+            const defaultValue = name === 'adults' ? 1 : 0
+            setFormData(prev => ({ ...prev, [name]: defaultValue }))
+            return
+        }
+        
+        // Ensure adults is at least 1
+        if (name === 'adults' && parseInt(value) === 0) {
+            setFormData(prev => ({ ...prev, [name]: 1 }))
+            return
+        }
+
+        // Validate seat limit (adults + children, excluding infants)
+        if (name === 'adults' || name === 'children') {
+            const adults = name === 'adults' ? (parseInt(value) || 0) : (parseInt(formData.adults) || 0)
+            const children = name === 'children' ? (parseInt(value) || 0) : (parseInt(formData.children) || 0)
+            const totalSeats = adults + children
+            const availableSeats = groupData?.available_no_of_pax || 0
+
+            if (totalSeats > availableSeats) {
+                toast.error(`Adults and Children (${totalSeats}) cannot exceed available seats (${availableSeats})`)
+                // Reset to previous valid value
+                const previousValue = name === 'adults' ? 1 : 0
+                setFormData(prev => ({ ...prev, [name]: previousValue }))
+                e.target.focus()
+            }
+        }
     }
 
     const handlePassengerChange = (index, field, value) => {
@@ -188,13 +241,13 @@ export default function BookingForm() {
             return { ...prev, passengers: newPassengers }
         })
     }
-    
+
     const calculateTotalPrice = () => {
         if (!groupData?.price) return 0
         const adultPrice = groupData.price || 0
         const childPrice = groupData.childPrice || groupData.price || 0
         const infantPrice = groupData.infantPrice || (groupData.price * 0.24) || 0
-        
+
         return (
             (parseInt(formData.adults) || 0) * adultPrice +
             (parseInt(formData.children) || 0) * childPrice +
@@ -213,20 +266,20 @@ export default function BookingForm() {
             // Edit mode - simplified update
             return handleUpdate()
         }
-        
+
         // Validate passenger count excluding infants
-        const payingPassengers = parseInt(formData.adults) + parseInt(formData.children)
+        const payingPassengers = (parseInt(formData.adults) || 0) + (parseInt(formData.children) || 0)
         if (payingPassengers > (groupData?.available_no_of_pax || 0)) {
             toast.error(`Adults and Children (${payingPassengers}) cannot exceed available seats (${groupData?.available_no_of_pax || 0})`)
             return
         }
-        
+
         // Validate all passenger details are filled
-        const hasEmptyFields = formData.passengers.some(passenger => 
-            !passenger.givenName || 
-            !passenger.surName || 
-            !passenger.passport || 
-            !passenger.dateOfBirth || 
+        const hasEmptyFields = formData.passengers.some(passenger =>
+            !passenger.givenName ||
+            !passenger.surName ||
+            !passenger.passport ||
+            !passenger.dateOfBirth ||
             !passenger.passportExpiry
         )
 
@@ -288,11 +341,11 @@ export default function BookingForm() {
                 toast.success(`Booking confirmed! Reference: ${response.data.data.bookingReference}`)
                 // Navigate to bookings page or show confirmation
                 setTimeout(() => {
-                    navigate('/dashboard/all-groups', { 
-                        state: { 
-                            bookingSuccess: true, 
-                            bookingReference: response.data.data.bookingReference 
-                        } 
+                    navigate('/dashboard/all-groups', {
+                        state: {
+                            bookingSuccess: true,
+                            bookingReference: response.data.data.bookingReference
+                        }
                     })
                 }, 1500)
             }
@@ -388,9 +441,13 @@ export default function BookingForm() {
                                     <span className="text-gray-700">
                                         <span className="font-semibold">Group:</span> <span className="text-blue-600">{groupData.airline?.airline_name}-{groupData.sector}</span>
                                     </span>
-                                    <span className="text-gray-700">
-                                        <span className="font-semibold">Available Seats:</span> <span className="text-green-600 font-semibold">{groupData.available_no_of_pax || 0}</span>
-                                    </span>
+                                    {
+                                        groupData.showSeat && (
+                                            <span className="text-gray-700">
+                                                <span className="font-semibold">Available Seats:</span> <span className="text-green-600 font-semibold">{groupData.available_no_of_pax || 0}</span>
+                                            </span>
+                                        )
+                                    }
                                     <span className="text-gray-700">
                                         <span className="font-semibold">Sector:</span> {groupData.sector}
                                     </span>
@@ -398,7 +455,7 @@ export default function BookingForm() {
                             )}
                             {isEditMode && existingBooking && (
                                 <div className="text-sm text-gray-600">
-                                    <span className="font-semibold">Reference:</span> {existingBooking.bookingReference} | 
+                                    <span className="font-semibold">Reference:</span> {existingBooking.bookingReference} |
                                     <span className="font-semibold ml-2">Sector:</span> {existingBooking.sector}
                                 </div>
                             )}
@@ -423,45 +480,45 @@ export default function BookingForm() {
                                         <img src={groupData.airline.logo_url} alt={groupData.airline.airline_name} className="h-10" />
                                     </div>
                                 )}
-                            <div>
-                                <p className="text-xs text-gray-500 uppercase tracking-wide">Airline</p>
-                                <p className="font-bold text-gray-900 text-lg">{groupData.airline?.airline_name}</p>
+                                <div>
+                                    <p className="text-xs text-gray-500 uppercase tracking-wide">Airline</p>
+                                    <p className="font-bold text-gray-900 text-lg">{groupData.airline?.airline_name}</p>
+                                </div>
+                            </div>
+                            <div className="text-right bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
+                                <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Departure Date</p>
+                                <p className="font-bold text-green-600 text-base">
+                                    {new Date(groupData.dept_date).toLocaleDateString('en-GB', {
+                                        weekday: 'short',
+                                        day: '2-digit',
+                                        month: 'short',
+                                        year: 'numeric'
+                                    })}
+                                </p>
                             </div>
                         </div>
-                        <div className="text-right bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
-                            <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Departure Date</p>
-                            <p className="font-bold text-green-600 text-base">
-                                {new Date(groupData.dept_date).toLocaleDateString('en-GB', { 
-                                    weekday: 'short', 
-                                    day: '2-digit', 
-                                    month: 'short', 
-                                    year: 'numeric' 
-                                })}
-                            </p>
-                        </div>
-                    </div>
                     )}
 
                     {/* Sector Details */}
                     {groupData && (
                         <div className="px-6 py-4 bg-blue-50 border-b border-gray-200">
                             <p className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
-                            <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
-                            </svg>
-                            Flight Details <span className="text-green-600">({groupData.sector})</span>
-                        </p>
-                        {groupData.details && groupData.details.length > 0 && (
-                            <div className="space-y-1">
-                                {groupData.details.map((flight, idx) => (
-                                    <div key={idx} className="text-sm text-gray-900 bg-white px-3 py-2 rounded shadow-sm">
-                                        <span className="font-semibold text-blue-600">{idx + 1})</span> {flight.flight_no} <span className="text-gray-500">•</span> {new Date(flight.flight_date).toLocaleDateString('en-GB').replace(/\//g, '')} <span className="text-gray-500">•</span> {flight.origin} → {flight.destination} <span className="text-gray-500">•</span> {flight.dept_time?.substring(0, 5)} - {flight.arv_time?.substring(0, 5)} <span className="text-gray-500">•</span> {flight.baggage || '20-7'} KG
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )}
+                                <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                                </svg>
+                                Flight Details <span className="text-green-600">({groupData.sector})</span>
+                            </p>
+                            {groupData.details && groupData.details.length > 0 && (
+                                <div className="space-y-1">
+                                    {groupData.details.map((flight, idx) => (
+                                        <div key={idx} className="text-sm text-gray-900 bg-white px-3 py-2 rounded shadow-sm">
+                                            <span className="font-semibold text-blue-600">{idx + 1})</span> {flight.flight_no} <span className="text-gray-500">•</span> {new Date(flight.flight_date).toLocaleDateString('en-GB').replace(/\//g, '')} <span className="text-gray-500">•</span> {flight.origin} → {flight.destination} <span className="text-gray-500">•</span> {flight.dept_time?.substring(0, 5)} - {flight.arv_time?.substring(0, 5)} <span className="text-gray-500">•</span> {flight.baggage || '20-7'} KG
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Form */}
@@ -499,8 +556,8 @@ export default function BookingForm() {
                                             name="adults"
                                             value={formData.adults}
                                             onChange={handleChange}
+                                            onBlur={handlePassengerBlur}
                                             min="1"
-                                            max={groupData?.available_no_of_pax || 50}
                                             className="w-20 px-3 py-1 bg-gray-50 border border-gray-300 rounded-lg text-center text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         />
                                     </div>
@@ -512,8 +569,8 @@ export default function BookingForm() {
                                                 name="children"
                                                 value={formData.children}
                                                 onChange={handleChange}
+                                                onBlur={handlePassengerBlur}
                                                 min="0"
-                                                max={groupData?.available_no_of_pax || 50}
                                                 className="w-20 px-3 py-1 bg-gray-50 border border-gray-300 rounded-lg text-center text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </div>
@@ -526,14 +583,14 @@ export default function BookingForm() {
                                                 name="infants"
                                                 value={formData.infants}
                                                 onChange={handleChange}
+                                                onBlur={handlePassengerBlur}
                                                 min="0"
-                                                max={groupData?.available_no_of_pax || 50}
                                                 className="w-20 px-3 py-1 bg-gray-50 border border-gray-300 rounded-lg text-center text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </div>
                                     )}
 
-                                     <div className="px-4 py-3 bg-blue-50 rounded-b-lg">
+                                    <div className="px-4 py-3 bg-blue-50 rounded-b-lg">
                                         <div className="flex justify-between items-center">
                                             <span className="text-sm font-bold text-gray-900">Total</span>
                                             <span className="text-lg font-black text-blue-600">{totalPassengers}</span>
@@ -601,114 +658,114 @@ export default function BookingForm() {
                     </div>
 
                     {/* Passenger Details Table */
-                    <div className="px-6 py-6">
-                        <h3 className="text-base font-bold text-gray-900 mb-4">Passenger Details</h3>
-                        <div className="overflow-x-auto rounded-lg border border-gray-300 shadow-sm">
-                            <table className="w-full border-collapse bg-white">
-                                <thead>
-                                    <tr className="bg-linear-to-r from-gray-100 to-gray-50">
-                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">Passenger</th>
-                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">Title</th>
-                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">Given Name</th>
-                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">Surname</th>
-                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">Passport #</th>
-                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">Date of Birth</th>
-                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Passport Expiry</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200">
-                                    {formData.passengers.map((passenger, index) => {
-                                        let passengerLabel = ''
-                                        if (passenger.type === 'Adult') {
-                                            const adultNum = formData.passengers.slice(0, index + 1).filter(p => p.type === 'Adult').length
-                                            passengerLabel = `Adults ${adultNum}`
-                                        } else if (passenger.type === 'Child') {
-                                            const childNum = formData.passengers.slice(0, index + 1).filter(p => p.type === 'Child').length
-                                            passengerLabel = `Child ${childNum}`
-                                        } else if (passenger.type === 'Infant') {
-                                            const infantNum = formData.passengers.slice(0, index + 1).filter(p => p.type === 'Infant').length
-                                            passengerLabel = `Infants ${infantNum}`
-                                        }
+                        <div className="px-6 py-6">
+                            <h3 className="text-base font-bold text-gray-900 mb-4">Passenger Details</h3>
+                            <div className="overflow-x-auto rounded-lg border border-gray-300 shadow-sm">
+                                <table className="w-full border-collapse bg-white">
+                                    <thead>
+                                        <tr className="bg-linear-to-r from-gray-100 to-gray-50">
+                                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">Passenger</th>
+                                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">Title</th>
+                                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">Given Name</th>
+                                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">Surname</th>
+                                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">Passport #</th>
+                                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">Date of Birth</th>
+                                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Passport Expiry</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-200">
+                                        {formData.passengers.map((passenger, index) => {
+                                            let passengerLabel = ''
+                                            if (passenger.type === 'Adult') {
+                                                const adultNum = formData.passengers.slice(0, index + 1).filter(p => p.type === 'Adult').length
+                                                passengerLabel = `Adults ${adultNum}`
+                                            } else if (passenger.type === 'Child') {
+                                                const childNum = formData.passengers.slice(0, index + 1).filter(p => p.type === 'Child').length
+                                                passengerLabel = `Child ${childNum}`
+                                            } else if (passenger.type === 'Infant') {
+                                                const infantNum = formData.passengers.slice(0, index + 1).filter(p => p.type === 'Infant').length
+                                                passengerLabel = `Infants ${infantNum}`
+                                            }
 
-                                        return (
-                                            <tr key={index} className="hover:bg-blue-50 transition-colors">
-                                                <td className="px-4 py-3 text-sm font-semibold text-gray-900 border-r border-gray-200 bg-linear-to-r from-blue-50 to-white">
-                                                    {passengerLabel}
-                                                </td>
-                                                <td className="px-4 py-3 border-r border-gray-200">
-                                                    <select
-                                                        value={passenger.title}
-                                                        onChange={(e) => handlePassengerChange(index, 'title', e.target.value)}
-                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                    >
-                                                        {passenger.type === 'Infant' ? (
-                                                            <option value="INF">INF</option>
-                                                        ) : (
-                                                            <>
-                                                                <option value="Mr">Mr</option>
-                                                                <option value="Mrs">Mrs</option>
-                                                                <option value="Ms">Ms</option>
-                                                            </>
-                                                        )}
-                                                    </select>
-                                                </td>
-                                                <td className="px-4 py-3 border-r border-gray-200">
-                                                    <input
-                                                        type="text"
-                                                        value={passenger.givenName}
-                                                        onChange={(e) => handlePassengerChange(index, 'givenName', e.target.value)}
-                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                        placeholder="Given name"
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-3 border-r border-gray-200">
-                                                    <input
-                                                        type="text"
-                                                        value={passenger.surName}
-                                                        onChange={(e) => handlePassengerChange(index, 'surName', e.target.value)}
-                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                        placeholder="Surname"
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-3 border-r border-gray-200">
-                                                    <input
-                                                        type="text"
-                                                        value={passenger.passport}
-                                                        onChange={(e) => handlePassengerChange(index, 'passport', e.target.value)}
-                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                        placeholder="Passport"
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-3 border-r border-gray-200">
-                                                    <input
-                                                        type="date"
-                                                        value={passenger.dateOfBirth}
-                                                        onChange={(e) => handlePassengerChange(index, 'dateOfBirth', e.target.value)}
-                                                        max={new Date().toISOString().split('T')[0]}
-                                                        onClick={(e) => e.target.showPicker?.()}
-                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
-                                                        title="Click to select date of birth"
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <input
-                                                        type="date"
-                                                        value={passenger.passportExpiry}
-                                                        onChange={(e) => handlePassengerChange(index, 'passportExpiry', e.target.value)}
-                                                        min={new Date().toISOString().split('T')[0]}
-                                                        onClick={(e) => e.target.showPicker?.()}
-                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
-                                                        title="Click to select passport expiry date"
-                                                    />
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
+                                            return (
+                                                <tr key={index} className="hover:bg-blue-50 transition-colors">
+                                                    <td className="px-4 py-3 text-sm font-semibold text-gray-900 border-r border-gray-200 bg-linear-to-r from-blue-50 to-white">
+                                                        {passengerLabel}
+                                                    </td>
+                                                    <td className="px-4 py-3 border-r border-gray-200">
+                                                        <select
+                                                            value={passenger.title}
+                                                            onChange={(e) => handlePassengerChange(index, 'title', e.target.value)}
+                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                        >
+                                                            {passenger.type === 'Infant' ? (
+                                                                <option value="INF">INF</option>
+                                                            ) : (
+                                                                <>
+                                                                    <option value="Mr">Mr</option>
+                                                                    <option value="Mrs">Mrs</option>
+                                                                    <option value="Ms">Ms</option>
+                                                                </>
+                                                            )}
+                                                        </select>
+                                                    </td>
+                                                    <td className="px-4 py-3 border-r border-gray-200">
+                                                        <input
+                                                            type="text"
+                                                            value={passenger.givenName}
+                                                            onChange={(e) => handlePassengerChange(index, 'givenName', e.target.value)}
+                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                            placeholder="Given name"
+                                                        />
+                                                    </td>
+                                                    <td className="px-4 py-3 border-r border-gray-200">
+                                                        <input
+                                                            type="text"
+                                                            value={passenger.surName}
+                                                            onChange={(e) => handlePassengerChange(index, 'surName', e.target.value)}
+                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                            placeholder="Surname"
+                                                        />
+                                                    </td>
+                                                    <td className="px-4 py-3 border-r border-gray-200">
+                                                        <input
+                                                            type="text"
+                                                            value={passenger.passport}
+                                                            onChange={(e) => handlePassengerChange(index, 'passport', e.target.value)}
+                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                            placeholder="Passport"
+                                                        />
+                                                    </td>
+                                                    <td className="px-4 py-3 border-r border-gray-200">
+                                                        <input
+                                                            type="date"
+                                                            value={passenger.dateOfBirth}
+                                                            onChange={(e) => handlePassengerChange(index, 'dateOfBirth', e.target.value)}
+                                                            max={new Date().toISOString().split('T')[0]}
+                                                            onClick={(e) => e.target.showPicker?.()}
+                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+                                                            title="Click to select date of birth"
+                                                        />
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <input
+                                                            type="date"
+                                                            value={passenger.passportExpiry}
+                                                            onChange={(e) => handlePassengerChange(index, 'passportExpiry', e.target.value)}
+                                                            min={new Date().toISOString().split('T')[0]}
+                                                            onClick={(e) => e.target.showPicker?.()}
+                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+                                                            title="Click to select passport expiry date"
+                                                        />
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
-                }
+                    }
                     {/* Action Buttons */}
                     <div className="px-6 py-5 bg-linear-to-r from-gray-50 to-white border-t border-gray-200 rounded-b-lg flex justify-end gap-4">
                         <button

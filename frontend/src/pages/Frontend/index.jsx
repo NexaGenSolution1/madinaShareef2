@@ -19,6 +19,8 @@ import BookingDetail from '../BookingDetail'
 
 export default function Frontend() {
     const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    
     useEffect(() => {
         const storedUser = localStorage.getItem("frontend_user");
         console.log("Retrieved user from localStorage:", storedUser);
@@ -29,6 +31,7 @@ export default function Frontend() {
                 setUser(null);
             }
         }
+        setLoading(false);
     }, []);
 
     const handleLogin = (userData) => {
@@ -42,6 +45,18 @@ export default function Frontend() {
         localStorage.removeItem("frontend_user");
         setUser(null);
     };
+    
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+    
     return (
         <Routes>
             {/* Public Routes with Header and Footer */}
@@ -60,11 +75,13 @@ export default function Frontend() {
                 </>
             } />
             <Route path="/auth/register" element={
-                <>
-                    <Header user={user} handleLogout={handleLogout} />
-                    <Register />
-                    <Footer />
-                </>
+                !user ? (
+                    <>
+                        <Header user={user} handleLogout={handleLogout} />
+                        <Register />
+                        <Footer />
+                    </>
+                ) : <Navigate to="/dashboard" replace />
             } />
 
             {/* Original Routes with Header and Footer - Protected */}
