@@ -497,9 +497,9 @@ export default function BookingForm() {
                         <div className="px-6 py-4 flex items-center justify-between bg-linear-to-r from-gray-50 to-white border-b border-gray-200">
                             <div className="flex items-center gap-4">
                                 {groupData.airline?.logo_url && (
-                                    <div className="bg-white p-2 rounded-lg shadow-sm border border-gray-200">
-                                        <img src={groupData.airline.logo_url} alt={groupData.airline.airline_name} className="h-10" />
-                                    </div>
+                                    // <div className="bg-white p-2 rounded-lg shadow-sm border border-gray-200">
+                                        <img src={groupData.airline.logo_url} alt={groupData.airline.airline_name} className="w-28" />
+                                    // </div>
                                 )}
                                 <div>
                                     <p className="text-xs text-gray-500 uppercase tracking-wide">Airline</p>
@@ -562,7 +562,7 @@ export default function BookingForm() {
 
                     {/* Passengers and Pricing Grid */}
                     <div className="px-6 py-6 border-b border-gray-200">
-                        <h3 className="text-base font-bold text-gray-900 mb-4">Passenger & Pricing Details</h3>
+                        <h3 className="text-base font-bold text-gray-900 mb-4">Passengersa & Pricing Details</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {/* Passengers Column */}
                             <div className="bg-white rounded-lg overflow-hidden border border-gray-300 shadow-sm">

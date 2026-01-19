@@ -1,5 +1,5 @@
 import { useState, useEffect, memo } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 import axiosInstance from '../../Api/axios'
 
 interface Booking {
@@ -8,11 +8,17 @@ interface Booking {
     contactPersonName: string
     sector: string
     airline?: { id?: string; name: string; logoUrl?: string }
-    userId?: string | { _id: string; name: string; email: string }
+    userId?: string | { _id: string; name: string; email: string; companyName?: string; agencyCode?: string }
     adultsCount: number
     childrenCount: number
     infantsCount: number
+    totalPassengers: number
+    confirmedAdults?: number
+    confirmedChildren?: number
+    confirmedInfants?: number
     departureDate: string
+    createdAt: string
+    pnr?: string
     pricing: { grandTotal: number }
     status: string
 }
@@ -28,106 +34,187 @@ interface BookingsTableProps {
     getStatusBadge: (status: string) => StatusOption
     formatDate: (dateStr: string | undefined) => string
     navigate: (path: string) => void
+    timers: { [key: string]: { hours: number; minutes: number; expired: boolean } }
 }
 
-const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate }: BookingsTableProps) => {
+const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, timers }: BookingsTableProps) => {
     return (
-        <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f]">
+        <table className="min-w-full border-collapse">
+            <thead className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8f]">
                 <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                        Reference
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-white border-r border-[#3d6fa8]">
+                        Booking Details
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                        Customer
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-white border-r border-[#3d6fa8]">
+                        <div className="flex items-center gap-1">
+                            <span>Group</span>
+                            <span>✈</span>
+                        </div>
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                        Sector
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-white border-r border-[#3d6fa8]">
+                        <div className="flex items-center gap-1">
+                            <span>Passengers</span>
+                            <span>👥</span>
+                        </div>
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                        Airline
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-white border-r border-[#3d6fa8]">
+                        Price (PKR)
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                        Passengers
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-white border-r border-[#3d6fa8]">
+                        <div className="flex items-center gap-1">
+                            <span>Status</span>
+                        </div>
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                        Departure
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                        Total Price
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                        Status
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-white">
                         Action
                     </th>
                 </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white">
                 {bookings.length === 0 ? (
                     <tr>
-                        <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
+                        <td colSpan={6} className="px-4 py-8 text-center text-gray-500 text-sm border">
                             No bookings found
                         </td>
                     </tr>
                 ) : (
                     bookings.map((booking) => {
                         const statusBadge = getStatusBadge(booking.status)
+                        const userId = typeof booking.userId === 'object' ? booking.userId : null
                         return (
-                            <tr key={booking._id} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-4 py-3 whitespace-nowrap">
-                                    <span className="font-semibold text-blue-600">{booking.bookingReference}</span>
-                                </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                    <div>
-                                        <p className="font-medium">{booking.contactPersonName}</p>
-                                        <p className="text-xs text-gray-500">{typeof booking.userId === 'object' ? booking.userId?.email : booking.userId || 'N/A'}</p>
+                            <tr key={booking._id} className="border-b border-gray-300 hover:bg-blue-50/20 transition-colors">
+                                {/* Booking Details */}
+                                <td className="px-4 py-4 align-top border-r border-gray-300">
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-center gap-2">
+                                            <span className="inline-block bg-gradient-to-r from-amber-600 to-amber-700 text-white px-3 py-1.5 rounded-md text-xs font-semibold shadow-md">
+                                                Airline PNR #: {booking.pnr || 'N/A'}
+                                            </span>
+                                        </div>
+                                        <div className="text-xs text-gray-700 leading-relaxed">
+                                            <span className="font-semibold text-gray-800">Agency:</span> {userId?.companyName || 'N/A'}
+                                        </div>
+                                        <div className="text-xs text-gray-700 leading-relaxed">
+                                            <span className="font-semibold text-gray-800">AGT #:</span>{userId?.agencyCode || 'N/A'}
+                                            <span className="mx-2 font-semibold text-gray-800">BK#:</span>{booking.bookingReference}
+                                        </div>
+                                        <div className="text-xs text-gray-600 pt-0.5">
+                                            Created: {formatDate(booking.createdAt)}
+                                        </div>
                                     </div>
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                    {booking.sector}
+
+                                {/* Group */}
+                                <td className="px-4 py-4 align-top border-r border-gray-300">
+                                    <div className="space-y-1.5">
+                                        <div className="font-bold text-sm text-gray-900">
+                                            {booking.airline?.name || 'N/A'}
+                                        </div>
+                                        <div className="text-xs text-gray-700 font-medium">
+                                            {booking.sector}
+                                        </div>
+                                        <div className="text-xs text-gray-700">
+                                            {formatDate(booking.departureDate)}
+                                        </div>
+                                        <div className="text-xs text-gray-600 font-medium pt-0.5">
+                                            {booking.contactPersonName} X {booking.totalPassengers || (booking.adultsCount + booking.childrenCount + booking.infantsCount)}
+                                        </div>
+                                    </div>
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                    {booking.airline?.name || 'N/A'}
+
+                                {/* Passengers */}
+                                <td className="px-4 py-4 align-top border-r border-gray-300">
+                                    <div className="inline-block w-full">
+                                        <table className="w-full text-xs border-2 border-[#2d5a8f]">
+                                            <thead>
+                                                <tr className="bg-[#2d5a8f] text-white">
+                                                    <th className="px-3 py-2 text-left font-semibold border-r-2 border-[#4d7aaf]">Status</th>
+                                                    <th className="px-3 py-2 text-center font-semibold border-r-2 border-[#4d7aaf]">Adults</th>
+                                                    <th className="px-3 py-2 text-center font-semibold border-r-2 border-[#4d7aaf]">Child</th>
+                                                    <th className="px-3 py-2 text-center font-semibold border-r-2 border-[#4d7aaf]">Infants</th>
+                                                    <th className="px-3 py-2 text-center font-semibold">Seats</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="bg-white">
+                                                <tr className="border-t-2 border-[#2d5a8f]">
+                                                    <td className="px-3 py-2 font-medium text-gray-700 border-r-2 border-gray-300 bg-gray-50">Requested</td>
+                                                    <td className="px-3 py-2 text-center font-semibold border-r-2 border-gray-300">{booking.adultsCount}</td>
+                                                    <td className="px-3 py-2 text-center font-semibold border-r-2 border-gray-300">{booking.childrenCount}</td>
+                                                    <td className="px-3 py-2 text-center font-semibold border-r-2 border-gray-300">{booking.infantsCount}</td>
+                                                    <td className="px-3 py-2 text-center font-bold">{booking.adultsCount + booking.childrenCount}</td>
+                                                </tr>
+                                                <tr className="border-t-2 border-gray-300">
+                                                    <td className="px-3 py-2 font-medium text-gray-700 border-r-2 border-gray-300 bg-gray-50">Confirm</td>
+                                                    <td className="px-3 py-2 text-center font-semibold border-r-2 border-gray-300">{booking.confirmedAdults || 0}</td>
+                                                    <td className="px-3 py-2 text-center font-semibold border-r-2 border-gray-300">{booking.confirmedChildren || 0}</td>
+                                                    <td className="px-3 py-2 text-center font-semibold border-r-2 border-gray-300">{booking.confirmedInfants || 0}</td>
+                                                    <td className="px-3 py-2 text-center font-bold">{(booking.confirmedAdults || 0) + (booking.confirmedChildren || 0)}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                    <div className="flex gap-1">
-                                        {booking.adultsCount > 0 && (
-                                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
-                                                A: {booking.adultsCount}
-                                            </span>
-                                        )}
-                                        {booking.childrenCount > 0 && (
-                                            <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
-                                                C: {booking.childrenCount}
-                                            </span>
-                                        )}
-                                        {booking.infantsCount > 0 && (
-                                            <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">
-                                                I: {booking.infantsCount}
-                                            </span>
+
+                                {/* Price */}
+                                <td className="px-4 py-4 align-top border-r border-gray-300">
+                                    <div className="font-bold text-base text-gray-900">
+                                        PKR {booking.pricing.grandTotal.toLocaleString()}
+                                    </div>
+                                </td>
+
+                                {/* Status */}
+                                <td className="px-4 py-4 align-top border-r border-gray-300">
+                                    <div className="space-y-2">
+                                        <span className={`inline-block px-3 py-1.5 rounded-md text-xs font-bold shadow-sm ${statusBadge.color}`}>
+                                            {statusBadge.label}
+                                        </span>
+                                        {booking.status === 'on hold' && (
+                                            <div className="space-y-2 pt-1">
+                                                <div className="text-xs text-amber-700 font-semibold bg-amber-50 px-2.5 py-1.5 rounded-md border border-amber-200">
+                                                    Admin Review<br />Required
+                                                </div>
+                                                <div className="text-xs">
+                                                    <div className="font-bold text-gray-800 mb-1.5">Booking Expiry Time</div>
+                                                    <div className="flex items-center gap-1.5">
+                                                        {timers[booking._id] && timers[booking._id].expired ? (
+                                                            <div className="text-red-600 font-bold text-xs">EXPIRED</div>
+                                                        ) : (
+                                                            <>
+                                                                <div className="bg-gradient-to-br from-rose-500 to-rose-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-[40px]">
+                                                                    <div className="text-xl font-bold leading-none">
+                                                                        {String(timers[booking._id]?.hours || 0).padStart(2, '0')}
+                                                                    </div>
+                                                                    <div style={{ fontSize: '9px' }} className="font-medium mt-1 opacity-90">HOURS</div>
+                                                                </div>
+                                                                <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-[40px]">
+                                                                    <div className="text-xl font-bold leading-none">
+                                                                        {String(timers[booking._id]?.minutes || 0).padStart(2, '0')}
+                                                                    </div>
+                                                                    <div style={{ fontSize: '9px' }} className="font-medium mt-1 opacity-90">MINS</div>
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
                                         )}
                                     </div>
                                 </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                    {formatDate(booking.departureDate)}
-                                </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900">
-                                    PKR {booking.pricing.grandTotal.toLocaleString()}
-                                </td>
-                                <td className="px-4 py-3 whitespace-nowrap">
-                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusBadge.color}`}>
-                                        {statusBadge.label}
-                                    </span>
-                                </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm">
-                                    <button
-                                        onClick={() => navigate(`/booking-detail/${booking._id}`)}
-                                        className="text-blue-600 hover:text-blue-800 font-medium"
-                                    >
-                                        View
-                                    </button>
+
+                                {/* Action */}
+                                <td className="py-4 align-top">
+                                    <div className="flex justify-center items-center gap-2">
+                                        <button
+                                            onClick={() => navigate(`/booking-detail/${booking._id}`)}
+                                            className="p-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 rounded-lg transition-all shadow-sm hover:shadow-md border border-slate-200"
+                                            title="View Details"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         )
@@ -142,11 +229,11 @@ BookingsTable.displayName = 'BookingsTable'
 
 export default function AllBookings() {
     const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
     const [bookings, setBookings] = useState<Booking[]>([])
     const [initialLoading, setInitialLoading] = useState(true)
     const [fetching, setFetching] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
-    const [activeStatus, setActiveStatus] = useState('')
     const [filters, setFilters] = useState({
         sector: '',
         airline: '',
@@ -155,12 +242,48 @@ export default function AllBookings() {
     })
     const [uniqueSectors, setUniqueSectors] = useState<string[]>([])
     const [uniqueAirlines, setUniqueAirlines] = useState<string[]>([])
+    const [timers, setTimers] = useState<{ [key: string]: { hours: number; minutes: number; expired: boolean } }>({})
+
+    // Get status from URL params
+    const activeStatus = searchParams.get('status') || ''
 
     const statusOptions: StatusOption[] = [
-        { value: 'pending', label: 'Pending', color: 'bg-yellow-100 text-yellow-800' },
-        { value: 'confirmed', label: 'Confirmed', color: 'bg-blue-100 text-blue-800' },
-        { value: 'cancelled', label: 'Cancelled', color: 'bg-red-100 text-red-800' }
+        { value: 'on hold', label: 'On Hold', color: 'bg-amber-50 text-amber-700 border border-amber-200' },
+        { value: 'confirmed', label: 'Confirmed', color: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
+        { value: 'cancelled', label: 'Cancelled', color: 'bg-slate-100 text-slate-700 border border-slate-300' }
     ]
+
+    // Calculate remaining time for a booking (2 hours from creation)
+    const calculateRemainingTime = (createdAt: string) => {
+        const createdDate = new Date(createdAt)
+        const expiryDate = new Date(createdDate.getTime() + 2 * 60 * 60 * 1000) // Add 2 hours
+        const now = new Date()
+        const diff = expiryDate.getTime() - now.getTime()
+
+        if (diff <= 0) {
+            return { hours: 0, minutes: 0, expired: true }
+        }
+
+        const hours = Math.floor(diff / (1000 * 60 * 60))
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+
+        return { hours, minutes, expired: false }
+    }
+
+    // Update timers every second for on hold bookings
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const newTimers: { [key: string]: { hours: number; minutes: number; expired: boolean } } = {}
+            bookings.forEach(booking => {
+                if (booking.status === 'on hold') {
+                    newTimers[booking._id] = calculateRemainingTime(booking.createdAt)
+                }
+            })
+            setTimers(newTimers)
+        }, 1000)
+
+        return () => clearInterval(interval)
+    }, [bookings])
 
     useEffect(() => {
         fetchBookings()
@@ -206,13 +329,16 @@ export default function AllBookings() {
 
     const resetFilters = () => {
         setSearchQuery('')
-        setActiveStatus('')
         setFilters({
             sector: '',
             airline: '',
             fromDate: '',
             toDate: ''
         })
+        // Reset status by navigating without status param
+        if (activeStatus) {
+            navigate('/all-bookings')
+        }
     }
 
     const getStatusBadge = (status: string): StatusOption => {
@@ -248,59 +374,26 @@ export default function AllBookings() {
                 <p className="text-gray-600">Manage all customer flight bookings</p>
             </div>
 
-            {/* Status Tabs */}
-            <div className="mb-6 bg-white rounded-lg shadow">
-                <div className="border-b border-gray-200">
-                    <nav className="flex -mb-px">
-                        <button
-                            onClick={() => setActiveStatus('')}
-                            className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors ${
-                                activeStatus === '' 
-                                    ? 'border-blue-600 text-blue-600' 
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                            }`}
-                        >
-                            All Bookings
-                        </button>
-                        {statusOptions.map(option => (
-                            <button
-                                key={option.value}
-                                onClick={() => setActiveStatus(option.value)}
-                                className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors ${
-                                    activeStatus === option.value
-                                        ? 'border-blue-600 text-blue-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
-                            >
-                                {option.label}
-                            </button>
-                        ))}
-                    </nav>
-                </div>
-            </div>
+            {/* Search and Filters in One Row */}
+            <div className="mb-4 bg-white rounded-lg shadow p-3 sm:p-4">
+                <div className="flex flex-wrap items-center gap-3">
+                    {/* Search Input */}
+                    <div className="flex-1 min-w-[200px]">
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search by reference, PNR, or customer name..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
 
-            {/* Filters Section */}
-            <div className="mb-6 bg-white rounded-lg shadow p-6">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
-                    <button
-                        onClick={resetFilters}
-                        className="text-sm text-red-600 hover:text-red-800 font-medium"
-                    >
-                        Reset All
-                    </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {/* Sector Filter */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Sector
-                        </label>
+                    <div className="w-full sm:w-auto min-w-[150px]">
                         <select
                             value={filters.sector}
                             onChange={(e) => handleFilterChange('sector', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">All Sectors</option>
                             {uniqueSectors.map(sector => (
@@ -312,14 +405,11 @@ export default function AllBookings() {
                     </div>
 
                     {/* Airline Filter */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Airline
-                        </label>
+                    <div className="w-full sm:w-auto min-w-[150px]">
                         <select
                             value={filters.airline}
                             onChange={(e) => handleFilterChange('airline', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">All Airlines</option>
                             {uniqueAirlines.map(airline => (
@@ -331,42 +421,33 @@ export default function AllBookings() {
                     </div>
 
                     {/* From Date */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            From Date
-                        </label>
+                    <div className="w-full sm:w-auto min-w-[150px]">
                         <input
                             type="date"
                             value={filters.fromDate}
                             onChange={(e) => handleFilterChange('fromDate', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
 
                     {/* To Date */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            To Date
-                        </label>
+                    <div className="w-full sm:w-auto min-w-[150px]">
                         <input
                             type="date"
                             value={filters.toDate}
                             onChange={(e) => handleFilterChange('toDate', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
-                </div>
-            </div>
 
-            {/* Search Bar Above Table */}
-            <div className="mb-4 bg-white rounded-lg shadow p-4">
-                <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search by reference, PNR, or customer name..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                    {/* Reset Button */}
+                    <button
+                        onClick={resetFilters}
+                        className="px-4 py-2 text-sm text-red-600 hover:text-red-800 font-medium border border-red-300 rounded-md hover:bg-red-50 transition-colors"
+                    >
+                        Reset
+                    </button>
+                </div>
             </div>
 
             {/* Bookings Table */}
@@ -377,11 +458,12 @@ export default function AllBookings() {
                     </div>
                 )}
                 <div className="overflow-x-auto">
-                    <BookingsTable 
+                    <BookingsTable
                         bookings={bookings}
                         getStatusBadge={getStatusBadge}
                         formatDate={formatDate}
                         navigate={navigate}
+                        timers={timers}
                     />
                 </div>
             </div>

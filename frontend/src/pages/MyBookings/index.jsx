@@ -255,7 +255,6 @@ export default function MyBookings() {
                                 <th className="px-4 py-3 text-left text-xs font-semibold text-white border-r border-[#3d6fa8]">
                                     <div className="flex items-center gap-1">
                                         <span>Status</span>
-                                        <span>▼</span>
                                     </div>
                                 </th>
                                 <th className="px-4 py-3 text-left text-xs font-semibold text-white">

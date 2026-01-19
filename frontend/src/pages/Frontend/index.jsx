@@ -3,7 +3,7 @@ import { Route, Routes, Navigate } from 'react-router-dom'
 import Header from '../../components/Header'
 import Home from './Home'
 import AllGroups from './AllGroups'
-import BookingForm from '../../components/BookingForm'
+import BookingForm from '../../components/BookingForm/index2'
 import Bank from './Bank'
 import Footer from '../../components/Footer'
 import NoPage from '../../components/NoPage'
@@ -20,7 +20,7 @@ import BookingDetail from '../BookingDetail'
 export default function Frontend() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    
+
     useEffect(() => {
         const storedUser = localStorage.getItem("frontend_user");
         console.log("Retrieved user from localStorage:", storedUser);
@@ -45,7 +45,7 @@ export default function Frontend() {
         localStorage.removeItem("frontend_user");
         setUser(null);
     };
-    
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -56,7 +56,7 @@ export default function Frontend() {
             </div>
         );
     }
-    
+
     return (
         <Routes>
             {/* Public Routes with Header and Footer */}
@@ -89,8 +89,14 @@ export default function Frontend() {
                 user ? (
                     <>
                         <Header user={user} handleLogout={handleLogout} />
-                        <div className='bg-gray-50 pt-32'>
-                            <AllGroups />
+                        <div className='bg-gray-50'>
+                            <div className='w-full min-h-screen mx-auto pt-32 px-8'>
+                                <div className="mb-4 sm:mb-6 md:mb-8">
+                                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">All Groups</h1>
+                                    <p className="text-sm sm:text-base text-gray-600">Submit and manage your payment records</p>
+                                </div>
+                                <AllGroups />
+                            </div>
                         </div>
                         <Footer />
                     </>
