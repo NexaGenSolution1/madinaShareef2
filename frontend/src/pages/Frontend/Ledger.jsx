@@ -319,7 +319,7 @@ const Ledger = () => {
         <div className="overflow-x-auto -mx-4 sm:mx-0">
           <div className="inline-block min-w-full align-middle px-4 sm:px-0">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8f]">
+              <thead className="bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f]">
                 <tr>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
                     Voucher Id

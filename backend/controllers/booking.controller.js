@@ -57,7 +57,7 @@ const createBooking = async (req, res) => {
             departureDate,
             arrivalDate,
             userId: req.user._id,
-            status: 'pending'
+            status: 'on hold'
         });
 
         await booking.save();
@@ -144,7 +144,7 @@ const getAllBookings = async (req, res, next) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(parseInt(limit))
-            .populate('userId', 'name email');
+            .populate('userId', 'name email agencyCode companyName');
 
         const total = await Booking.countDocuments(query);
 
@@ -173,7 +173,7 @@ const getBookingById = async (req, res, next) => {
     try {
         const { id } = req.params;
 
-        const booking = await Booking.findById(id).populate('userId', 'name email');
+        const booking = await Booking.findById(id).populate('userId', 'name email agencyCode companyName');
 
         if (!booking) {
             return res.status(404).json({
@@ -218,7 +218,7 @@ const getBookingByReference = async (req, res, next) => {
         const { reference } = req.params;
 
         const booking = await Booking.findOne({ bookingReference: reference })
-            .populate('userId', 'name email');
+            .populate('userId', 'name email agencyCode companyName');
 
         if (!booking) {
             return res.status(404).json({
@@ -318,11 +318,11 @@ const updateBooking = async (req, res, next) => {
             });
         }
 
-        // Only allow updates if booking is pending
-        if (booking.status !== 'pending') {
+        // Only allow updates if booking is on hold
+        if (booking.status !== 'on hold') {
             return res.status(400).json({
                 success: false,
-                message: 'Can only update pending bookings'
+                message: 'Can only update bookings that are on hold'
             });
         }
 
@@ -461,7 +461,7 @@ const getBookingStatistics = async (req, res, next) => {
         }
 
         const totalBookings = await Booking.countDocuments();
-        const pendingBookings = await Booking.countDocuments({ status: 'pending' });
+        const onHoldBookings = await Booking.countDocuments({ status: 'on hold' });
         const confirmedBookings = await Booking.countDocuments({ status: 'confirmed' });
         const cancelledBookings = await Booking.countDocuments({ status: 'cancelled' });
 
@@ -500,7 +500,7 @@ const getBookingStatistics = async (req, res, next) => {
             success: true,
             data: {
                 totalBookings,
-                pendingBookings,
+                onHoldBookings,
                 confirmedBookings,
                 cancelledBookings,
                 totalRevenue,

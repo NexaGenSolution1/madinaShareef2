@@ -262,7 +262,7 @@ const Payment = () => {
     <div className="w-full min-h-screen mx-auto px-2 sm:px-4 md:px-0">
       {/* Header */}
       <div className="mb-4 sm:mb-6 md:mb-8">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">add payments</h1>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">Add Payments</h1>
         <p className="text-sm sm:text-base text-gray-600">Submit and manage your payment records</p>
       </div>
 
@@ -377,7 +377,7 @@ const Payment = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full sm:w-auto px-4 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 hover:scale-105 active:scale-95 transition-all duration-300 text-sm sm:text-base font-semibold shadow-md hover:shadow-lg transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="w-full sm:w-auto px-4 sm:px-8 py-2 sm:py-3 bg-linear-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 hover:scale-105 active:scale-95 transition-all duration-300 text-sm sm:text-base font-semibold shadow-md hover:shadow-lg transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {submitting ? "Submitting..." : "Submit"}
               </button>
@@ -454,7 +454,7 @@ const Payment = () => {
               <button
                 onClick={handleFilter}
                 disabled={fetching}
-                className="w-full px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 hover:scale-105 active:scale-95 transition-all duration-300 text-xs sm:text-sm font-semibold shadow-md hover:shadow-lg transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="w-full px-3 sm:px-4 py-2 bg-linear-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 hover:scale-105 active:scale-95 transition-all duration-300 text-xs sm:text-sm font-semibold shadow-md hover:shadow-lg transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 Apply Filters
               </button>
@@ -481,7 +481,7 @@ const Payment = () => {
 
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8f]">
+              <thead className="bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f]">
                     <tr>
                       <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
                         #

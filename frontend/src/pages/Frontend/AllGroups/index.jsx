@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import axiosInstance from '../../../api/axios'
 import { toast } from 'react-toastify'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 
 export default function AllGroups() {
     const [searchParams, setSearchParams] = useSearchParams()
@@ -14,16 +16,30 @@ export default function AllGroups() {
 
     // Filter states
     const [filters, setFilters] = useState({
-        sector: '',
-        airline: '',
-        meal: '',
-        fromDate: '',
-        toDate: ''
+        sectors: [],
+        airlines: [],
+        searchKeyword: '',
+        departDate: null
     })
 
-    // Get unique values for filter dropdowns
+    // Advanced search toggle
+    const [showAdvancedSearch, setShowAdvancedSearch] = useState(false)
+
+    // Get unique values for filter checkboxes
     const [airlines, setAirlines] = useState([])
     const [sectors, setSectors] = useState([])
+    
+    // Group types for buttons
+    const groupTypes = [
+        { label: 'All Types', value: '' },
+        { label: 'UAE One Way', value: 'uae' },
+        { label: 'KSA One Way', value: 'ksa' },
+        { label: 'Oman One Way', value: 'oman' },
+        { label: 'Bahrain One Way', value: 'bahrain' },
+        { label: 'Umrah', value: 'umrah' },
+        { label: 'Qatar One Way', value: 'qatar' },
+        { label: 'UK One Way', value: 'uk' }
+    ]
 
     useEffect(() => {
         fetchGroups()
@@ -155,34 +171,39 @@ export default function AllGroups() {
     const applyFilters = (dataToFilter = allGroups) => {
         let filtered = [...dataToFilter]
 
-        // Filter by sector
-        if (filters.sector) {
-            filtered = filtered.filter(g => g.sector === filters.sector)
+        // Filter by selected sectors
+        if (filters.sectors.length > 0) {
+            filtered = filtered.filter(g => filters.sectors.includes(g.sector))
         }
 
-        // Filter by airline
-        if (filters.airline) {
-            filtered = filtered.filter(g => g.airline?.airline_name === filters.airline)
+        // Filter by selected airlines
+        if (filters.airlines.length > 0) {
+            filtered = filtered.filter(g => filters.airlines.includes(g.airline?.airline_name))
         }
 
-        // Filter by meal
-        if (filters.meal) {
-            filtered = filtered.filter(g => g.meal?.toLowerCase() === filters.meal.toLowerCase())
-        }
-
-        // Filter by date range
-        if (filters.fromDate) {
+        // Filter by search keyword (searches in flight number, sector, airline)
+        if (filters.searchKeyword) {
+            const keyword = filters.searchKeyword.toLowerCase()
             filtered = filtered.filter(g => {
-                const deptDate = new Date(g.dept_date)
-                const fromDate = new Date(filters.fromDate)
-                return deptDate >= fromDate
+                const matchesSector = g.sector?.toLowerCase().includes(keyword)
+                const matchesAirline = g.airline?.airline_name?.toLowerCase().includes(keyword)
+                const matchesFlightNo = g.details?.some(flight => 
+                    flight.flight_no?.toLowerCase().includes(keyword)
+                )
+                return matchesSector || matchesAirline || matchesFlightNo
             })
         }
-        if (filters.toDate) {
+
+        // Filter by departure date
+        if (filters.departDate) {
             filtered = filtered.filter(g => {
                 const deptDate = new Date(g.dept_date)
-                const toDate = new Date(filters.toDate)
-                return deptDate <= toDate
+                const selectedDate = new Date(filters.departDate)
+                
+                // Compare year, month, and day directly to avoid timezone issues
+                return deptDate.getFullYear() === selectedDate.getFullYear() &&
+                       deptDate.getMonth() === selectedDate.getMonth() &&
+                       deptDate.getDate() === selectedDate.getDate()
             })
         }
 
@@ -194,61 +215,43 @@ export default function AllGroups() {
         })
 
         setGroups(filtered)
-        // updateFilterOptions(filtered)
     }
 
-    // const updateFilterOptions = (filteredGroups) => {
-    //     // Create a copy of current filters to determine which filters to respect
-    //     let dataForOptions = [...allGroups]
-
-    //     // Apply each filter except the one being updated to get dynamic options
-    //     if (filters.airline) {
-    //         dataForOptions = dataForOptions.filter(g => g.airline?.airline_name === filters.airline)
-    //     }
-    //     if (filters.sector) {
-    //         dataForOptions = dataForOptions.filter(g => g.sector === filters.sector)
-    //     }
-    //     if (filters.meal) {
-    //         dataForOptions = dataForOptions.filter(g => g.meal?.toLowerCase() === filters.meal.toLowerCase())
-    //     }
-    //     if (filters.fromDate) {
-    //         dataForOptions = dataForOptions.filter(g => {
-    //             const deptDate = new Date(g.dept_date)
-    //             const fromDate = new Date(filters.fromDate)
-    //             return deptDate >= fromDate
-    //         })
-    //     }
-    //     if (filters.toDate) {
-    //         dataForOptions = dataForOptions.filter(g => {
-    //             const deptDate = new Date(g.dept_date)
-    //             const toDate = new Date(filters.toDate)
-    //             return deptDate <= toDate
-    //         })
-    //     }
-
-    //     // Extract unique values for dropdowns from filtered data
-    //     const uniqueAirlines = [...new Set(dataForOptions.map(g => g.airline?.airline_name).filter(Boolean))]
-    //     const uniqueSectors = [...new Set(dataForOptions.map(g => g.sector).filter(Boolean))]
-    //     const uniqueMeals = [...new Set(dataForOptions.map(g => g.meal).filter(Boolean))]
-
-    //     setAirlines(uniqueAirlines.sort())
-    //     setSectors(uniqueSectors.sort())
-    //     setMeals(uniqueMeals.sort())
-    // }
-
-    const handleFilterChange = (filterName, value) => {
-        const newFilters = { ...filters, [filterName]: value }
-        setFilters(newFilters)
+    const handleFilterChange = (filterType, value) => {
+        if (filterType === 'sector') {
+            setFilters(prev => ({
+                ...prev,
+                sectors: prev.sectors.includes(value)
+                    ? prev.sectors.filter(s => s !== value)
+                    : [...prev.sectors, value]
+            }))
+        } else if (filterType === 'airline') {
+            setFilters(prev => ({
+                ...prev,
+                airlines: prev.airlines.includes(value)
+                    ? prev.airlines.filter(a => a !== value)
+                    : [...prev.airlines, value]
+            }))
+        } else {
+            setFilters(prev => ({ ...prev, [filterType]: value }))
+        }
     }
 
     const resetFilters = () => {
         setFilters({
-            sector: '',
-            airline: '',
-            meal: '',
-            fromDate: '',
-            toDate: ''
+            sectors: [],
+            airlines: [],
+            searchKeyword: '',
+            departDate: null
         })
+    }
+    
+    const handleGroupTypeChange = (groupType) => {
+        if (groupType) {
+            setSearchParams({ group_type: groupType })
+        } else {
+            setSearchParams({})
+        }
     }
 
     const handleBookNow = (group) => {
@@ -287,247 +290,266 @@ export default function AllGroups() {
     }
 
     return (
-        <div className="w-full min-h-screen mx-auto px-2 sm:px-4 md:px-0">
-            <div className="mb-4 sm:mb-6">
-                <div>
-                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-                        {searchParams.get('group_type')
-                            ? `${searchParams.get('group_type').toUpperCase()} Groups`
-                            : 'all groups'}
-                    </h2>
-                    <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                        Showing {groups.length} of {allGroups.length} {groups.length === 1 ? 'group' : 'groups'}
-                    </p>
-                </div>
+        <div className="w-full min-h-screen mx-auto">
+            {/* Group Type Buttons */}
+            <div className="mb-4 flex flex-wrap gap-2">
+                {groupTypes.map((type) => (
+                    <button
+                        key={type.value}
+                        onClick={() => handleGroupTypeChange(type.value)}
+                        className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
+                            (searchParams.get('group_type') || '') === type.value
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                        }`}
+                    >
+                        {type.label}
+                    </button>
+                ))}
             </div>
 
-            {/* Filters Section */}
-            <div className="mb-4 sm:mb-6 bg-white rounded-lg shadow p-3 sm:p-4">
-                <div className="flex justify-between items-center mb-3 sm:mb-4">
-                    <h3 className="text-base sm:text-lg font-semibold text-gray-900">Filters</h3>
-                    <button
-                        onClick={resetFilters}
-                        className="text-xs sm:text-sm text-red-600 hover:text-red-800 font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
-                    >
-                        Reset All
-                    </button>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    {/* Sector Filter */}
-                    <div>
-                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                            Sector
+            {/* Advanced Search Section */}
+            <div className="mb-4 bg-white rounded-lg shadow p-3 sm:p-4">
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                    {/* Advanced Search Toggle */}
+                    <div className="flex items-center gap-2">
+                        <label className="flex items-center cursor-pointer">
+                            <div className="relative">
+                                <input
+                                    type="checkbox"
+                                    checked={showAdvancedSearch}
+                                    onChange={(e) => setShowAdvancedSearch(e.target.checked)}
+                                    className="sr-only"
+                                />
+                                <div className={`w-10 h-6 rounded-full transition-colors ${
+                                    showAdvancedSearch ? 'bg-blue-600' : 'bg-gray-300'
+                                }`}>
+                                    <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                                        showAdvancedSearch ? 'translate-x-4' : ''
+                                    }`}></div>
+                                </div>
+                            </div>
+                            <span className="ml-2 text-sm font-medium text-gray-700">Advance Search</span>
                         </label>
-                        <select
-                            value={filters.sector}
-                            onChange={(e) => handleFilterChange('sector', e.target.value)}
-                            className="w-full px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="">All Sectors</option>
-                            {sectors.map(sector => (
-                                <option key={sector} value={sector}>{sector}</option>
-                            ))}
-                        </select>
                     </div>
 
-                    {/* Airline Filter */}
-                    <div>
-                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                            Airline
-                        </label>
-                        <select
-                            value={filters.airline}
-                            onChange={(e) => handleFilterChange('airline', e.target.value)}
-                            className="w-full px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="">All Airlines</option>
-                            {airlines.map(airline => (
-                                <option key={airline} value={airline}>{airline}</option>
-                            ))}
-                        </select>
+                    {/* Search by Dept Date */}
+                    <div className="shrink-0">
+                        {/* <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Search by Dept Date
+                        </label> */}
+                        <DatePicker
+                            selected={filters.departDate}
+                            onChange={(date) => handleFilterChange('departDate', date)}
+                            placeholderText="Search by Dept Date"
+                            dateFormat="dd MMM yyyy"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            wrapperClassName="w-full"
+                            calendarClassName="custom-datepicker"
+                        />
                     </div>
 
-                    {/* Meal Filter */}
-                    <div>
-                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                            Meal
-                        </label>
-                        <select
-                            value={filters.meal}
-                            onChange={(e) => handleFilterChange('meal', e.target.value)}
-                            className="w-full px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="">All</option>
-                            <option value="Yes">Yes</option>
-                            <option value="No">No</option>
-                        </select>
-                    </div>
-
-                    {/* Date Range */}
-                    <div>
-                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                            Departure Date Range
-                        </label>
-                        <div className="flex gap-1 sm:gap-2">
+                    {/* Search by Keyword */}
+                    <div className="flex-1 min-w-50">
+                        <div className="relative">
                             <input
-                                type="date"
-                                value={filters.fromDate}
-                                onChange={(e) => handleFilterChange('fromDate', e.target.value)}
-                                min={new Date().toISOString().split('T')[0]}
-                                className="w-1/2 px-2 py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                type="text"
+                                placeholder="Search by Keyword"
+                                value={filters.searchKeyword}
+                                onChange={(e) => handleFilterChange('searchKeyword', e.target.value)}
+                                className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
-                            <input
-                                type="date"
-                                value={filters.toDate}
-                                onChange={(e) => handleFilterChange('toDate', e.target.value)}
-                                min={filters.fromDate || new Date().toISOString().split('T')[0]}
-                                className="w-1/2 px-2 py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
+                            <button className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                🔍
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8f]">
-                            <tr>
-                                <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
-                                    Flight#
-                                </th>
-                                <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
-                                    Date
-                                </th>
+            {/* Main Content with Sidebar */}
+            <div className="flex gap-4">
+                {/* Left Sidebar - Filters */}
+                {showAdvancedSearch && (
+                    <div className="hidden lg:block w-64 shrink-0">
+                        {/* Airlines Filter */}
+                        <div className="bg-white rounded-lg shadow p-4 mb-4">
+                            <h3 className="font-semibold text-gray-900 mb-3">Airlines</h3>
+                            <div className="space-y-2 max-h-64 overflow-y-auto">
+                                {airlines.map((airline) => (
+                                    <label key={airline} className="flex items-center cursor-pointer hover:bg-gray-50 p-1 rounded">
+                                        <input
+                                            type="checkbox"
+                                            checked={filters.airlines.includes(airline)}
+                                            onChange={() => handleFilterChange('airline', airline)}
+                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                        <span className="ml-2 text-sm text-gray-700">{airline}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
 
-                                <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
-                                    Origin-Destination
-                                </th>
-                                <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
-                                    Time
-                                </th>
-                                <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
-                                    Baggage
-                                </th>
-                                <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
-                                    Meal
-                                </th>
-                                <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
-                                    Price
-                                </th>
-                                <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
-                                    Action
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white">
-                            {groups.length === 0 ? (
-                                <tr>
-                                    <td colSpan="8" className="px-4 sm:px-6 py-6 sm:py-8 text-center text-gray-500 text-sm">
-                                        No groups available at the moment
-                                    </td>
-                                </tr>
-                            ) : (
-                                (() => {
-                                    // Group by airline_name and sector
-                                    const groupedData = groups.reduce((acc, group) => {
-                                        const key = `${group.airline?.airline_name || 'Unknown'}-${group.sector || 'Unknown'}`
-                                        if (!acc[key]) {
-                                            acc[key] = {
-                                                airline: group.airline?.airline_name || 'Unknown',
-                                                sector: group.sector || 'Unknown',
-                                                logo_url: group.airline?.logo_url || null,
-                                                groups: []
+                        {/* Sectors Filter */}
+                        <div className="bg-white rounded-lg shadow p-4">
+                            <h3 className="font-semibold text-gray-900 mb-3">Sectors</h3>
+                            <div className="space-y-2 max-h-64 overflow-y-auto">
+                                {sectors.map((sector) => (
+                                    <label key={sector} className="flex items-center cursor-pointer hover:bg-gray-50 p-1 rounded">
+                                        <input
+                                            type="checkbox"
+                                            checked={filters.sectors.includes(sector)}
+                                            onChange={() => handleFilterChange('sector', sector)}
+                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                        <span className="ml-2 text-sm text-gray-700">{sector}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Main Table Area */}
+                <div className="flex-1">
+                    <div className="bg-white rounded-lg shadow overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f]">
+                                    <tr>
+                                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                            Date
+                                        </th>
+                                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                            Flight#
+                                        </th>
+                                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                            Origin-Destination
+                                        </th>
+                                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                            Time
+                                        </th>
+                                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                            Baggage
+                                        </th>
+                                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                            Meal
+                                        </th>
+                                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                            Price
+                                        </th>
+                                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {groups.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="8" className="px-6 py-8 text-center text-gray-500 text-sm">
+                                                No groups available at the moment
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        (() => {
+                                            // Group by airline_name and sector
+                                            const groupedData = groups.reduce((acc, group) => {
+                                                const key = `${group.airline?.airline_name || 'Unknown'}-${group.sector || 'Unknown'}`
+                                                if (!acc[key]) {
+                                                    acc[key] = {
+                                                        airline: group.airline?.airline_name || 'Unknown',
+                                                        sector: group.sector || 'Unknown',
+                                                        logo_url: group.airline?.logo_url || null,
+                                                        groups: []
+                                                    }
+                                                }
+                                                acc[key].groups.push(group)
+                                                return acc
+                                            }, {})
+
+                                            const formatDate = (dateStr) => {
+                                                const date = new Date(dateStr)
+                                                const day = date.getDate().toString().padStart(2, '0')
+                                                const month = date.toLocaleDateString('en-US', { month: 'short' })
+                                                const year = date.getFullYear()
+                                                return `${day} ${month} ${year}`
                                             }
-                                        }
-                                        acc[key].groups.push(group)
-                                        return acc
-                                    }, {})
 
-                                    const formatDate = (dateStr) => {
-                                        const date = new Date(dateStr)
-                                        const day = date.getDate().toString().padStart(2, '0')
-                                        const month = date.toLocaleDateString('en-US', { month: 'short' })
-                                        const year = date.getFullYear()
-                                        return `${day} ${month} ${year}`
-                                    }
-
-                                    console.log("Grouped Data", groupedData)
-
-                                    return Object.entries(groupedData).map(([key, data]) => (
-                                        <React.Fragment key={key}>
-                                            {/* Header row with airline logo and route */}
-                                            <tr className="bg-gray-50">
-                                                <td colSpan="8" className="px-2 sm:px-4 py-2">
-                                                    <div className="flex justify-center items-center gap-2">
-                                                        {/* <span className="text-green-600 text-xl">✈</span> */}
-                                                        <img src={data.logo_url} className='w-16 sm:w-20 md:w-28' />
-                                                        <span className="font-semibold text-gray-700 text-sm sm:text-base">
-                                                            {/* {data.airline} |  */}
-                                                            {data.sector}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                            </tr>
-
-                                            {/* All flights under this airline and sector */}
-                                            {data.groups.map((group, groupIndex) => (
-                                                group.details?.map((flight, flightIndex) => (
-                                                    <tr
-                                                        key={`${group.id}-${flight.id}`}
-                                                        className={`transition-colors border-l-4 border-l-green-500 ${flightIndex === group.details.length - 1 ? 'border-b border-gray-200' : ''} ${hoveredGroup === group.id ? 'bg-gray-50' : ''}`}
-                                                        onMouseEnter={() => setHoveredGroup(group.id)}
-                                                        onMouseLeave={() => setHoveredGroup(null)}
-                                                    >
-
-                                                        <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
-                                                            {flight.flight_no}
-                                                        </td>
-                                                        <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-900">
-                                                            <div className="flex items-center gap-1 sm:gap-2">
-                                                                <span className="text-green-500">✈</span>
-                                                                <span className="hidden sm:inline">{formatDate(flight.flight_date)}</span>
-                                                                <span className="sm:hidden text-xs">{new Date(flight.flight_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</span>
+                                            return Object.entries(groupedData).map(([key, data]) => (
+                                                <React.Fragment key={key}>
+                                                    {/* Header row with airline logo and sector */}
+                                                    <tr className="bg-gray-50">
+                                                        <td colSpan="8" className="px-4 py-3">
+                                                            <div className="flex items-center justify-center gap-3">
+                                                                {data.logo_url && (
+                                                                    <img 
+                                                                        src={data.logo_url} 
+                                                                        alt={data.airline}
+                                                                        className='w-32 object-contain' 
+                                                                    />
+                                                                )}
+                                                                <span className="font-semibold text-gray-900 text-base">
+                                                                    {data.sector}
+                                                                </span>
                                                             </div>
                                                         </td>
-                                                        <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-900">
-                                                            {flight.origin}-{flight.destination}
-                                                        </td>
-                                                        <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-900">
-                                                            {flight.dept_time?.substring(0, 5)}-{flight.arv_time?.substring(0, 5)}
-                                                        </td>
-                                                        <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-900">
-                                                            {`${flight.baggage ? `${flight.baggage} KG` : 'N/A'}`}
-                                                        </td>
-                                                        <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-900">
-                                                            {flight.meal || 'No'}
-                                                        </td>
-                                                        {flightIndex === 0 && (
-                                                            <>
-                                                                <td rowSpan={group.details.length} className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-xs sm:text-sm font-semibold text-gray-900 align-middle text-center">
-                                                                    <span className="hidden sm:inline">PKR {group.price?.toLocaleString()}</span>
-                                                                    <span className="sm:hidden text-xs">{group.price?.toLocaleString()}</span>
-                                                                </td>
-                                                                <td rowSpan={group.details.length} className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-xs sm:text-sm align-middle text-center">
-                                                                    <button
-                                                                        onClick={() => handleBookNow(group)}
-                                                                        className="px-2 sm:px-4 py-1 sm:py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 hover:scale-105 active:scale-95 transition-all duration-300 text-xs font-semibold shadow-md hover:shadow-lg transform whitespace-nowrap"
-                                                                    >
-                                                                        Book now
-                                                                    </button>
-                                                                </td>
-                                                            </>
-                                                        )}
                                                     </tr>
-                                                ))
-                                            ))}
-                                        </React.Fragment>
-                                    ))
-                                })()
-                            )}
-                        </tbody>
-                    </table>
+
+                                                    {/* All flights under this airline and sector */}
+                                                    {data.groups.map((group, groupIndex) => (
+                                                        group.details?.map((flight, flightIndex) => (
+                                                            <tr
+                                                                key={`${group.id}-${flightIndex}`}
+                                                                className={`hover:bg-blue-50 transition-colors ${
+                                                                    flightIndex % 2 === 0 ? 'bg-white' : 'bg-blue-50/30'
+                                                                }`}
+                                                            >
+                                                                <td className="px-3 sm:px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="text-blue-600">✈</span>
+                                                                        <span>{formatDate(flight.flight_date)}</span>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-3 sm:px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                                    {flight.flight_no}
+                                                                </td>
+                                                                <td className="px-3 sm:px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                                                                    {flight.origin}-{flight.destination}
+                                                                </td>
+                                                                <td className="px-3 sm:px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                                                                    {flight.dept_time?.substring(0, 5)}-{flight.arv_time?.substring(0, 5)}
+                                                                </td>
+                                                                <td className="px-3 sm:px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                                                                    {flight.baggage ? `${flight.baggage} KG` : 'N/A'}
+                                                                </td>
+                                                                <td className="px-3 sm:px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                                                                    {flight.meal || 'No'}
+                                                                </td>
+                                                                {flightIndex === 0 && (
+                                                                    <>
+                                                                        <td rowSpan={group.details.length} className="px-3 sm:px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900 align-middle">
+                                                                            PKR {group.price?.toLocaleString()}
+                                                                        </td>
+                                                                        <td rowSpan={group.details.length} className="px-3 sm:px-4 py-3 whitespace-nowrap text-sm align-middle">
+                                                                            <button
+                                                                                onClick={() => handleBookNow(group)}
+                                                                                className="px-4 py-2 bg-[#ff6b35] hover:bg-[#ff5722] text-white rounded-md text-sm font-medium transition-colors shadow-sm"
+                                                                            >
+                                                                                Book now
+                                                                            </button>
+                                                                        </td>
+                                                                    </>
+                                                                )}
+                                                            </tr>
+                                                        ))
+                                                    ))}
+                                                </React.Fragment>
+                                            ))
+                                        })()
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -68,7 +68,7 @@ const Bank = () => {
     <div className="w-full min-h-screen mx-auto px-2 sm:px-4 md:px-0">
       {/* Header */}
       <div className="mb-4 sm:mb-6 md:mb-8">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">bank details</h1>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">Bank Details</h1>
         <p className="text-sm sm:text-base text-gray-600">View your registered bank account information</p>
       </div>
 
@@ -89,7 +89,7 @@ const Bank = () => {
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
             >
               {/* Bank Logo Section */}
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 flex items-center justify-center h-32 sm:h-40 border-b border-gray-200">
+              <div className="bg-linear-to-br from-gray-50 to-gray-100 p-4 sm:p-6 flex items-center justify-center h-32 sm:h-40 border-b border-gray-200">
                 {bank.logo ? (
                   <img
                     src={bank.logo}

@@ -161,7 +161,7 @@ export default function Profile() {
       <div className="max-w-5xl mx-auto px-6">
         {/* Header */}
         <div className="bg-white border border-gray-300 rounded-lg shadow-sm mb-6">
-          <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-white border-b border-gray-200">
+          <div className="px-6 py-4 bg-linear-to-r from-blue-50 to-white border-b border-gray-200">
             <h1 className="text-2xl font-bold text-gray-900">my profile</h1>
             <p className="text-sm text-gray-600 mt-1">manage your account information and settings</p>
           </div>
@@ -169,7 +169,7 @@ export default function Profile() {
 
         {/* Profile Form */}
         <div className="bg-white border border-gray-300 rounded-lg shadow-sm">
-          <div className="px-6 py-4 bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8f] border-b border-gray-200">
+          <div className="px-6 py-4 bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f] border-b border-gray-200">
             <h2 className="text-lg font-bold text-white">update your profile</h2>
           </div>
 
@@ -314,7 +314,7 @@ export default function Profile() {
                   className={`px-10 py-3 rounded-lg font-bold shadow-lg flex items-center gap-2 transform transition-all duration-300 ${
                     updating
                       ? 'bg-gray-400 text-white cursor-not-allowed'
-                      : 'bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8f] text-white hover:from-[#2d5a8f] hover:to-[#1e3a5f] hover:scale-105 hover:shadow-2xl active:scale-95'
+                      : 'bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f] text-white hover:from-[#2d5a8f] hover:to-[#1e3a5f] hover:scale-105 hover:shadow-2xl active:scale-95'
                   }`}
                 >
                   {updating ? (

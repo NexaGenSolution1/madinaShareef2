@@ -95,6 +95,75 @@
   box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.1);
 }
 
+.menu-item-parent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.menu-item-parent:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.menu-item-parent.active {
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%);
+  color: #93c5fd;
+  border-right: 3px solid #3b82f6;
+  box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.1);
+}
+
+.menu-item-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.expand-icon {
+  font-size: 10px;
+  margin-right: 8px;
+  color: rgba(255, 255, 255, 0.6);
+  transition: transform 0.3s ease;
+}
+
+.sub-menu {
+  list-style: none;
+  padding: 4px 0 4px 40px;
+  margin: 0;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.sub-menu li {
+  margin-bottom: 2px;
+}
+
+.sub-menu-item {
+  display: block;
+  padding: 8px 20px;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 13px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.sub-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.95);
+  padding-left: 24px;
+}
+
+.sub-menu-item.active {
+  background: rgba(59, 130, 246, 0.25);
+  color: #93c5fd;
+  font-weight: 500;
+  border-left: 2px solid #3b82f6;
+}
+
 .menu-icon {
   font-size: 20px;
   min-width: 20px;

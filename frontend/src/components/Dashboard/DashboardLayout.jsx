@@ -6,6 +6,7 @@ import logo from '../../assets/images/logo.webp';
 
 const DashboardLayout = ({ user, handleLogout }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [bookingsExpanded, setBookingsExpanded] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -24,7 +25,18 @@ const DashboardLayout = ({ user, handleLogout }) => {
     { path: '/dashboard/banks', icon: <FaUniversity />, label: 'Bank' },
     { path: '/dashboard/payment', icon: <FaMoneyBillWave />, label: 'Payment' },
     { path: '/dashboard/ledger', icon: <FaBook />, label: 'Ledger' },
-    { path: '/dashboard/my-bookings', icon: <FaTicketAlt />, label: 'My Bookings' },
+    { 
+      path: '/dashboard/my-bookings', 
+      icon: <FaTicketAlt />, 
+      label: 'My Bookings',
+      hasSubMenu: true,
+      subItems: [
+        { path: '/dashboard/my-bookings', label: 'All Bookings' },
+        { path: '/dashboard/my-bookings?status=on hold', label: 'On Hold' },
+        { path: '/dashboard/my-bookings?status=confirmed', label: 'Confirmed' },
+        { path: '/dashboard/my-bookings?status=cancelled', label: 'Cancelled' }
+      ]
+    },
     { path: '/dashboard/profile', icon: <FaUserCircle />, label: 'My Profile' },
     { path: '/dashboard/change-password', icon: <FaKey />, label: 'Change Password' },
   ];
@@ -50,14 +62,53 @@ const DashboardLayout = ({ user, handleLogout }) => {
           <ul>
             {menuItems.map((item) => (
               <li key={item.path}>
-                <Link
-                  to={item.path}
-                  className={isActive(item.path, item.exact) ? 'active' : ''}
-                  title={item.label}
-                >
-                  <span className="menu-icon">{item.icon}</span>
-                  {sidebarOpen && <span className="menu-label">{item.label}</span>}
-                </Link>
+                {item.hasSubMenu ? (
+                  <>
+                    <div
+                      onClick={() => setBookingsExpanded(!bookingsExpanded)}
+                      className={`menu-item-parent ${isActive(item.path, item.exact) ? 'active' : ''}`}
+                      title={item.label}
+                    >
+                      <div className="menu-item-content">
+                        <span className="menu-icon">{item.icon}</span>
+                        {sidebarOpen && <span className="menu-label">{item.label}</span>}
+                      </div>
+                      {sidebarOpen && <span className="expand-icon">{bookingsExpanded ? '▼' : '▶'}</span>}
+                    </div>
+                    {bookingsExpanded && sidebarOpen && (
+                      <ul className="sub-menu">
+                        {item.subItems.map((subItem) => {
+                          const currentPath = location.pathname;
+                          const currentStatus = new URLSearchParams(location.search).get('status') || '';
+                          const subItemStatus = subItem.path.includes('?status=') 
+                            ? subItem.path.split('status=')[1] 
+                            : '';
+                          const isSubActive = currentPath === '/dashboard/my-bookings' && currentStatus === subItemStatus;
+                          
+                          return (
+                            <li key={subItem.path}>
+                              <Link
+                                to={subItem.path}
+                                className={`sub-menu-item ${isSubActive ? 'active' : ''}`}
+                              >
+                                {subItem.label}
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </>
+                ) : (
+                  <Link
+                    to={item.path}
+                    className={isActive(item.path, item.exact) ? 'active' : ''}
+                    title={item.label}
+                  >
+                    <span className="menu-icon">{item.icon}</span>
+                    {sidebarOpen && <span className="menu-label">{item.label}</span>}
+                  </Link>
+                )}
               </li>
             ))}
           </ul>

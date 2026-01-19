@@ -56,7 +56,7 @@ const Dashboard = () => {
             key={index}
             className="group bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
-            <div className={`bg-gradient-to-r ${card.color} p-4 sm:p-6 flex items-center justify-center`}>
+            <div className={`bg-linear-to-r ${card.color} p-4 sm:p-6 flex items-center justify-center`}>
               <div className="text-white text-3xl sm:text-4xl md:text-5xl group-hover:scale-110 transition-transform duration-300">
                 {card.icon}
               </div>
