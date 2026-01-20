@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Route, Routes, Navigate } from 'react-router-dom'
+import { Route, Routes, Navigate, Link, useSearchParams } from 'react-router-dom'
 import Header from '../../components/Header'
 import Home from './Home'
 import AllGroups from './AllGroups'
@@ -16,10 +16,12 @@ import ChangePassword from '../../components/ChangePassword/ChnagePassword'
 import Profile from '../../components/Profile/Profile'
 import MyBookings from '../MyBookings'
 import BookingDetail from '../BookingDetail'
+import { groupTypes } from '../../data/groupTypes'
 
 export default function Frontend() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [searchParams, setSearchParams] = useSearchParams()
 
     useEffect(() => {
         const storedUser = localStorage.getItem("frontend_user");
@@ -45,6 +47,18 @@ export default function Frontend() {
         localStorage.removeItem("frontend_user");
         setUser(null);
     };
+
+    const normalizeParams = (str) => {
+        return decodeURIComponent(str.replace(/\+/g, " "));
+    }
+
+    const handleGroupTypeChange = (groupType) => {
+        if (groupType) {
+            setSearchParams({ group_type: groupType })
+        } else {
+            setSearchParams({})
+        }
+    }
 
     if (loading) {
         return (
@@ -95,7 +109,7 @@ export default function Frontend() {
                                     <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">All Groups</h1>
                                     <p className="text-sm sm:text-base text-gray-600">Browse and book available flight groups</p>
                                 </div>
-                                <AllGroups />
+                                <AllGroups searchParams={searchParams} />
                             </div>
                         </div>
                         <Footer />
@@ -126,7 +140,26 @@ export default function Frontend() {
                 user ? <DashboardLayout user={user} handleLogout={handleLogout} /> : <Navigate to="/" replace />
             }>
                 <Route index element={<Dashboard />} />
-                <Route path="all-groups" element={<AllGroups />} />
+                <Route path="all-groups" element={
+                    <>
+                        <div className="mb-4 flex flex-wrap gap-2">
+                            {groupTypes.map((type) => (
+                                <Link
+                                     to={`/dashboard/${type.path}`} 
+                                    key={type.value}
+                                    onClick={() => handleGroupTypeChange(type.value)}
+                                    className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${(normalizeParams(searchParams.toString()) || '') === normalizeParams(type.path.split('?')[1] || '')
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    {type.label}
+                                </Link>
+                            ))}
+                        </div>
+                        <AllGroups searchParams={searchParams} />
+                    </>
+                } />
                 <Route path="booking" element={<BookingForm user={user} />} />
                 <Route path="banks" element={<Bank />} />
                 <Route path="payment" element={<Payment />} />

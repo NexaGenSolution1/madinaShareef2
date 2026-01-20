@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { useSearchParams, useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import axiosInstance from '../../../api/axios'
-import { groupTypes } from '../../../data/groupTypes'
 import { toast } from 'react-toastify'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 
-export default function AllGroups() {
-    const [searchParams, setSearchParams] = useSearchParams()
+export default function AllGroups({ searchParams }) {
+
     const navigate = useNavigate()
     const [groups, setGroups] = useState([])
     const [allGroups, setAllGroups] = useState([])
@@ -225,29 +224,8 @@ export default function AllGroups() {
         }
     }
 
-    // const resetFilters = () => {
-    //     setFilters({
-    //         sectors: [],
-    //         airlines: [],
-    //         searchKeyword: '',
-    //         departDate: null
-    //     })
-    // }
-
-    const handleGroupTypeChange = (groupType) => {
-        if (groupType) {
-            setSearchParams({ group_type: groupType })
-        } else {
-            setSearchParams({})
-        }
-    }
-
     const handleBookNow = (group) => {
         navigate('/dashboard/booking', { state: { groupData: group } })
-    }
-
-    const normalizeParams = (str) => {
-        return decodeURIComponent(str.replace(/\+/g, " "));
     }
 
     useEffect(() => {
@@ -283,45 +261,6 @@ export default function AllGroups() {
 
     return (
         <div className="w-full min-h-screen mx-auto">
-            {/* Group Type Buttons */}
-
-            <div className="mb-4 flex flex-wrap gap-2">
-                {groupTypes.map((type) => (
-                    <Link
-                        to={type.path}
-                        key={type.value}
-                        onClick={() => handleGroupTypeChange(type.value)}
-                        className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${(normalizeParams(searchParams.toString()) || '') === normalizeParams(type.path.split('?')[1] || '')
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                            }`}
-                    >
-                        {type.label}
-                    </Link>
-                ))}
-            </div>
-
-            {/* <div className="mb-4 flex flex-wrap gap-2">
-                {groupTypes.map((type) => {
-                    const currentGroupType = searchParams.get('group_type') || '';
-                    const isActive = type.value === '' ? currentGroupType === '' : currentGroupType.includes(type.value);
-                    
-                    return (
-                        <Link
-                            to={type.path}
-                            key={type.value || 'all'}
-                            className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
-                                isActive
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                            }`}
-                        >
-                            {type.label}
-                        </Link>
-                    );
-                })}
-            </div> */}
-
             {/* Advanced Search Section */}
             <div className="mb-4 bg-white rounded-lg shadow p-3 sm:p-4">
                 <div className="flex flex-wrap items-center gap-3 sm:gap-4">
@@ -426,35 +365,36 @@ export default function AllGroups() {
                 <div className="flex-1">
                     <div className="bg-white rounded-lg shadow overflow-hidden">
                         <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
+                            <table className="min-w-full">
                                 <thead className="bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f]">
                                     <tr>
                                         <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
-                                            Date
-                                        </th>
-                                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
                                             Flight#
                                         </th>
-                                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                            Date
+                                        </th>
+                                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
                                             Origin-Destination
                                         </th>
-                                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
                                             Time
                                         </th>
-                                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
                                             Baggage
                                         </th>
-                                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
                                             Meal
                                         </th>
-                                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
                                             Price
                                         </th>
-                                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                            Actions
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                                <tbody className="bg-white divide-y divide-dashed divide-gray-300">
                                     {groups.length === 0 ? (
                                         <tr>
                                             <td colSpan="8" className="px-6 py-8 text-center text-gray-500 text-sm">
@@ -485,7 +425,7 @@ export default function AllGroups() {
                                                 const year = date.getFullYear()
                                                 return `${day} ${month} ${year}`
                                             }
-
+                                            { console.log("Grouped Data", groupedData) }
                                             return Object.entries(groupedData).map(([key, data]) => (
                                                 <React.Fragment key={key}>
                                                     {/* Header row with airline logo and sector */}
@@ -508,51 +448,82 @@ export default function AllGroups() {
 
                                                     {/* All flights under this airline and sector */}
                                                     {data.groups.map((group, groupIndex) => (
-                                                        group.details?.map((flight, flightIndex) => (
-                                                            <tr
-                                                                key={`${group.id}-${flightIndex}`}
-                                                                className={`hover:bg-blue-50 transition-colors ${flightIndex % 2 === 0 ? 'bg-white' : 'bg-blue-50/30'
-                                                                    }`}
-                                                            >
-                                                                <td className="px-3 sm:px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                                                    <div className="flex items-center gap-2">
+                                                        <tr
+                                                            key={group.id}
+                                                            className=" bg-sky-200/30 text-sm text-gray-900 [&>td]:px-4 [&>td]:py-1 align-middle"
+                                                        >
+                                                            {/* Flight Numbers */}
+                                                            <td className="font-medium">
+                                                                {group.details?.map((flight, i) => (
+                                                                    <div key={i}>
+                                                                        {flight.flight_no}
+                                                                    </div>
+                                                                ))}
+                                                            </td>
+
+                                                            {/* Flight Date */}
+                                                            <td>
+                                                                {group.details?.map((flight, i) => (
+                                                                    <div key={i} className="flex justify-center gap-2">
                                                                         <span className="text-blue-600">✈</span>
                                                                         <span>{formatDate(flight.flight_date)}</span>
                                                                     </div>
-                                                                </td>
-                                                                <td className="px-3 sm:px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                                    {flight.flight_no}
-                                                                </td>
-                                                                <td className="px-3 sm:px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                                                    {flight.origin}-{flight.destination}
-                                                                </td>
-                                                                <td className="px-3 sm:px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                                                    {flight.dept_time?.substring(0, 5)}-{flight.arv_time?.substring(0, 5)}
-                                                                </td>
-                                                                <td className="px-3 sm:px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                                                    {flight.baggage ? `${flight.baggage} KG` : 'N/A'}
-                                                                </td>
-                                                                <td className="px-3 sm:px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                                                    {flight.meal || 'No'}
-                                                                </td>
-                                                                {flightIndex === 0 && (
-                                                                    <>
-                                                                        <td rowSpan={group.details.length} className="px-3 sm:px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900 align-middle">
-                                                                            PKR {group.price?.toLocaleString()}
-                                                                        </td>
-                                                                        <td rowSpan={group.details.length} className="px-3 sm:px-4 py-3 whitespace-nowrap text-sm align-middle">
-                                                                            <button
-                                                                                onClick={() => handleBookNow(group)}
-                                                                                className="px-4 py-2 bg-[#ff6b35] hover:bg-[#ff5722] text-white rounded-md text-sm font-medium transition-colors shadow-sm"
-                                                                            >
-                                                                                Book now
-                                                                            </button>
-                                                                        </td>
-                                                                    </>
-                                                                )}
-                                                            </tr>
-                                                        ))
+                                                                ))}
+                                                            </td>
+
+                                                            {/* Sector */}
+                                                            <td>
+                                                                {group.details?.map((flight, i) => (
+                                                                    <div key={i} className="flex justify-center">
+                                                                        {flight.origin}-{flight.destination}
+                                                                    </div>
+                                                                ))}
+                                                            </td>
+
+                                                            {/* Time */}
+                                                            <td>
+                                                                {group.details?.map((flight, i) => (
+                                                                    <div key={i} className="flex justify-center">
+                                                                        {flight.dept_time?.substring(0, 5)} - {flight.arv_time?.substring(0, 5)}
+                                                                    </div>
+                                                                ))}
+                                                            </td>
+
+                                                            {/* Baggage */}
+                                                            <td>
+                                                                {group.details?.map((flight, i) => (
+                                                                    <div key={i} className="flex justify-center">
+                                                                        {flight.baggage ? `${flight.baggage} KG` : 'N/A'}
+                                                                    </div>
+                                                                ))}
+                                                            </td>
+
+                                                            {/* Meal */}
+                                                            <td>
+                                                                {group.details?.map((flight, i) => (
+                                                                    <div key={i} className="flex justify-center">
+                                                                        {flight.meal || 'No'}
+                                                                    </div>
+                                                                ))}
+                                                            </td>
+
+                                                            {/* Price */}
+                                                            <td className="font-semibold text-center">
+                                                                PKR {group.price?.toLocaleString()}
+                                                            </td>
+
+                                                            {/* Action */}
+                                                            <td className="text-center">
+                                                                <button
+                                                                    onClick={() => handleBookNow(group)}
+                                                                    className="px-4 py-2 bg-[#ff6b35] hover:bg-[#ff5722] text-white rounded-md text-sm font-medium transition-colors shadow-sm"
+                                                                >
+                                                                    Book now
+                                                                </button>
+                                                            </td>
+                                                        </tr>
                                                     ))}
+
                                                 </React.Fragment>
                                             ))
                                         })()

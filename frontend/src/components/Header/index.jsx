@@ -57,7 +57,7 @@ export default function Header({ user, handleLogout }) {
                             {groupTypes.map((group) => (
                                 <Link 
                                     key={group.value} 
-                                    to={group.path} 
+                                    to={`/${group.path}`} 
                                     className='text-xs lg:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'
                                 >
                                     {group.label}
