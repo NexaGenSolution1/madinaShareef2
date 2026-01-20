@@ -1,6 +1,7 @@
 import { useState, useEffect, memo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import axiosInstance from '../../Api/axios'
+import { generateBookingPDF } from '../../utils'
 
 interface Booking {
     _id: string
@@ -34,7 +35,7 @@ interface BookingsTableProps {
     getStatusBadge: (status: string) => StatusOption
     formatDate: (dateStr: string | undefined) => string
     navigate: (path: string) => void
-    timers: { [key: string]: { hours: number; minutes: number; expired: boolean } }
+    timers: { [key: string]: { hours: number; minutes: number; seconds: number; expired: boolean } }
 }
 
 const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, timers }: BookingsTableProps) => {
@@ -170,7 +171,7 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                         </span>
                                         {booking.status === 'on hold' && (
                                             <div className="space-y-2 pt-1">
-                                                <div className="text-xs text-amber-700 font-semibold bg-amber-50 px-2.5 py-1.5 rounded-md border border-amber-200">
+                                                <div className="text-xs text-yellow-700 font-semibold bg-yellow-50 px-2.5 py-1.5 rounded-md border border-yellow-300">
                                                     Admin Review<br />Required
                                                 </div>
                                                 <div className="text-xs">
@@ -186,11 +187,17 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                                                     </div>
                                                                     <div style={{ fontSize: '9px' }} className="font-medium mt-1 opacity-90">HOURS</div>
                                                                 </div>
-                                                                <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-[40px]">
+                                                                <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-[40px]">
                                                                     <div className="text-xl font-bold leading-none">
                                                                         {String(timers[booking._id]?.minutes || 0).padStart(2, '0')}
                                                                     </div>
                                                                     <div style={{ fontSize: '9px' }} className="font-medium mt-1 opacity-90">MINS</div>
+                                                                </div>
+                                                                <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-[40px]">
+                                                                    <div className="text-xl font-bold leading-none">
+                                                                        {String(timers[booking._id]?.seconds || 0).padStart(2, '0')}
+                                                                    </div>
+                                                                    <div style={{ fontSize: '9px' }} className="font-medium mt-1 opacity-90">SECS</div>
                                                                 </div>
                                                             </>
                                                         )}
@@ -204,6 +211,7 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                 {/* Action */}
                                 <td className="py-4 align-top">
                                     <div className="flex justify-center items-center gap-2">
+                                        {/* View Details - Available for all bookings */}
                                         <button
                                             onClick={() => navigate(`/booking-detail/${booking._id}`)}
                                             className="p-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 rounded-lg transition-all shadow-sm hover:shadow-md border border-slate-200"
@@ -214,6 +222,69 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                             </svg>
                                         </button>
+
+                                        {/* On Hold booking actions */}
+                                        {booking.status === 'on hold' && (
+                                            <>
+                                                <button
+                                                    onClick={() => navigate(`/edit-booking/${booking._id}`)}
+                                                    className="p-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 rounded-lg transition-all shadow-sm hover:shadow-md border border-slate-200"
+                                                    title="Edit Booking"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        if (window.confirm('Are you sure you want to delete this booking?')) {
+                                                            // Handle delete booking
+                                                            alert('Delete functionality to be implemented')
+                                                        }
+                                                    }}
+                                                    className="p-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 rounded-lg transition-all shadow-sm hover:shadow-md border border-slate-200"
+                                                    title="Delete Booking"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        // Handle PDF download
+                                                        generateBookingPDF(booking).catch((err: any) => {
+                                                            console.error('Error generating PDF:', err)
+                                                        })
+                                                    }}
+                                                    className="p-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 rounded-lg transition-all shadow-sm hover:shadow-md border border-slate-200"
+                                                    title="Download PDF"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                </button>
+                                            </>
+                                        )}
+
+                                        {/* Confirmed booking actions */}
+                                        {booking.status === 'confirmed' && (
+                                            <button
+                                                onClick={() => {
+                                                    // Handle PDF download
+                                                    generateBookingPDF(booking).catch((err: any) => {
+                                                        console.error('Error generating PDF:', err)
+                                                    })
+                                                }}
+                                                className="p-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 rounded-lg transition-all shadow-sm hover:shadow-md border border-slate-200"
+                                                title="Download PDF"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                            </button>
+                                        )}
+
+                                        {/* Cancelled bookings only have View Details (already shown above) */}
                                     </div>
                                 </td>
                             </tr>
@@ -242,15 +313,15 @@ export default function AllBookings() {
     })
     const [uniqueSectors, setUniqueSectors] = useState<string[]>([])
     const [uniqueAirlines, setUniqueAirlines] = useState<string[]>([])
-    const [timers, setTimers] = useState<{ [key: string]: { hours: number; minutes: number; expired: boolean } }>({})
+    const [timers, setTimers] = useState<{ [key: string]: { hours: number; minutes: number; seconds: number; expired: boolean } }>({})
 
     // Get status from URL params
     const activeStatus = searchParams.get('status') || ''
 
     const statusOptions: StatusOption[] = [
-        { value: 'on hold', label: 'On Hold', color: 'bg-amber-50 text-amber-700 border border-amber-200' },
-        { value: 'confirmed', label: 'Confirmed', color: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
-        { value: 'cancelled', label: 'Cancelled', color: 'bg-slate-100 text-slate-700 border border-slate-300' }
+        { value: 'on hold', label: 'On Hold', color: 'bg-yellow-50 text-yellow-700 border border-yellow-300' },
+        { value: 'confirmed', label: 'Confirmed', color: 'bg-green-50 text-green-700 border border-green-300' },
+        { value: 'cancelled', label: 'Cancelled', color: 'bg-red-50 text-red-700 border border-red-300' }
     ]
 
     // Calculate remaining time for a booking (2 hours from creation)
@@ -261,19 +332,20 @@ export default function AllBookings() {
         const diff = expiryDate.getTime() - now.getTime()
 
         if (diff <= 0) {
-            return { hours: 0, minutes: 0, expired: true }
+            return { hours: 0, minutes: 0, seconds: 0, expired: true }
         }
 
         const hours = Math.floor(diff / (1000 * 60 * 60))
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000)
 
-        return { hours, minutes, expired: false }
+        return { hours, minutes, seconds, expired: false }
     }
 
     // Update timers every second for on hold bookings
     useEffect(() => {
         const interval = setInterval(() => {
-            const newTimers: { [key: string]: { hours: number; minutes: number; expired: boolean } } = {}
+            const newTimers: { [key: string]: { hours: number; minutes: number; seconds: number; expired: boolean } } = {}
             bookings.forEach(booking => {
                 if (booking.status === 'on hold') {
                     newTimers[booking._id] = calculateRemainingTime(booking.createdAt)

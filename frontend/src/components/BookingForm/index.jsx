@@ -288,6 +288,12 @@ export default function BookingForm() {
             return handleUpdate()
         }
 
+        // Validate contact person name
+        if (!formData.contactPersonName.trim()) {
+            toast.error('Contact person name is required')
+            return
+        }
+
         // Validate passenger count excluding infants
         const payingPassengers = (parseInt(formData.adults) || 0) + (parseInt(formData.children) || 0)
         if (payingPassengers > (groupData?.available_no_of_pax || 0)) {
@@ -523,6 +529,23 @@ export default function BookingForm() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+                {/* Contact Person Name */}
+                <div className="bg-white border border-gray-300 shadow-sm p-4 rounded">
+                    <label className="block mb-2">
+                        <span className="text-sm font-semibold text-gray-700 mb-2 block">Contact Person Name <span className="text-red-500">*</span></span>
+                        <input
+                            type="text"
+                            name="contactPersonName"
+                            value={formData.contactPersonName}
+                            onChange={handleChange}
+                            placeholder="Enter contact person's full name"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                        />
+                    </label>
+                    <p className="text-xs text-gray-600 mt-1">This person will be the primary contact for this booking</p>
+                </div>
+
                 {/* Passengers and Pricing Table */}
                 <div className="bg-white border border-gray-300 shadow-sm">
                     <table className="w-full border-collapse">

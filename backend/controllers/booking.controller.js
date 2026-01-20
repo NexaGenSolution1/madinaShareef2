@@ -1,5 +1,6 @@
 import Booking from '../models/Booking.js';
 import GroupTicketing from '../models/GroupTicketing.js';
+import { startBookingTimer, cancelBookingTimer } from '../utils/bookingTimer.js';
 
 // Create a new booking
 const createBooking = async (req, res) => {
@@ -61,6 +62,9 @@ const createBooking = async (req, res) => {
         });
 
         await booking.save();
+
+        // Start 2-minute timer for automatic cancellation
+        startBookingTimer(booking._id.toString());
 
         // Update GroupTicketing totalSeats - subtract only adults + children (ignore infants)
         const seatsToReduce = adultsCount + childrenCount;
@@ -273,6 +277,11 @@ const updateBookingStatus = async (req, res, next) => {
             });
         }
 
+        // Cancel timer if booking is being confirmed or cancelled
+        if (status !== 'on hold') {
+            cancelBookingTimer(id);
+        }
+
         booking.status = status;
         if (notes) {
             booking.notes = notes;
@@ -395,6 +404,9 @@ const cancelBooking = async (req, res, next) => {
                 message: `Cannot cancel ${booking.status} booking`
             });
         }
+
+        // Cancel the timer
+        cancelBookingTimer(id);
 
         booking.status = 'cancelled';
         await booking.save();

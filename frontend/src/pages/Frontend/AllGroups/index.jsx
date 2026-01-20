@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams, useNavigate, Link } from 'react-router-dom'
 import axiosInstance from '../../../api/axios'
+import { groupTypes } from '../../../data/groupTypes'
 import { toast } from 'react-toastify'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
@@ -12,7 +13,6 @@ export default function AllGroups() {
     const [allGroups, setAllGroups] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-    const [hoveredGroup, setHoveredGroup] = useState(null)
 
     // Filter states
     const [filters, setFilters] = useState({
@@ -28,18 +28,6 @@ export default function AllGroups() {
     // Get unique values for filter checkboxes
     const [airlines, setAirlines] = useState([])
     const [sectors, setSectors] = useState([])
-    
-    // Group types for buttons
-    const groupTypes = [
-        { label: 'All Types', value: '' },
-        { label: 'UAE One Way', value: 'uae' },
-        { label: 'KSA One Way', value: 'ksa' },
-        { label: 'Oman One Way', value: 'oman' },
-        { label: 'Bahrain One Way', value: 'bahrain' },
-        { label: 'Umrah', value: 'umrah' },
-        { label: 'Qatar One Way', value: 'qatar' },
-        { label: 'UK One Way', value: 'uk' }
-    ]
 
     useEffect(() => {
         fetchGroups()
@@ -187,7 +175,7 @@ export default function AllGroups() {
             filtered = filtered.filter(g => {
                 const matchesSector = g.sector?.toLowerCase().includes(keyword)
                 const matchesAirline = g.airline?.airline_name?.toLowerCase().includes(keyword)
-                const matchesFlightNo = g.details?.some(flight => 
+                const matchesFlightNo = g.details?.some(flight =>
                     flight.flight_no?.toLowerCase().includes(keyword)
                 )
                 return matchesSector || matchesAirline || matchesFlightNo
@@ -199,11 +187,11 @@ export default function AllGroups() {
             filtered = filtered.filter(g => {
                 const deptDate = new Date(g.dept_date)
                 const selectedDate = new Date(filters.departDate)
-                
+
                 // Compare year, month, and day directly to avoid timezone issues
                 return deptDate.getFullYear() === selectedDate.getFullYear() &&
-                       deptDate.getMonth() === selectedDate.getMonth() &&
-                       deptDate.getDate() === selectedDate.getDate()
+                    deptDate.getMonth() === selectedDate.getMonth() &&
+                    deptDate.getDate() === selectedDate.getDate()
             })
         }
 
@@ -237,15 +225,15 @@ export default function AllGroups() {
         }
     }
 
-    const resetFilters = () => {
-        setFilters({
-            sectors: [],
-            airlines: [],
-            searchKeyword: '',
-            departDate: null
-        })
-    }
-    
+    // const resetFilters = () => {
+    //     setFilters({
+    //         sectors: [],
+    //         airlines: [],
+    //         searchKeyword: '',
+    //         departDate: null
+    //     })
+    // }
+
     const handleGroupTypeChange = (groupType) => {
         if (groupType) {
             setSearchParams({ group_type: groupType })
@@ -256,6 +244,10 @@ export default function AllGroups() {
 
     const handleBookNow = (group) => {
         navigate('/dashboard/booking', { state: { groupData: group } })
+    }
+
+    const normalizeParams = (str) => {
+        return decodeURIComponent(str.replace(/\+/g, " "));
     }
 
     useEffect(() => {
@@ -292,21 +284,43 @@ export default function AllGroups() {
     return (
         <div className="w-full min-h-screen mx-auto">
             {/* Group Type Buttons */}
+
             <div className="mb-4 flex flex-wrap gap-2">
                 {groupTypes.map((type) => (
-                    <button
+                    <Link
+                        to={type.path}
                         key={type.value}
                         onClick={() => handleGroupTypeChange(type.value)}
-                        className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
-                            (searchParams.get('group_type') || '') === type.value
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                        }`}
+                        className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${(normalizeParams(searchParams.toString()) || '') === normalizeParams(type.path.split('?')[1] || '')
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                            }`}
                     >
                         {type.label}
-                    </button>
+                    </Link>
                 ))}
             </div>
+
+            {/* <div className="mb-4 flex flex-wrap gap-2">
+                {groupTypes.map((type) => {
+                    const currentGroupType = searchParams.get('group_type') || '';
+                    const isActive = type.value === '' ? currentGroupType === '' : currentGroupType.includes(type.value);
+                    
+                    return (
+                        <Link
+                            to={type.path}
+                            key={type.value || 'all'}
+                            className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
+                                isActive
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                            }`}
+                        >
+                            {type.label}
+                        </Link>
+                    );
+                })}
+            </div> */}
 
             {/* Advanced Search Section */}
             <div className="mb-4 bg-white rounded-lg shadow p-3 sm:p-4">
@@ -321,12 +335,10 @@ export default function AllGroups() {
                                     onChange={(e) => setShowAdvancedSearch(e.target.checked)}
                                     className="sr-only"
                                 />
-                                <div className={`w-10 h-6 rounded-full transition-colors ${
-                                    showAdvancedSearch ? 'bg-blue-600' : 'bg-gray-300'
-                                }`}>
-                                    <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                                        showAdvancedSearch ? 'translate-x-4' : ''
-                                    }`}></div>
+                                <div className={`w-10 h-6 rounded-full transition-colors ${showAdvancedSearch ? 'bg-blue-600' : 'bg-gray-300'
+                                    }`}>
+                                    <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${showAdvancedSearch ? 'translate-x-4' : ''
+                                        }`}></div>
                                 </div>
                             </div>
                             <span className="ml-2 text-sm font-medium text-gray-700">Advance Search</span>
@@ -481,10 +493,10 @@ export default function AllGroups() {
                                                         <td colSpan="8" className="px-4 py-3">
                                                             <div className="flex items-center justify-center gap-3">
                                                                 {data.logo_url && (
-                                                                    <img 
-                                                                        src={data.logo_url} 
+                                                                    <img
+                                                                        src={data.logo_url}
                                                                         alt={data.airline}
-                                                                        className='w-32 object-contain' 
+                                                                        className='w-32 object-contain'
                                                                     />
                                                                 )}
                                                                 <span className="font-semibold text-gray-900 text-base">
@@ -499,9 +511,8 @@ export default function AllGroups() {
                                                         group.details?.map((flight, flightIndex) => (
                                                             <tr
                                                                 key={`${group.id}-${flightIndex}`}
-                                                                className={`hover:bg-blue-50 transition-colors ${
-                                                                    flightIndex % 2 === 0 ? 'bg-white' : 'bg-blue-50/30'
-                                                                }`}
+                                                                className={`hover:bg-blue-50 transition-colors ${flightIndex % 2 === 0 ? 'bg-white' : 'bg-blue-50/30'
+                                                                    }`}
                                                             >
                                                                 <td className="px-3 sm:px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                                                                     <div className="flex items-center gap-2">

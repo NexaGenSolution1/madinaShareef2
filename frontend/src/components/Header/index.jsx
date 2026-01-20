@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import logo from '../../assets/images/logo.webp'
 import { CiMenuFries } from "react-icons/ci";
 import { AiOutlineClose } from "react-icons/ai";
-import { HiOutlineUserCircle } from "react-icons/hi2";
+import { groupTypes } from '../../data/groupTypes'
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function Header({ user, handleLogout }) {
@@ -48,20 +48,21 @@ export default function Header({ user, handleLogout }) {
             <div className='relative flex items-center justify-between gap-2 sm:gap-4 md:gap-6 px-2 sm:px-3 md:px-4 bg-white py-2 md:py-2.5 overflow-visible'>
                 {/* Left Part */}
                 <div className='relative flex items-center gap-2 sm:gap-4 md:gap-6 z-1'>
-                    <Link to='/' className='w-10 sm:w-12 md:w-14 lg:w-16 block flex-shrink-0'>
+                    <Link to='/' className='w-10 sm:w-12 md:w-14 lg:w-16 block shrink-0'>
                         <img src={logo} alt="logo" className='w-full h-full object-contain' />
                     </Link>
 
                     {user &&
                         <div className='hidden xl:flex flex-wrap gap-x-3 lg:gap-x-5'>
-                            <Link to='/all-groups' className='text-xs lg:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'>All Groups</Link>
-                            <Link to='/all-groups?group_type=uae&group_type=uae groups' className='text-xs lg:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'>UAE Groups</Link>
-                            <Link to='/all-groups?group_type=ksa oneway&group_type=ksa groups' className='text-xs lg:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'>KSA Groups</Link>
-                            <Link to='/all-groups?group_type=bahrain&group_type=bahrain groups' className='text-xs lg:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'>Bahrain Groups</Link>
-                            <Link to='/all-groups?group_type=muscat&group_type=muscat groups&group_type=mascat groups' className='text-xs lg:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'>Muscat Groups</Link>
-                            <Link to='/all-groups?group_type=qatar&group_type=qatar groups' className='text-xs lg:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'>Qatar Groups</Link>
-                            <Link to='/all-groups?group_type=uk&group_type=uk groups' className='text-xs lg:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'>UK Groups</Link>
-                            <Link to='/all-groups?group_type=umrah&group_type=umrah groups' className='text-xs lg:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'>Umrah Groups</Link>
+                            {groupTypes.map((group) => (
+                                <Link 
+                                    key={group.value} 
+                                    to={group.path} 
+                                    className='text-xs lg:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'
+                                >
+                                    {group.label}
+                                </Link>
+                            ))}
                         </div>
                     }
 
@@ -78,7 +79,7 @@ export default function Header({ user, handleLogout }) {
                                     className='flex items-center gap-1.5 sm:gap-2 rounded-full border border-[#2A166D] px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-[#2A166D] hover:bg-[#2A166D] hover:text-white transition-colors'
                                     onClick={() => setProfileOpen((p) => !p)}
                                 >
-                                    <span className='flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-[#2A166D] text-white font-semibold text-xs sm:text-base flex-shrink-0'>
+                                    <span className='flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-[#2A166D] text-white font-semibold text-xs sm:text-base shrink-0'>
                                         {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                                     </span>
                                     <span className='font-semibold hidden lg:inline'>{user.name || 'User'}</span>
@@ -150,66 +151,20 @@ export default function Header({ user, handleLogout }) {
                 </div>
 
                 {/* Mobile Menu */}
-                <div className={`flex xl:hidden fixed w-full h-[calc(100vh-56px)] sm:h-[calc(100vh-64px)] md:h-[calc(100vh-72px)] top-[56px] sm:top-[64px] md:top-[72px] left-0 bg-white overflow-y-auto z-[998] transition-all duration-300 ease-in-out shadow-lg
+                <div className={`flex xl:hidden fixed w-full h-[calc(100vh-56px)] sm:h-[calc(100vh-64px)] md:h-[calc(100vh-72px)] top-14 sm:top-16 md:top-18 left-0 bg-white overflow-y-auto z-998 transition-all duration-300 ease-in-out shadow-lg
                 ${open ? 'translate-x-0 opacity-100 visible' : 'translate-x-full opacity-0 invisible'}`}
                 >
                     <div className='flex flex-col items-start gap-4 sm:gap-5 px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 font-semibold w-full'>
-                        <Link 
-                            to='/all-groups' 
-                            className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors'
-                            onClick={() => setOpen(false)}
-                        >
-                            All Groups
-                        </Link>
-                        <Link 
-                            to='/all-groups?group_type=uae&group_type=uae groups' 
-                            className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors'
-                            onClick={() => setOpen(false)}
-                        >
-                            UAE Groups
-                        </Link>
-                        <Link 
-                            to='/all-groups?group_type=ksa oneway&group_type=ksa groups' 
-                            className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors'
-                            onClick={() => setOpen(false)}
-                        >
-                            KSA Groups
-                        </Link>
-                        <Link 
-                            to='/all-groups?group_type=bahrain&group_type=bahrain groups' 
-                            className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors'
-                            onClick={() => setOpen(false)}
-                        >
-                            Bahrain Groups
-                        </Link>
-                        <Link 
-                            to='/all-groups?group_type=muscat&group_type=muscat groups&group_type=mascat groups' 
-                            className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors'
-                            onClick={() => setOpen(false)}
-                        >
-                            Muscat Groups
-                        </Link>
-                        <Link 
-                            to='/all-groups?group_type=qatar&group_type=qatar groups' 
-                            className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors'
-                            onClick={() => setOpen(false)}
-                        >
-                            Qatar Groups
-                        </Link>
-                        <Link 
-                            to='/all-groups?group_type=uk&group_type=uk groups' 
-                            className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors'
-                            onClick={() => setOpen(false)}
-                        >
-                            UK Groups
-                        </Link>
-                        <Link 
-                            to='/all-groups?group_type=umrah&group_type=umrah groups' 
-                            className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors'
-                            onClick={() => setOpen(false)}
-                        >
-                            Umrah Groups
-                        </Link>
+                        {groupTypes.map((group) => (
+                            <Link 
+                                key={group.value}
+                                to={group.path} 
+                                className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors'
+                                onClick={() => setOpen(false)}
+                            >
+                                {group.label}
+                            </Link>
+                        ))}
 
                         <hr className='w-full border-t border-gray-200 my-2' />
                         

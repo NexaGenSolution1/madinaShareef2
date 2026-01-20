@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import heroImg from '../../assets/images/hero.webp'
 import makkahImg from '../../assets/images/makkah.webp'
 import ukImg from '../../assets/images/uk.webp'
 import qatarImg from '../../assets/images/qatar.jpg'
@@ -8,6 +7,18 @@ import uaeImg from '../../assets/images/uae.webp'
 import bahrainImg from '../../assets/images/bahrain.webp'
 import jeddahImg from '../../assets/images/jeddah.webp'
 import madinaImg from '../../assets/images/madina.webp'
+import { groupTypes } from '../../data/groupTypes'
+
+const groupImages = {
+    'All Groups': madinaImg,
+    'UAE Groups': bahrainImg,
+    'KSA Groups': jeddahImg,
+    'Bahrain Groups': uaeImg,
+    'Muscat Groups': mascatImg,
+    'Qatar Groups': qatarImg,
+    'UK Groups': ukImg,
+    'Umrah Groups': makkahImg,
+}
 
 export default function HeroSection() {
     return (
@@ -24,54 +35,24 @@ export default function HeroSection() {
                 </div>
 
                 <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 mt-10 sm:mt-16'>
-                    <Link to="all-groups" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
-                        <img src={madinaImg} alt="madina-img" className='w-full h-full object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:-translate-y-3' />
-                        <div className='absolute w-full bottom-0 left-0'>
-                            <p className='text-xl font-semibold text-center bg-black/70 text-white p-3 transition-all duration-300 ease-in-out group-hover:bg-black/80'>All Groups</p>
-                        </div>
-                    </Link>
-                    <Link to="all-groups?group_type=uae&group_type=uae groups" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
-                        <img src={bahrainImg} alt="bahrain-img" className='w-full h-full object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:-translate-y-3' />
-                        <div className='absolute w-full bottom-0 left-0'>
-                            <p className='text-xl font-semibold text-center bg-black/70 text-white p-3 transition-all duration-300 ease-in-out group-hover:bg-black/80'>UAE Groups</p>
-                        </div>
-                    </Link>
-                    <Link to="all-groups?group_type=ksa oneway&group_type=ksa groups" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
-                        <img src={jeddahImg} alt="jeddah-img" className='w-full h-full object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:-translate-y-3' />
-                        <div className='absolute w-full bottom-0 left-0'>
-                            <p className='text-xl font-semibold text-center bg-black/70 text-white p-3 transition-all duration-300 ease-in-out group-hover:bg-black/80'>KSA Groups</p>
-                        </div>
-                    </Link>
-                    <Link to="all-groups?group_type=bahrain&group_type=bahrain groups" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
-                        <img src={uaeImg} alt="uae-img" className='w-full h-full object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:-translate-y-3' />
-                        <div className='absolute w-full bottom-0 left-0'>
-                            <p className='text-xl font-semibold text-center bg-black/70 text-white p-3 transition-all duration-300 ease-in-out group-hover:bg-black/80'>Bahrain Groups</p>
-                        </div>
-                    </Link>
-                    <Link to="all-groups?group_type=muscat&group_type=muscat groups&group_type=mascat groups" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
-                        <img src={mascatImg} alt="mascat-img" className='w-full h-full object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:-translate-y-3' />
-                        <div className='absolute w-full bottom-0 left-0'>
-                            <p className='text-xl font-semibold text-center bg-black/70 text-white p-3 transition-all duration-300 ease-in-out group-hover:bg-black/80'>Muscat Groups</p>
-                        </div>
-                    </Link>
-                    <Link to="all-groups?group_type=qatar&group_type=qatar groups" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
-                        <img src={qatarImg} alt="qatar-img" className='w-full h-full object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:-translate-y-3' />
-                        <div className='absolute w-full bottom-0 left-0'>
-                            <p className='text-xl font-semibold text-center bg-black/70 text-white p-3 transition-all duration-300 ease-in-out group-hover:bg-black/80'>Qatar Groups</p>
-                        </div>
-                    </Link>
-                    <Link to="all-groups?group_type=uk&group_type=uk groups" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
-                        <img src={ukImg} alt="uk-img" className='w-full h-full object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:-translate-y-3' />
-                        <div className='absolute w-full bottom-0 left-0'>
-                            <p className='text-xl font-semibold text-center bg-black/70 text-white p-3 transition-all duration-300 ease-in-out group-hover:bg-black/80'>UK Groups</p>
-                        </div>
-                    </Link>
-                    <Link to="all-groups?group_type=umrah&group_type=umrah groups" className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'>
-                        <img src={makkahImg} alt="makkah-img" className='w-full h-full object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:-translate-y-3' />
-                        <div className='absolute w-full bottom-0 left-0'>
-                            <p className='text-xl font-semibold text-center bg-black/70 text-white p-3 transition-all duration-300 ease-in-out group-hover:bg-black/80'>Umrah Groups</p>
-                        </div>
-                    </Link>
+                    {groupTypes.map((group) => (
+                        <Link 
+                            key={group.value} 
+                            to={group.path} 
+                            className='group relative h-48 sm:h-54 rounded-2xl cursor-pointer overflow-hidden'
+                        >
+                            <img 
+                                src={groupImages[group.label]} 
+                                alt={`${group.label.toLowerCase()}-img`} 
+                                className='w-full h-full object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:-translate-y-3' 
+                            />
+                            <div className='absolute w-full bottom-0 left-0'>
+                                <p className='text-xl font-semibold text-center bg-black/70 text-white p-3 transition-all duration-300 ease-in-out group-hover:bg-black/80'>
+                                    {group.label}
+                                </p>
+                            </div>
+                        </Link>
+                    ))}
                 </div>
             </div>
 
