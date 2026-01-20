@@ -3,13 +3,15 @@ import logo from '../../assets/images/logo.webp'
 import { CiMenuFries } from "react-icons/ci";
 import { AiOutlineClose } from "react-icons/ai";
 import { groupTypes } from '../../data/groupTypes'
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 
 export default function Header({ user, handleLogout }) {
     const [open, setOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
     const profileRef = useRef(null);
     const navigate = useNavigate();
+    const location = useLocation();
+    const [searchParams] = useSearchParams();
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -43,6 +45,10 @@ export default function Header({ user, handleLogout }) {
     //     navigate("/");
     // };
 
+    const activeGroupTypes = searchParams
+        .getAll('group_type')
+        .map(g => g.toLowerCase().trim());
+
     return (
         <header className='fixed w-full top-0 left-0 shadow-md z-999'>
             <div className='relative flex items-center justify-between gap-2 sm:gap-4 md:gap-6 px-2 sm:px-3 md:px-4 bg-white py-2 md:py-2.5 overflow-visible'>
@@ -53,16 +59,32 @@ export default function Header({ user, handleLogout }) {
                     </Link>
 
                     {user &&
-                        <div className='hidden xl:flex flex-wrap gap-x-3 lg:gap-x-5'>
-                            {groupTypes.map((group) => (
-                                <Link 
-                                    key={group.value} 
-                                    to={`/${group.path}`} 
-                                    className='text-xs lg:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'
-                                >
-                                    {group.label}
-                                </Link>
-                            ))}
+                        <div className="hidden xl:flex flex-wrap gap-x-3 lg:gap-x-5">
+                            {groupTypes.map((group) => {
+                                const isAllGroups = group.path === 'all-groups';
+
+                                const isPathActive =
+                                    location.pathname === `/${group.path}`;
+
+                                const isQueryActive =
+                                    activeGroupTypes.length > 0 &&
+                                    activeGroupTypes.includes(group.label.toLowerCase());
+
+                                const isActive =
+                                    (isAllGroups && activeGroupTypes.length === 0 && isPathActive) ||
+                                    (!isAllGroups && (isPathActive || isQueryActive));
+
+                                return (
+                                    <Link
+                                        key={group.value}
+                                        to={`/${group.path}`}
+                                        className={`text-xs lg:text-sm font-semibold whitespace-nowrap hover:text-[#d6d30b] ${isActive ? 'text-[#d6d30b]' : 'text-neutral-700'
+                                            }`}
+                                    >
+                                        {group.label}
+                                    </Link>
+                                );
+                            })}
                         </div>
                     }
 
@@ -101,7 +123,7 @@ export default function Header({ user, handleLogout }) {
                                                 Admin Portal
                                             </button>
                                         )}
-                                           <button
+                                        <button
                                             className='w-full text-left px-4 py-2 hover:bg-neutral-100 font-semibold'
                                             onClick={() => {
                                                 setProfileOpen(false);
@@ -129,7 +151,7 @@ export default function Header({ user, handleLogout }) {
                             <Link to='/banks' className='text-xs sm:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'>Banks</Link>
                         )}
                         {user && (
-                            <button 
+                            <button
                                 onClick={() => navigate('/dashboard')}
                                 className='flex items-center justify-center'
                             >
@@ -140,8 +162,8 @@ export default function Header({ user, handleLogout }) {
                         )}
                     </div>
                     {user &&
-                        <button 
-                            className='flex xl:hidden border border-neutral-300 p-1.5 sm:p-2 rounded-lg hover:bg-gray-50 transition-colors' 
+                        <button
+                            className='flex xl:hidden border border-neutral-300 p-1.5 sm:p-2 rounded-lg hover:bg-gray-50 transition-colors'
                             onClick={() => setOpen(!open)}
                             aria-label="Toggle menu"
                         >
@@ -156,9 +178,9 @@ export default function Header({ user, handleLogout }) {
                 >
                     <div className='flex flex-col items-start gap-4 sm:gap-5 px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 font-semibold w-full'>
                         {groupTypes.map((group) => (
-                            <Link 
+                            <Link
                                 key={group.value}
-                                to={group.path} 
+                                to={group.path}
                                 className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors'
                                 onClick={() => setOpen(false)}
                             >
@@ -167,7 +189,7 @@ export default function Header({ user, handleLogout }) {
                         ))}
 
                         <hr className='w-full border-t border-gray-200 my-2' />
-                        
+
                         {user && (
                             <>
                                 <button

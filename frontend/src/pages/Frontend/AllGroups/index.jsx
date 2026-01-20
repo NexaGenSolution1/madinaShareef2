@@ -6,7 +6,6 @@ import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 
 export default function AllGroups({ searchParams }) {
-
     const navigate = useNavigate()
     const [groups, setGroups] = useState([])
     const [allGroups, setAllGroups] = useState([])
@@ -425,7 +424,6 @@ export default function AllGroups({ searchParams }) {
                                                 const year = date.getFullYear()
                                                 return `${day} ${month} ${year}`
                                             }
-                                            { console.log("Grouped Data", groupedData) }
                                             return Object.entries(groupedData).map(([key, data]) => (
                                                 <React.Fragment key={key}>
                                                     {/* Header row with airline logo and sector */}
