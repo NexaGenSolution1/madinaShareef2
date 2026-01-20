@@ -143,24 +143,29 @@ export const generateBookingPDF = async (booking) => {
         padding-bottom:16px; border-bottom:2px solid #ddd; margin-bottom:28px;">
         
         <div style="font-size:26px; font-weight:800; color:#1e40af; letter-spacing:2px;">
-            SKYPASS
+            <img src="/src/assets/images/logo.webp" style="width:120px;" />
         </div>
-
+        
         <div>
-            <span style="
-                background:${statusBg};
-                color:${statusColor};
-                padding:6px 22px;
-                border-radius:4px;
-                font-size:12px;
-                font-weight:700;
-                letter-spacing:1px;">
-                ${booking.status.toUpperCase()}
-            </span>
-        </div>
+    <span style="
+        background:${statusBg};
+        color:${statusColor};
+        padding:6px 28px;
+        border-radius:4px;
+        font-size:12px;
+        font-weight:700;
+        letter-spacing:1px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        text-align:center;">
+        ${booking.status.toUpperCase()}
+    </span>
+</div>
+
 
         <div style="font-size:22px; font-weight:800; color:#22c55e;">
-            AIR SIAL
+            <img src=${booking.airline.logoUrl} style="width:120px;" />
         </div>
     </div>
 

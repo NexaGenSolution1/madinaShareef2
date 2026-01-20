@@ -7,7 +7,7 @@ interface Booking {
     bookingReference: string
     contactPersonName: string
     sector: string
-    airline?: { 
+    airline?: {
         id?: string
         name: string
         logoUrl?: string
@@ -32,6 +32,7 @@ interface Booking {
     }
     passengers?: Array<{
         type: string
+        title: string,
         givenName: string
         surName: string
         passport: string
@@ -97,9 +98,9 @@ export default function BookingDetail() {
 
     const getStatusColor = (status: string) => {
         const colors: { [key: string]: string } = {
-            pending: 'bg-yellow-100 text-yellow-800',
-            confirmed: 'bg-blue-100 text-blue-800',
-            cancelled: 'bg-red-100 text-red-800'
+            pending: 'border border-yellow-400 bg-yellow-100 text-yellow-800',
+            confirmed: 'border border-green-400 bg-green-100 text-green-800',
+            cancelled: 'border border-red-400 bg-red-100 text-red-800'
         }
         return colors[status] || 'bg-gray-100 text-gray-800'
     }
@@ -326,13 +327,12 @@ export default function BookingDetail() {
                                         <tbody className="divide-y divide-gray-200">
                                             {safeBooking.passengers.map((passenger, index) => (
                                                 <tr key={index} className="hover:bg-gray-50">
-                                                    <td className="px-4 py-3 text-sm text-gray-900">{passenger.givenName} {passenger.surName}</td>
+                                                    <td className="px-4 py-3 text-sm text-gray-900">{`${passenger.title}.`} {passenger.givenName} {passenger.surName}</td>
                                                     <td className="px-4 py-3 text-sm">
-                                                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                                            passenger.type === 'Adult' ? 'bg-blue-100 text-blue-800' :
-                                                            passenger.type === 'Child' ? 'bg-green-100 text-green-800' :
-                                                            'bg-purple-100 text-purple-800'
-                                                        }`}>
+                                                        <span className={`px-2 py-1 rounded text-xs font-medium ${passenger.type === 'Adult' ? 'bg-blue-100 text-blue-800' :
+                                                                passenger.type === 'Child' ? 'bg-green-100 text-green-800' :
+                                                                    'bg-purple-100 text-purple-800'
+                                                            }`}>
                                                             {passenger.type}
                                                         </span>
                                                     </td>
