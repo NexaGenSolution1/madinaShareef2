@@ -1,4 +1,4 @@
-import  { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import axiosInstance from '../../api/axios'
 import { toast } from 'react-toastify'
@@ -288,7 +288,7 @@ export default function MyBookings() {
                                                         <span className="font-semibold text-gray-800">Agency:</span> {booking.userId.companyName}
                                                     </div>
                                                     <div className="text-xs text-gray-700 leading-relaxed">
-                                                        <span className="font-semibold text-gray-800">AGT #:</span>{booking.userId.agencyCode} 
+                                                        <span className="font-semibold text-gray-800">AGT #:</span>{booking.userId.agencyCode}
                                                         <span className="mx-2 font-semibold text-gray-800">BK#:</span>{booking.bookingReference}
                                                     </div>
                                                     <div className="text-xs text-gray-600 pt-0.5">
@@ -310,7 +310,7 @@ export default function MyBookings() {
                                                         {formatDate(booking.departureDate)}
                                                     </div>
                                                     <div className="text-xs text-gray-600 font-medium pt-0.5">
-                                                        {booking.contactPersonName} X {booking.totalPassengers}
+                                                        {booking.passengers[0].givenName} {booking.passengers[0].surName} X {booking.totalPassengers}
                                                     </div>
                                                 </div>
                                             </td>
@@ -364,7 +364,7 @@ export default function MyBookings() {
                                                     {booking.status === 'on hold' && (
                                                         <div className="space-y-2 pt-1">
                                                             <div className="text-xs text-yellow-700 font-semibold bg-yellow-50 px-2.5 py-1.5 rounded-md border border-yellow-300">
-                                                                Admin Review<br/>Required
+                                                                Admin Review<br />Required
                                                             </div>
                                                             <div className="text-xs">
                                                                 <div className="font-bold text-gray-800 mb-1.5">Booking Expiry Time</div>

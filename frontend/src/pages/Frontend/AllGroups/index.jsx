@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axiosInstance from '../../../api/axios'
 import { toast } from 'react-toastify'
+import { parse, isValid } from "date-fns";
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 
@@ -293,8 +294,15 @@ export default function AllGroups({ headerType, header, searchParams }) {
                         <DatePicker
                             selected={filters.departDate}
                             onChange={(date) => handleFilterChange('departDate', date)}
+                            onChangeRaw={(e) => {
+                                const value = e.target.value.replace(/[^0-9/]/g, "");
+                                const parsedDate = parse(value, "dd/MM/yyyy", new Date());
+                                if (isValid(parsedDate)) {
+                                    handleFilterChange('departDate', parsedDate);
+                                }
+                            }}
                             placeholderText="Search by Dept Date"
-                            dateFormat="dd MMM yyyy"
+                            dateFormat="dd/MM/yyyy"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             wrapperClassName="w-full"
                             calendarClassName="custom-datepicker"

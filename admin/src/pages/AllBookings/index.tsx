@@ -9,6 +9,7 @@ interface Booking {
     contactPersonName: string
     sector: string
     airline?: { id?: string; name: string; logoUrl?: string }
+    passengers: { _id: string, type: string; title: string; givenName: string, surName: string, passportNumber: string, dateOfBirth: string, passportExpiry: string, nationality: string }[]
     userId?: string | { _id: string; name: string; email: string; companyName?: string; agencyCode?: string }
     adultsCount: number
     childrenCount: number
@@ -118,7 +119,7 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                             {formatDate(booking.departureDate)}
                                         </div>
                                         <div className="text-xs text-gray-600 font-medium pt-0.5">
-                                            {booking.contactPersonName} X {booking.totalPassengers || (booking.adultsCount + booking.childrenCount + booking.infantsCount)}
+                                            {booking.passengers[0].givenName} {booking.passengers[0].surName} X {booking.totalPassengers || (booking.adultsCount + booking.childrenCount + booking.infantsCount)}
                                         </div>
                                     </div>
                                 </td>

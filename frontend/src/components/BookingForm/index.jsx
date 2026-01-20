@@ -1,7 +1,13 @@
-import React, { useState, useEffect } from 'react'
+// import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import axiosInstance from '../../api/axios'
 import { toast } from 'react-toastify'
+import { buildPassengers } from '../../utils/passengerBuilder'
+import MaskedDatePicker from '../MaskedDatePicker'
+// import { parse, isValid } from "date-fns";
+// import DatePicker from "react-datepicker";
+// import "react-datepicker/dist/react-datepicker.css";
 
 export default function BookingForm() {
     const navigate = useNavigate()
@@ -10,7 +16,7 @@ export default function BookingForm() {
     const isEditMode = !!bookingId
 
     const [formData, setFormData] = useState({
-        contactPersonName: '',
+        contactPersonName: 'N/A',
         adults: 1,
         children: 0,
         infants: 0,
@@ -89,9 +95,9 @@ export default function BookingForm() {
                 })) || []
 
                 setFormData({
-                    contactPersonName: booking.contactPersonName,
+                    // contactPersonName: booking.contactPersonName,
                     adults: booking.adultsCount,
-                    children: booking.childrenCount,
+                    // children: booking.childrenCount,
                     infants: booking.infantsCount,
                     passengers: formattedPassengers
                 })
@@ -119,62 +125,81 @@ export default function BookingForm() {
     }
 
     // Initialize passenger array when counts change
+    // useEffect(() => {
+    //     const currentPassengers = formData.passengers || []
+    //     const targetAdults = parseInt(formData.adults) || 0
+    //     const targetChildren = parseInt(formData.children) || 0
+    //     const targetInfants = parseInt(formData.infants) || 0
+
+    //     const passengers = []
+
+    //     // Add adults - preserve existing data if available
+    //     for (let i = 0; i < targetAdults; i++) {
+    //         const existing = currentPassengers.find((p, idx) => p.type === 'Adult' && currentPassengers.filter((x, xIdx) => xIdx < idx && x.type === 'Adult').length === i)
+    //         passengers.push(existing || {
+    //             type: 'Adult',
+    //             title: 'Mr',
+    //             givenName: '',
+    //             surName: '',
+    //             passport: '',
+    //             dateOfBirth: '',
+    //             passportExpiry: '',
+    //             nationality: ''
+    //         })
+    //     }
+
+    //     // Add children - preserve existing data if available (only if price available in create mode)
+    //     if (!isEditMode || isChildPriceAvailable()) {
+    //         for (let i = 0; i < targetChildren; i++) {
+    //             const existing = currentPassengers.find((p, idx) => p.type === 'Child' && currentPassengers.filter((x, xIdx) => xIdx < idx && x.type === 'Child').length === i)
+    //             passengers.push(existing || {
+    //                 type: 'Child',
+    //                 title: 'Mr',
+    //                 givenName: '',
+    //                 surName: '',
+    //                 passport: '',
+    //                 dateOfBirth: '',
+    //                 passportExpiry: '',
+    //                 nationality: ''
+    //             })
+    //         }
+    //     }
+
+    //     // Add infants - preserve existing data if available (only if price available in create mode)
+    //     if (!isEditMode || isInfantPriceAvailable()) {
+    //         for (let i = 0; i < targetInfants; i++) {
+    //             const existing = currentPassengers.find((p, idx) => p.type === 'Infant' && currentPassengers.filter((x, xIdx) => xIdx < idx && x.type === 'Infant').length === i)
+    //             passengers.push(existing || {
+    //                 type: 'Infant',
+    //                 title: 'INF',
+    //                 givenName: '',
+    //                 surName: '',
+    //                 passport: '',
+    //                 dateOfBirth: '',
+    //                 passportExpiry: '',
+    //                 nationality: ''
+    //             })
+    //         }
+    //     }
+
+    //     setFormData(prev => ({ ...prev, passengers }))
+    // }, [formData.adults, formData.children, formData.infants, isEditMode])
+
+
     useEffect(() => {
-        const currentPassengers = formData.passengers || []
-        const targetAdults = parseInt(formData.adults) || 0
-        const targetChildren = parseInt(formData.children) || 0
-        const targetInfants = parseInt(formData.infants) || 0
+        setFormData(prev => ({
+            ...prev,
+            passengers: buildPassengers({
+                adults: +prev.adults || 0,
+                children: +prev.children || 0,
+                infants: +prev.infants || 0,
+                existing: prev.passengers,
+                allowChildren: isEditMode || isChildPriceAvailable(),
+                allowInfants: isEditMode || isInfantPriceAvailable(),
+            }),
+        }));
+    }, [formData.adults, formData.children, formData.infants, isEditMode]);
 
-        const passengers = []
-
-        // Add adults - preserve existing data if available
-        for (let i = 0; i < targetAdults; i++) {
-            const existing = currentPassengers.find((p, idx) => p.type === 'Adult' && currentPassengers.filter((x, xIdx) => xIdx < idx && x.type === 'Adult').length === i)
-            passengers.push(existing || {
-                type: 'Adult',
-                title: 'Mr',
-                givenName: '',
-                surName: '',
-                passport: '',
-                dateOfBirth: '',
-                passportExpiry: ''
-            })
-        }
-
-        // Add children - preserve existing data if available (only if price available in create mode)
-        if (!isEditMode || isChildPriceAvailable()) {
-            for (let i = 0; i < targetChildren; i++) {
-                const existing = currentPassengers.find((p, idx) => p.type === 'Child' && currentPassengers.filter((x, xIdx) => xIdx < idx && x.type === 'Child').length === i)
-                passengers.push(existing || {
-                    type: 'Child',
-                    title: 'Mr',
-                    givenName: '',
-                    surName: '',
-                    passport: '',
-                    dateOfBirth: '',
-                    passportExpiry: ''
-                })
-            }
-        }
-
-        // Add infants - preserve existing data if available (only if price available in create mode)
-        if (!isEditMode || isInfantPriceAvailable()) {
-            for (let i = 0; i < targetInfants; i++) {
-                const existing = currentPassengers.find((p, idx) => p.type === 'Infant' && currentPassengers.filter((x, xIdx) => xIdx < idx && x.type === 'Infant').length === i)
-                passengers.push(existing || {
-                    type: 'Infant',
-                    title: 'INF',
-                    givenName: '',
-                    surName: '',
-                    passport: '',
-                    dateOfBirth: '',
-                    passportExpiry: ''
-                })
-            }
-        }
-
-        setFormData(prev => ({ ...prev, passengers }))
-    }, [formData.adults, formData.children, formData.infants, isEditMode])
 
     // Helper function to validate passenger input
     const validatePassengerInput = (name, value) => {
@@ -191,6 +216,24 @@ export default function BookingForm() {
 
         return true
     }
+
+    const formatDateInput = (value) => {
+        // Remove everything except digits
+        const digits = value.replace(/\D/g, "");
+
+        let result = "";
+
+        if (digits.length <= 2) {
+            result = digits;
+        } else if (digits.length <= 4) {
+            result = `${digits.slice(0, 2)}/${digits.slice(2)}`;
+        } else {
+            result = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
+        }
+
+        return result;
+    };
+
 
     // Helper function to get default passenger value
     const getDefaultPassengerValue = (name) => {
@@ -289,10 +332,10 @@ export default function BookingForm() {
         }
 
         // Validate contact person name
-        if (!formData.contactPersonName.trim()) {
-            toast.error('Contact person name is required')
-            return
-        }
+        // if (!formData.contactPersonName.trim()) {
+        //     toast.error('Contact person name is required')
+        //     return
+        // }
 
         // Validate passenger count excluding infants
         const payingPassengers = (parseInt(formData.adults) || 0) + (parseInt(formData.children) || 0)
@@ -307,7 +350,8 @@ export default function BookingForm() {
             !passenger.surName ||
             !passenger.passport ||
             !passenger.dateOfBirth ||
-            !passenger.passportExpiry
+            !passenger.passportExpiry ||
+            !passenger.nationality
         )
 
         if (hasEmptyFields) {
@@ -329,7 +373,7 @@ export default function BookingForm() {
                 },
                 sector: groupData.sector,
                 pnr: groupData.pnr || '',
-                contactPersonName: formData.contactPersonName,
+                contactPersonName: "N/A",
                 adultsCount: parseInt(formData.adults),
                 childrenCount: parseInt(formData.children),
                 infantsCount: parseInt(formData.infants),
@@ -507,19 +551,20 @@ export default function BookingForm() {
                         <div className="flex flex-row just items-center gap-32 text-center">
                             <div className='flex flex-col'>
                                 <p className="text-xs text-gray-600 font-semibold mb-0.5">Adult Price</p>
-                                <p className="text-sm font-extrabold text-[#3d6a8f] bg-blue-50 px-2 py-1 rounded">PKR {groupData?.price?.toLocaleString() || 0}</p>
+                                <p className="text-sm font-extrabold text-[#3d6a8f] bg-blue-50 px-2 py-1 rounded-2xl">PKR {groupData?.price?.toLocaleString() || 0}</p>
                             </div>
                             {isChildPriceAvailable() && (
                                 <div className='flex flex-col'>
                                     <p className="text-xs text-gray-600 font-semibold mt-1 mb-0.5">Child</p>
-                                    <p className="text-sm font-extrabold text-[#3d6a8f] bg-blue-50 px-2 py-1 rounded">PKR {groupData?.childPrice?.toLocaleString()}</p>
+                                    {/* <p className="text-sm font-extrabold text-[#3d6a8f] bg-blue-50 px-2 py-1 rounded">PKR {groupData?.childPrice?.toLocaleString()}</p> */}
+                                    <p className="text-sm font-semibold text-white bg-red-600 px-2 py-1 rounded-2xl">N/A</p>
                                 </div>
                             )}
 
                             {isInfantPriceAvailable() && (
                                 <div className='flex flex-col'>
                                     <p className="text-xs text-gray-600 font-semibold mt-1 mb-0.5">Infant</p>
-                                    <p className="text-sm font-extrabold text-[#3d6a8f] bg-blue-50 px-2 py-1 rounded">PKR {groupData?.infantPrice?.toLocaleString()}</p>
+                                    <p className={`text-sm font-extrabold px-2 py-1 rounded-2xl ${groupData?.infantPrice ? "text-[#3d6a8f] bg-blue-50" : "text-white bg-red-600"}`}>{`${groupData?.infantPrice ? `PKR ${groupData.infantPrice.toLocaleString()}` : "Price On Call"}`}</p>
                                 </div>
                             )}
                         </div>
@@ -530,7 +575,7 @@ export default function BookingForm() {
             {/* Form */}
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
                 {/* Contact Person Name */}
-                <div className="bg-white border border-gray-300 shadow-sm p-4 rounded">
+                {/* <div className="bg-white border border-gray-300 shadow-sm p-4 rounded">
                     <label className="block mb-2">
                         <span className="text-sm font-semibold text-gray-700 mb-2 block">Contact Person Name <span className="text-red-500">*</span></span>
                         <input
@@ -544,7 +589,7 @@ export default function BookingForm() {
                         />
                     </label>
                     <p className="text-xs text-gray-600 mt-1">This person will be the primary contact for this booking</p>
-                </div>
+                </div> */}
 
                 {/* Passengers and Pricing Table */}
                 <div className="bg-white border border-gray-300 shadow-sm">
@@ -588,7 +633,7 @@ export default function BookingForm() {
                             </tr>
 
                             {/* Children Row */}
-                            {(isEditMode || isChildPriceAvailable()) && (
+                            {/* {(isEditMode || isChildPriceAvailable()) && (
                                 <tr className="border-b border-gray-200">
                                     <td className="px-3 py-2">
                                         <div className="flex items-center gap-2">
@@ -616,7 +661,7 @@ export default function BookingForm() {
                                         PKR {calculateChildTotal().toLocaleString()}
                                     </td>
                                 </tr>
-                            )}
+                            )} */}
 
                             {/* Infants Row */}
                             <tr className="border-b border-gray-200">
@@ -706,7 +751,7 @@ export default function BookingForm() {
                                                 required
                                                 className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                                             >
-                                                <option value="">{passenger.type === 'Infant' ? 'INF' : passenger.type === 'Child' ? 'CHLD' : 'Mr'}</option>
+                                                {/* <option value="">{passenger.type === 'Infant' ? 'INF' : passenger.type === 'Child' ? 'CHLD' : 'Mr'}</option> */}
                                                 {passenger.type === 'Adult' && (
                                                     <>
                                                         <option value="Mr">Mr</option>
@@ -749,21 +794,115 @@ export default function BookingForm() {
                                             />
                                         </td>
                                         <td className="px-3 py-2">
-                                            <input
-                                                type="date"
-                                                value={passenger.dateOfBirth}
-                                                onChange={(e) => handlePassengerChange(index, 'dateOfBirth', e.target.value)}
-                                                required
+                                            {/* <DatePicker
+                                                selected={passenger.dateOfBirth}
+                                                dateFormat="dd/MM/yyyy"
+                                                placeholderText="DD/MM/YYYY"
+
+                                                onChange={(date) =>
+                                                    handlePassengerChange(index, "dateOfBirth", date)
+                                                }
+
+                                                onChangeRaw={(e) => {
+                                                    const formatted = formatDateInput(e.target.value);
+                                                    e.target.value = formatted;
+
+                                                    if (formatted.length === 10) {
+                                                        const parsed = parse(formatted, "dd/MM/yyyy", new Date());
+
+                                                        if (isValid(parsed)) {
+                                                            handlePassengerChange(index, "dateOfBirth", parsed);
+                                                        }
+                                                    }
+                                                }}
+
+                                                onKeyDown={(e) => {
+                                                    const allowed = [
+                                                        "Backspace",
+                                                        "Tab",
+                                                        "ArrowLeft",
+                                                        "ArrowRight",
+                                                        "Delete",
+                                                    ];
+
+                                                    if (!allowed.includes(e.key) && !/\d/.test(e.key)) {
+                                                        e.preventDefault();
+                                                    }
+                                                }}
+
                                                 className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                            /> */}
+                                            <MaskedDatePicker
+                                                value={passenger.dateOfBirth}
+                                                onChange={(date) =>
+                                                    handlePassengerChange(index, "dateOfBirth", date)
+                                                }
                                             />
                                         </td>
                                         <td className="px-3 py-2">
-                                            <input
-                                                type="date"
-                                                value={passenger.passportExpiry}
-                                                onChange={(e) => handlePassengerChange(index, 'passportExpiry', e.target.value)}
-                                                required
+                                            {/* <DatePicker
+                                                selected={passenger.passportExpiry}
+                                                onChange={(date) =>
+                                                    handlePassengerChange(index, 'passportExpiry', date)
+                                                }
+                                                onChangeRaw={(e) => {
+                                                    const value = e.target.value;
+                                                    const parsedDate = parse(value, "dd/MM/yyyy", new Date());
+                                                    if (isValid(parsedDate)) {
+                                                        handlePassengerChange(index, 'passportExpiry', parsedDate);
+                                                    }
+                                                }}
+                                                placeholderText="Passport Expiry"
+                                                dateFormat="dd/MM/yyyy"
                                                 className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                            /> */}
+
+
+
+                                            {/* <DatePicker
+                                                selected={passenger.dateOfBirth}
+                                                dateFormat="dd/MM/yyyy"
+                                                placeholderText="DD/MM/YYYY"
+
+                                                onChange={(date) =>
+                                                    handlePassengerChange(index, "passportExpiry", date)
+                                                }
+
+                                                onChangeRaw={(e) => {
+                                                    const formatted = formatDateInput(e.target.value);
+                                                    e.target.value = formatted;
+
+                                                    if (formatted.length === 10) {
+                                                        const parsed = parse(formatted, "dd/MM/yyyy", new Date());
+
+                                                        if (isValid(parsed)) {
+                                                            handlePassengerChange(index, "passportExpiry", parsed);
+                                                        }
+                                                    }
+                                                }}
+
+                                                onKeyDown={(e) => {
+                                                    const allowed = [
+                                                        "Backspace",
+                                                        "Tab",
+                                                        "ArrowLeft",
+                                                        "ArrowRight",
+                                                        "Delete",
+                                                    ];
+
+                                                    if (!allowed.includes(e.key) && !/\d/.test(e.key)) {
+                                                        e.preventDefault();
+                                                    }
+                                                }}
+
+                                                className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                            /> */}
+
+                                            <MaskedDatePicker
+                                                value={passenger.passportExpiry}
+                                                onChange={(date) =>
+                                                    handlePassengerChange(index, "passportExpiry", date)
+                                                }
                                             />
                                         </td>
                                         <td className="px-3 py-2">

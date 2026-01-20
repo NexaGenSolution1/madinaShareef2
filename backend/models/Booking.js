@@ -33,6 +33,10 @@ const passengerSchema = new mongoose.Schema({
     passportExpiry: {
         type: Date,
         required: true
+    },
+    nationality: {
+        type: String,
+        required: true
     }
 });
 
@@ -62,14 +66,14 @@ const bookingSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
-    
+
     // Contact Information
     contactPersonName: {
         type: String,
         required: true,
         trim: true
     },
-    
+
     // Passenger Counts
     adultsCount: {
         type: Number,
@@ -90,7 +94,7 @@ const bookingSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    
+
     // Pricing Information
     pricing: {
         adultPrice: {
@@ -122,10 +126,10 @@ const bookingSchema = new mongoose.Schema({
             required: true
         }
     },
-    
+
     // Passenger Details
     passengers: [passengerSchema],
-    
+
     // Flight Details
     flights: [{
         flightNo: String,
@@ -139,7 +143,7 @@ const bookingSchema = new mongoose.Schema({
         baggage: String,
         meal: String
     }],
-    
+
     // Dates
     departureDate: {
         type: Date,
@@ -148,21 +152,21 @@ const bookingSchema = new mongoose.Schema({
     arrivalDate: {
         type: Date
     },
-    
+
     // Booking Status
     status: {
         type: String,
         enum: ['on hold', 'confirmed', 'cancelled'],
         default: 'on hold'
     },
-    
+
     // User Information
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Register',
         required: true
     },
-    
+
     // Metadata
     bookingReference: {
         type: String,
@@ -178,7 +182,7 @@ const bookingSchema = new mongoose.Schema({
 });
 
 // Generate booking reference before saving
-bookingSchema.pre('save', async function() {
+bookingSchema.pre('save', async function () {
     if (!this.bookingReference) {
         const timestamp = Date.now().toString(36).toUpperCase();
         const random = Math.random().toString(36).substring(2, 6).toUpperCase();
