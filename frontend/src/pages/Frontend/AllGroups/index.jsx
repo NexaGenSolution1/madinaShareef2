@@ -5,7 +5,7 @@ import { toast } from 'react-toastify'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 
-export default function AllGroups({ searchParams }) {
+export default function AllGroups({ headerType, header, searchParams }) {
     const navigate = useNavigate()
     const [groups, setGroups] = useState([])
     const [allGroups, setAllGroups] = useState([])
@@ -231,16 +231,16 @@ export default function AllGroups({ searchParams }) {
         applyFilters()
     }, [filters, allGroups])
 
-    if (loading) {
-        return (
-            <div className="w-full min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Loading groups...</p>
-                </div>
-            </div>
-        )
-    }
+    // if (loading) {
+    //     return (
+    //         <div className="w-full min-h-screen flex items-center justify-center">
+    //             <div className="text-center">
+    //                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+    //                 <p className="mt-4 text-gray-600">Loading groups...</p>
+    //             </div>
+    //         </div>
+    //     )
+    // }
 
     if (error) {
         return (
@@ -260,8 +260,10 @@ export default function AllGroups({ searchParams }) {
 
     return (
         <div className="w-full min-h-screen mx-auto">
-            {/* Advanced Search Section */}
-            <div className="mb-4 bg-white rounded-lg shadow p-3 sm:p-4">
+            <div className={`flex flex-col md:flex-row md:items-center md:justify-between gap-4 ${headerType === 'dashboard' ? 'bg-white rounded-lg shadow p-3 sm:p-4 mb-4' : ''}`}>
+                {header}
+                {/* Advanced Search Section */}
+                {/* <div className="mb-4 bg-white rounded-lg shadow p-3 sm:p-4"> */}
                 <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                     {/* Advanced Search Toggle */}
                     <div className="flex items-center gap-2">
@@ -315,6 +317,7 @@ export default function AllGroups({ searchParams }) {
                         </div>
                     </div>
                 </div>
+                {/* </div> */}
             </div>
 
             {/* Main Content with Sidebar */}
@@ -393,7 +396,16 @@ export default function AllGroups({ searchParams }) {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-dashed divide-gray-300">
+                                {/* <tbody className="bg-white divide-y divide-dashed divide-gray-300">
+                                    {
+                                        loading ? (
+                                            <tr>
+                                                <td colSpan="8" className="px-6 py-8 text-center text-gray-500 text-sm">
+                                                    Loading groups...
+                                                </td>
+                                            </tr>
+                                        ) : null
+                                    }
                                     {groups.length === 0 ? (
                                         <tr>
                                             <td colSpan="8" className="px-6 py-8 text-center text-gray-500 text-sm">
@@ -402,7 +414,6 @@ export default function AllGroups({ searchParams }) {
                                         </tr>
                                     ) : (
                                         (() => {
-                                            // Group by airline_name and sector
                                             const groupedData = groups.reduce((acc, group) => {
                                                 const key = `${group.airline?.airline_name || 'Unknown'}-${group.sector || 'Unknown'}`
                                                 if (!acc[key]) {
@@ -426,7 +437,7 @@ export default function AllGroups({ searchParams }) {
                                             }
                                             return Object.entries(groupedData).map(([key, data]) => (
                                                 <React.Fragment key={key}>
-                                                    {/* Header row with airline logo and sector */}
+                                                   
                                                     <tr className="bg-gray-50">
                                                         <td colSpan="8" className="px-4 py-3">
                                                             <div className="flex items-center justify-center gap-3">
@@ -444,13 +455,11 @@ export default function AllGroups({ searchParams }) {
                                                         </td>
                                                     </tr>
 
-                                                    {/* All flights under this airline and sector */}
                                                     {data.groups.map((group, groupIndex) => (
                                                         <tr
                                                             key={group.id}
                                                             className=" bg-sky-200/30 text-sm text-gray-900 [&>td]:px-4 [&>td]:py-1 align-middle"
                                                         >
-                                                            {/* Flight Numbers */}
                                                             <td className="font-medium">
                                                                 {group.details?.map((flight, i) => (
                                                                     <div key={i}>
@@ -459,7 +468,6 @@ export default function AllGroups({ searchParams }) {
                                                                 ))}
                                                             </td>
 
-                                                            {/* Flight Date */}
                                                             <td>
                                                                 {group.details?.map((flight, i) => (
                                                                     <div key={i} className="flex justify-center gap-2">
@@ -468,8 +476,6 @@ export default function AllGroups({ searchParams }) {
                                                                     </div>
                                                                 ))}
                                                             </td>
-
-                                                            {/* Sector */}
                                                             <td>
                                                                 {group.details?.map((flight, i) => (
                                                                     <div key={i} className="flex justify-center">
@@ -478,7 +484,6 @@ export default function AllGroups({ searchParams }) {
                                                                 ))}
                                                             </td>
 
-                                                            {/* Time */}
                                                             <td>
                                                                 {group.details?.map((flight, i) => (
                                                                     <div key={i} className="flex justify-center">
@@ -487,7 +492,6 @@ export default function AllGroups({ searchParams }) {
                                                                 ))}
                                                             </td>
 
-                                                            {/* Baggage */}
                                                             <td>
                                                                 {group.details?.map((flight, i) => (
                                                                     <div key={i} className="flex justify-center">
@@ -496,7 +500,6 @@ export default function AllGroups({ searchParams }) {
                                                                 ))}
                                                             </td>
 
-                                                            {/* Meal */}
                                                             <td>
                                                                 {group.details?.map((flight, i) => (
                                                                     <div key={i} className="flex justify-center">
@@ -505,12 +508,11 @@ export default function AllGroups({ searchParams }) {
                                                                 ))}
                                                             </td>
 
-                                                            {/* Price */}
+
                                                             <td className="font-semibold text-center">
                                                                 PKR {group.price?.toLocaleString()}
                                                             </td>
 
-                                                            {/* Action */}
                                                             <td className="text-center">
                                                                 <button
                                                                     onClick={() => handleBookNow(group)}
@@ -526,7 +528,140 @@ export default function AllGroups({ searchParams }) {
                                             ))
                                         })()
                                     )}
+                                </tbody> */}
+                                <tbody className="bg-white divide-y divide-dashed divide-gray-300">
+
+                                    {loading && (
+                                        <tr>
+                                            <td colSpan="8" className="px-6 py-8 text-center text-gray-500 text-sm">
+                                                Loading groups...
+                                            </td>
+                                        </tr>
+                                    )}
+
+                                    {!loading && groups.length === 0 && (
+                                        <tr>
+                                            <td colSpan="8" className="px-6 py-8 text-center text-gray-500 text-sm">
+                                                No groups available at the moment
+                                            </td>
+                                        </tr>
+                                    )}
+
+                                    {!loading && groups.length > 0 && (() => {
+                                        const groupedData = groups.reduce((acc, group) => {
+                                            const key = `${group.airline?.airline_name || 'Unknown'}-${group.sector || 'Unknown'}`;
+                                            if (!acc[key]) {
+                                                acc[key] = {
+                                                    airline: group.airline?.airline_name || 'Unknown',
+                                                    sector: group.sector || 'Unknown',
+                                                    logo_url: group.airline?.logo_url || null,
+                                                    groups: []
+                                                };
+                                            }
+                                            acc[key].groups.push(group);
+                                            return acc;
+                                        }, {});
+                                        const formatDate = (dateStr) => {
+                                            const date = new Date(dateStr)
+                                            const day = date.getDate().toString().padStart(2, '0')
+                                            const month = date.toLocaleDateString('en-US', { month: 'short' })
+                                            const year = date.getFullYear()
+                                            return `${day} ${month} ${year}`
+                                        }
+                                        return Object.entries(groupedData).map(([key, data]) => (
+                                            <React.Fragment key={key}>
+
+                                                {/* Airline Header */}
+                                                <tr className="bg-gray-50">
+                                                    <td colSpan="8" className="px-4 py-3">
+                                                        <div className="flex items-center justify-center gap-3 flex-wrap">
+                                                            {data.logo_url && (
+                                                                <img
+                                                                    src={data.logo_url}
+                                                                    alt={data.airline}
+                                                                    className="w-32 object-contain"
+                                                                />
+                                                            )}
+                                                            <span className="font-semibold text-gray-900 text-base">
+                                                                {data.sector}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+
+                                                {/* Group Rows */}
+                                                {data.groups.map((group) => (
+                                                    <tr
+                                                        key={group.id}
+                                                        className="bg-sky-200/30 text-sm text-gray-900"
+                                                    >
+                                                        <td className="px-4 py-2 font-medium align-middle">
+                                                            {group.details?.map((flight, i) => (
+                                                                <div key={i}>{flight.flight_no}</div>
+                                                            ))}
+                                                        </td>
+
+                                                        <td className="px-4 py-2 align-middle">
+                                                            {group.details?.map((flight, i) => (
+                                                                <div key={i} className="flex justify-center gap-2">
+                                                                    <span className="text-blue-600">✈</span>
+                                                                    <span>{formatDate(flight.flight_date)}</span>
+                                                                </div>
+                                                            ))}
+                                                        </td>
+
+                                                        <td className="px-4 py-2 align-middle">
+                                                            {group.details?.map((flight, i) => (
+                                                                <div key={i} className="flex justify-center">
+                                                                    {flight.origin}-{flight.destination}
+                                                                </div>
+                                                            ))}
+                                                        </td>
+
+                                                        <td className="px-4 py-2 align-middle">
+                                                            {group.details?.map((flight, i) => (
+                                                                <div key={i} className="flex justify-center">
+                                                                    {flight.dept_time?.substring(0, 5)} - {flight.arv_time?.substring(0, 5)}
+                                                                </div>
+                                                            ))}
+                                                        </td>
+
+                                                        <td className="px-4 py-2 align-middle">
+                                                            {group.details?.map((flight, i) => (
+                                                                <div key={i} className="flex justify-center">
+                                                                    {flight.baggage ? `${flight.baggage} KG` : 'N/A'}
+                                                                </div>
+                                                            ))}
+                                                        </td>
+
+                                                        <td className="px-4 py-2 align-middle">
+                                                            {group.details?.map((flight, i) => (
+                                                                <div key={i} className="flex justify-center">
+                                                                    {flight.meal || 'No'}
+                                                                </div>
+                                                            ))}
+                                                        </td>
+
+                                                        <td className="px-4 py-2 font-semibold text-center align-middle">
+                                                            PKR {group.price?.toLocaleString()}
+                                                        </td>
+
+                                                        <td className="px-4 py-2 text-center align-middle">
+                                                            <button
+                                                                onClick={() => handleBookNow(group)}
+                                                                className="px-4 py-2 bg-[#ff6b35] hover:bg-[#ff5722] text-white rounded-md text-sm font-medium transition-colors shadow-sm"
+                                                            >
+                                                                Book now
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+
+                                            </React.Fragment>
+                                        ));
+                                    })()}
                                 </tbody>
+
                             </table>
                         </div>
                     </div>

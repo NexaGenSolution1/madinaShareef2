@@ -105,11 +105,10 @@ export default function Frontend() {
                         <Header user={user} handleLogout={handleLogout} />
                         <div className='bg-gray-50'>
                             <div className='w-full min-h-screen mx-auto pt-32 px-8'>
-                                <div className="mb-4 sm:mb-6 md:mb-8">
+                                <AllGroups headerType="frontend" header={<div className="mb-4 sm:mb-6 md:mb-8">
                                     <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">All Groups</h1>
                                     <p className="text-sm sm:text-base text-gray-600">Browse and book available flight groups</p>
-                                </div>
-                                <AllGroups searchParams={searchParams} />
+                                </div>} searchParams={searchParams} />
                             </div>
                         </div>
                         <Footer />
@@ -141,24 +140,21 @@ export default function Frontend() {
             }>
                 <Route index element={<Dashboard />} />
                 <Route path="all-groups" element={
-                    <>
-                        <div className="mb-4 flex flex-wrap gap-2">
-                            {groupTypes.map((type) => (
-                                <Link
-                                     to={`/dashboard/${type.path}`} 
-                                    key={type.value}
-                                    onClick={() => handleGroupTypeChange(type.value)}
-                                    className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${(normalizeParams(searchParams.toString()) || '') === normalizeParams(type.path.split('?')[1] || '')
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                                        }`}
-                                >
-                                    {type.label}
-                                </Link>
-                            ))}
-                        </div>
-                        <AllGroups searchParams={searchParams} />
-                    </>
+                    <AllGroups headerType="dashboard" header={<div className="flex flex-wrap gap-1 sm:gap-2">
+                        {groupTypes.map((type) => (
+                            <Link
+                                to={`/dashboard/${type.path}`}
+                                key={type.value}
+                                onClick={() => handleGroupTypeChange(type.value)}
+                                className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${(normalizeParams(searchParams.toString()) || '') === normalizeParams(type.path.split('?')[1] || '')
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                    }`}
+                            >
+                                {type.label}
+                            </Link>
+                        ))}
+                    </div>} searchParams={searchParams} />
                 } />
                 <Route path="booking" element={<BookingForm user={user} />} />
                 <Route path="banks" element={<Bank />} />
