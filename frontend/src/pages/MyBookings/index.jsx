@@ -28,6 +28,7 @@ export default function MyBookings() {
 
     const statusOptions = [
         { value: 'on hold', label: 'On Hold', color: 'bg-yellow-50 text-yellow-700 border border-yellow-300' },
+        { value: 'pending', label: 'On Hold', color: 'bg-yellow-50 text-yellow-700 border border-yellow-300' },
         { value: 'confirmed', label: 'Confirmed', color: 'bg-green-50 text-green-700 border border-green-300' },
         { value: 'cancelled', label: 'Cancelled', color: 'bg-red-50 text-red-700 border border-red-300' }
     ]
@@ -50,14 +51,14 @@ export default function MyBookings() {
         return { hours, minutes, seconds, expired: false }
     }
 
-    // Update timers every second for on hold bookings
     useEffect(() => {
+        const onHoldBookings = bookings.filter(b => b.status === 'on hold')
+        if (onHoldBookings.length === 0) return
+
         const interval = setInterval(() => {
             const newTimers = {}
-            bookings.forEach(booking => {
-                if (booking.status === 'on hold') {
-                    newTimers[booking._id] = calculateRemainingTime(booking.createdAt)
-                }
+            onHoldBookings.forEach(booking => {
+                newTimers[booking._id] = calculateRemainingTime(booking.createdAt)
             })
             setTimers(newTimers)
         }, 1000)
@@ -120,9 +121,13 @@ export default function MyBookings() {
     }
 
 
+    // const getStatusBadge = (status) => {
+    //     const option = statusOptions.find(opt => opt.value === status)
+    //     return option || statusOptions[0]
+    // }
+
     const getStatusBadge = (status) => {
-        const option = statusOptions.find(opt => opt.value === status)
-        return option || statusOptions[0]
+        return statusOptions.find(opt => opt.value === status) || statusOptions[0]
     }
 
     const formatDate = (dateStr) => {
@@ -269,6 +274,7 @@ export default function MyBookings() {
                             ) : (
                                 bookings.map((booking) => {
                                     const statusBadge = getStatusBadge(booking.status)
+                                    const firstPassenger = booking.passengers?.[0]
                                     return (
                                         <tr key={booking._id} className="border-b border-gray-300 hover:bg-blue-50/20 transition-colors">
                                             {/* Booking Details */}
@@ -280,7 +286,8 @@ export default function MyBookings() {
                                                         </span>
                                                     </div>
                                                     <div className="text-xs text-gray-700 leading-relaxed">
-                                                        <span className="font-semibold text-gray-800">Agency:</span> {booking.userId.companyName}
+                                                        <span className="font-semibold text-gray-800">Agency:</span>{' '}
+                                                        {booking.userId?.companyName || 'N/A'}
                                                     </div>
                                                     <div className="text-xs text-gray-700 leading-relaxed">
                                                         <span className="font-semibold text-gray-800">AGT #:</span>{booking.userId.agencyCode}
@@ -305,7 +312,14 @@ export default function MyBookings() {
                                                         {formatDate(booking.departureDate)}
                                                     </div>
                                                     <div className="text-xs text-gray-600 font-medium pt-0.5">
-                                                        {booking.passengers[0].givenName} {booking.passengers[0].surName} X {booking.totalPassengers}
+                                                        {/* {booking.passengers[0].givenName} {booking.passengers[0].surName} X {booking.totalPassengers} */}
+                                                        <div className="text-xs text-gray-600 font-medium pt-0.5">
+                                                            {firstPassenger
+                                                                ? `${firstPassenger.givenName} ${firstPassenger.surName}`
+                                                                : 'N/A'}{' '}
+                                                            X {booking.totalPassengers || 0}
+                                                        </div>
+
                                                     </div>
                                                 </div>
                                             </td>
@@ -313,31 +327,67 @@ export default function MyBookings() {
                                             {/* Passengers */}
                                             <td className="px-4 py-4 align-top border-r border-gray-300">
                                                 <div className="inline-block w-full">
-                                                    <table className="w-full text-xs border-2 border-[#2d5a8f]">
-                                                        <thead>
-                                                            <tr className="bg-[#2d5a8f] text-white">
-                                                                <th className="px-3 py-2 text-left font-semibold border-r-2 border-[#4d7aaf]">Status</th>
-                                                                <th className="px-3 py-2 text-center font-semibold border-r-2 border-[#4d7aaf]">Adults</th>
-                                                                <th className="px-3 py-2 text-center font-semibold border-r-2 border-[#4d7aaf]">Child</th>
-                                                                <th className="px-3 py-2 text-center font-semibold border-r-2 border-[#4d7aaf]">Infants</th>
-                                                                <th className="px-3 py-2 text-center font-semibold">Seats</th>
+                                                    <table className="w-full text-xs border border-slate-300 rounded-lg overflow-hidden">
+                                                        <thead className="bg-[#2d5a8f] text-white">
+                                                            <tr>
+                                                                <th className="px-3 py-2 text-left font-semibold border-r border-slate-600">
+                                                                    Status
+                                                                </th>
+                                                                <th className="px-3 py-2 text-center font-semibold border-r border-slate-600">
+                                                                    Adults
+                                                                </th>
+                                                                <th className="px-3 py-2 text-center font-semibold border-r border-slate-600">
+                                                                    Child
+                                                                </th>
+                                                                <th className="px-3 py-2 text-center font-semibold border-r border-slate-600">
+                                                                    Infants
+                                                                </th>
+                                                                <th className="px-3 py-2 text-center font-semibold">
+                                                                    Seats
+                                                                </th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody className="bg-white">
-                                                            <tr className="border-t-2 border-[#2d5a8f]">
-                                                                <td className="px-3 py-2 font-medium text-gray-700 border-r-2 border-gray-300 bg-gray-50">Requested</td>
-                                                                <td className="px-3 py-2 text-center font-semibold border-r-2 border-gray-300">{booking.adultsCount || 1}</td>
-                                                                <td className="px-3 py-2 text-center font-semibold border-r-2 border-gray-300">{booking.childrenCount || 0}</td>
-                                                                <td className="px-3 py-2 text-center font-semibold border-r-2 border-gray-300">{booking.infantsCount || 0}</td>
-                                                                <td className="px-3 py-2 text-center font-bold">{(booking.adultsCount || 1) + (booking.childrenCount || 0)}</td>
-                                                            </tr>
-                                                            <tr className="border-t-2 border-gray-300">
-                                                                <td className="px-3 py-2 font-medium text-gray-700 border-r-2 border-gray-300 bg-gray-50">Confirm</td>
-                                                                <td className="px-3 py-2 text-center font-semibold border-r-2 border-gray-300">{booking.confirmedAdults || 0}</td>
-                                                                <td className="px-3 py-2 text-center font-semibold border-r-2 border-gray-300">{booking.confirmedChildren || 0}</td>
-                                                                <td className="px-3 py-2 text-center font-semibold border-r-2 border-gray-300">{booking.confirmedInfants || 0}</td>
-                                                                <td className="px-3 py-2 text-center font-bold">{(booking.confirmedAdults || 0) + (booking.confirmedChildren || 0)}</td>
-                                                            </tr>
+
+                                                        <tbody className="bg-white divide-y divide-slate-200">
+                                                            {[
+                                                                { key: 'on hold', label: 'Requested' },
+                                                                { key: 'confirmed', label: 'Confirmed' },
+                                                                { key: 'cancelled', label: 'Cancelled' },
+                                                            ].map(({ key, label }) => {
+                                                                const active = booking.status === key
+
+                                                                const adults = active ? booking.adultsCount || 0 : 0
+                                                                const children = active ? booking.childrenCount || 0 : 0
+                                                                const infants = active ? booking.infantsCount || 0 : 0
+                                                                const seats = adults + children + infants
+
+                                                                return (
+                                                                    <tr
+                                                                        key={key}
+                                                                        className="hover:bg-slate-50 transition-colors"
+                                                                    >
+                                                                        <td className="px-3 py-2 font-medium text-slate-700 bg-slate-50 border-r border-slate-200">
+                                                                            {label}
+                                                                        </td>
+
+                                                                        <td className="px-3 py-2 text-center font-semibold border-r border-slate-200">
+                                                                            {adults}
+                                                                        </td>
+
+                                                                        <td className="px-3 py-2 text-center font-semibold border-r border-slate-200">
+                                                                            {children}
+                                                                        </td>
+
+                                                                        <td className="px-3 py-2 text-center font-semibold border-r border-slate-200">
+                                                                            {infants}
+                                                                        </td>
+
+                                                                        <td className="px-3 py-2 text-center font-bold text-slate-900">
+                                                                            {seats}
+                                                                        </td>
+                                                                    </tr>
+                                                                )
+                                                            })}
                                                         </tbody>
                                                     </table>
                                                 </div>
@@ -353,7 +403,7 @@ export default function MyBookings() {
                                             {/* Status */}
                                             <td className="px-4 py-4 align-top border-r border-gray-300">
                                                 <div className="space-y-2">
-                                                    <span className={`inline-block px-3 py-1.5 rounded-md text-xs font-bold shadow-sm ${statusBadge.color}`}>
+                                                    <span className={`inline-block px-3 py-1.5 rounded-md text-xs shadow-sm ${statusBadge.color}`}>
                                                         {statusBadge.label}
                                                     </span>
                                                     {booking.status === 'on hold' && (
@@ -436,21 +486,6 @@ export default function MyBookings() {
                                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                                 </svg>
                                                             </button>
-                                                            {/* <button
-                                                                onClick={() => {
-                                                                    // Handle PDF download
-                                                                    generateBookingPDF(booking).catch(err => {
-                                                                        console.error('Error generating PDF:', err)
-                                                                        toast.error('Failed to generate PDF')
-                                                                    })
-                                                                }}
-                                                                className="p-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 rounded-lg transition-all shadow-sm hover:shadow-md border border-slate-200"
-                                                                title="Download PDF"
-                                                            >
-                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                                </svg>
-                                                            </button> */}
                                                         </>
                                                     )}
 

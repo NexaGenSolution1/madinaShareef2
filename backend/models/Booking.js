@@ -36,7 +36,7 @@ const passengerSchema = new mongoose.Schema({
     },
     nationality: {
         type: String,
-        required: true
+        required: false
     }
 });
 

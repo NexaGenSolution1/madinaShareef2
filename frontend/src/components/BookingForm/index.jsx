@@ -923,7 +923,15 @@ export default function BookingForm() {
                     </table>
                 </div>
 
-                <div className="px-4 py-3 bg-white border-t border-gray-200 flex justify-center">
+                <div className="flex gap-2 px-4 py-3 bg-white border-t border-gray-200 justify-center">
+                    <button
+                        type="button"
+                        onClick={() => navigate(-1)}
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-mdhover:bg-gray-200 transition-colors"
+                    >
+                        Cancel
+                    </button>
+
                     <button
                         type="submit"
                         disabled={isSubmitting}

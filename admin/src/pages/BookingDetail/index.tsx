@@ -98,9 +98,10 @@ export default function BookingDetail() {
 
     const getStatusColor = (status: string) => {
         const colors: { [key: string]: string } = {
-            pending: 'border border-yellow-400 bg-yellow-100 text-yellow-800',
-            confirmed: 'border border-green-400 bg-green-100 text-green-800',
-            cancelled: 'border border-red-400 bg-red-100 text-red-800'
+            "on hold": 'border border-yellow-200 bg-yellow-50 text-yellow-700',
+            pending: 'border border-yellow-200 bg-yellow-50 text-yellow-700',
+            confirmed: 'border border-green-200 bg-green-50 text-green-700',
+            cancelled: 'border border-red-200 bg-red-50 text-red-700'
         }
         return colors[status] || 'bg-gray-100 text-gray-800'
     }
@@ -192,7 +193,7 @@ export default function BookingDetail() {
                                     onChange={(e) => setSelectedStatus(e.target.value)}
                                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
-                                    <option value="pending">Pending</option>
+                                    <option value="on hold">On Hold</option>
                                     <option value="confirmed">Confirmed</option>
                                     <option value="cancelled">Cancelled</option>
                                 </select>
@@ -213,7 +214,7 @@ export default function BookingDetail() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-sm text-gray-600">Contact Person</label>
-                                    <p className="text-gray-900 font-medium">{safeBooking.contactPersonName}</p>
+                                    <p className="text-gray-900 font-medium">{(safeBooking?.passengers?.[0]?.givenName + ' ' + safeBooking?.passengers?.[0]?.surName) || 'N/A'}</p>
                                 </div>
                                 <div>
                                     <label className="text-sm text-gray-600">Sector</label>
@@ -247,15 +248,15 @@ export default function BookingDetail() {
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Passenger Breakdown</h3>
                             <div className="grid grid-cols-3 gap-4">
                                 <div className="bg-blue-50 p-4 rounded-lg text-center">
-                                    <p className="text-2xl font-bold text-blue-600">{safeBooking.adultsCount}</p>
+                                    <p className="text-2xl font-bold text-blue-600">{safeBooking.adultsCount || "0"}</p>
                                     <p className="text-sm text-gray-600">Adults</p>
                                 </div>
                                 <div className="bg-green-50 p-4 rounded-lg text-center">
-                                    <p className="text-2xl font-bold text-green-600">{safeBooking.childrenCount}</p>
+                                    <p className="text-2xl font-bold text-green-600">{safeBooking.childrenCount || "0"}</p>
                                     <p className="text-sm text-gray-600">Children</p>
                                 </div>
                                 <div className="bg-purple-50 p-4 rounded-lg text-center">
-                                    <p className="text-2xl font-bold text-purple-600">{safeBooking.infantsCount}</p>
+                                    <p className="text-2xl font-bold text-purple-600">{safeBooking.infantsCount || "0"}</p>
                                     <p className="text-sm text-gray-600">Infants</p>
                                 </div>
                             </div>
@@ -330,8 +331,8 @@ export default function BookingDetail() {
                                                     <td className="px-4 py-3 text-sm text-gray-900">{`${passenger.title}.`} {passenger.givenName} {passenger.surName}</td>
                                                     <td className="px-4 py-3 text-sm">
                                                         <span className={`px-2 py-1 rounded text-xs font-medium ${passenger.type === 'Adult' ? 'bg-blue-100 text-blue-800' :
-                                                                passenger.type === 'Child' ? 'bg-green-100 text-green-800' :
-                                                                    'bg-purple-100 text-purple-800'
+                                                            passenger.type === 'Child' ? 'bg-green-100 text-green-800' :
+                                                                'bg-purple-100 text-purple-800'
                                                             }`}>
                                                             {passenger.type}
                                                         </span>

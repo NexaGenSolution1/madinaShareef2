@@ -46,9 +46,10 @@ export default function BookingDetail() {
 
     const getStatusColor = (status) => {
         const colors = {
-            pending: 'border border-yellow-400 bg-yellow-100 text-yellow-800',
-            confirmed: 'border border-green-400 bg-green-100 text-green-800',
-            cancelled: 'border border-red-400 bg-red-100 text-red-800'
+            "on hold": 'border border-yellow-200 bg-yellow-50 text-yellow-700',
+            pending: 'border border-yellow-200 bg-yellow-50 text-yellow-700',
+            confirmed: 'border border-green-200 bg-green-50 text-green-700',
+            cancelled: 'border border-red-200 bg-red-50 text-red-700'
         }
         return colors[status] || 'bg-gray-100 text-gray-800'
     }
@@ -135,7 +136,7 @@ export default function BookingDetail() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-sm text-gray-600">Contact Person</label>
-                                    <p className="text-gray-900 font-medium">{booking.contactPersonName}</p>
+                                    <p className="text-gray-900 font-medium">{(booking?.passengers?.[0]?.givenName + ' ' + booking?.passengers?.[0]?.surName) || 'N/A'}</p>
                                 </div>
                                 <div>
                                     <label className="text-sm text-gray-600">Sector</label>
@@ -165,15 +166,15 @@ export default function BookingDetail() {
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Passenger Breakdown</h3>
                             <div className="grid grid-cols-3 gap-4">
                                 <div className="bg-blue-50 p-4 rounded-lg text-center">
-                                    <p className="text-2xl font-bold text-blue-600">{booking.adultsCount}</p>
+                                    <p className="text-2xl font-bold text-blue-600">{booking.adultsCount || "0"}</p>
                                     <p className="text-sm text-gray-600">Adults</p>
                                 </div>
                                 <div className="bg-green-50 p-4 rounded-lg text-center">
-                                    <p className="text-2xl font-bold text-green-600">{booking.childrenCount}</p>
+                                    <p className="text-2xl font-bold text-green-600">{booking.childrenCount || "0"}</p>
                                     <p className="text-sm text-gray-600">Children</p>
                                 </div>
                                 <div className="bg-purple-50 p-4 rounded-lg text-center">
-                                    <p className="text-2xl font-bold text-purple-600">{booking.infantsCount}</p>
+                                    <p className="text-2xl font-bold text-purple-600">{booking.infantsCount || "0"}</p>
                                     <p className="text-sm text-gray-600">Infants</p>
                                 </div>
                             </div>
@@ -246,11 +247,10 @@ export default function BookingDetail() {
                                                 <tr key={index} className="hover:bg-gray-50">
                                                     <td className="px-4 py-3 text-sm text-gray-900">{`${passenger.title}.`} {passenger.givenName} {passenger.surName}</td>
                                                     <td className="px-4 py-3 text-sm">
-                                                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                                            passenger.type === 'Adult' ? 'bg-blue-100 text-blue-800' :
+                                                        <span className={`px-2 py-1 rounded text-xs font-medium ${passenger.type === 'Adult' ? 'bg-blue-100 text-blue-800' :
                                                             passenger.type === 'Child' ? 'bg-green-100 text-green-800' :
-                                                            'bg-purple-100 text-purple-800'
-                                                        }`}>
+                                                                'bg-purple-100 text-purple-800'
+                                                            }`}>
                                                             {passenger.type}
                                                         </span>
                                                     </td>
@@ -320,8 +320,8 @@ export default function BookingDetail() {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex gap-4">
-                            {booking.status === 'pending' && (
+                        <div className="flex gap-4 mt-2">
+                            {(booking.status === 'pending' || booking.status === 'on hold') && (
                                 <>
                                     <button
                                         onClick={() => navigate(`/dashboard/edit-booking/${id}`)}
