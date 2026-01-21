@@ -169,7 +169,7 @@ const getAllBookings = async (req, res, next) => {
             }
         });
 
-        const data = bookings.map((b) => ({
+        const data = bookings.map(b => ({
             ...b.toObject(),
             remainingTime:
                 b.status === 'on hold' || b.status === 'pending'
@@ -179,7 +179,7 @@ const getAllBookings = async (req, res, next) => {
 
         res.json({
             success: true,
-            data: bookings,
+            data: data,
             pagination: {
                 currentPage: parseInt(page),
                 totalPages: Math.ceil(total / parseInt(limit)),
@@ -233,6 +233,7 @@ const getBookingById = async (req, res, next) => {
         ) {
             startBookingTimer(booking._id.toString());
         }
+
 
         // res.json({
         //     success: true,
@@ -292,6 +293,7 @@ const getBookingByReference = async (req, res, next) => {
         ) {
             startBookingTimer(booking._id.toString());
         }
+
 
         res.json({
             success: true,

@@ -162,24 +162,60 @@ export const hasBookingTimer = (bookingId) => {
 /**
  * Start a 2-hour timer for a booking
  */
-export const startBookingTimer = (bookingId) => {
-    if (activeTimers.has(bookingId)) {
-        return; // Prevent duplicate timers
+// export const startBookingTimer = (bookingId) => {
+//     if (activeTimers.has(bookingId)) {
+//         return; // Prevent duplicate timers
+//     }
+
+//     const timerId = setTimeout(async () => {
+//         try {
+//             await cancelBookingAfterTimeout(bookingId);
+//         } catch (error) {
+//             console.error(`Error cancelling booking ${bookingId} after timeout:`, error);
+//         } finally {
+//             activeTimers.delete(bookingId);
+//         }
+//     }, 2 * 60 * 60 * 1000); // 2 hours
+
+//     activeTimers.set(bookingId, timerId);
+//     console.log(`Timer started for booking ${bookingId}`);
+// };
+
+export const startBookingTimer = async (bookingId) => {
+    if (activeTimers.has(bookingId)) return;
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) return;
+
+    if (booking.status !== 'on hold' && booking.status !== 'pending') return;
+
+    const createdAt = new Date(booking.createdAt).getTime();
+    const expiryTime = createdAt + 2 * 60 * 60 * 1000;
+    const now = Date.now();
+    const remainingTime = expiryTime - now;
+
+    if (remainingTime <= 0) {
+        await cancelBookingAfterTimeout(bookingId);
+        return;
     }
 
     const timerId = setTimeout(async () => {
         try {
             await cancelBookingAfterTimeout(bookingId);
-        } catch (error) {
-            console.error(`Error cancelling booking ${bookingId} after timeout:`, error);
         } finally {
             activeTimers.delete(bookingId);
         }
-    }, 2 * 60 * 60 * 1000); // 2 hours
+    }, remainingTime);
 
     activeTimers.set(bookingId, timerId);
-    console.log(`Timer started for booking ${bookingId}`);
+
+    console.log(
+        `Timer started for booking ${bookingId}, expires in ${Math.round(
+            remainingTime / 1000
+        )}s`
+    );
 };
+
 
 /**
  * Cancel booking after timeout and return seats
