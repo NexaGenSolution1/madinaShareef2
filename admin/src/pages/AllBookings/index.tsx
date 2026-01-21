@@ -172,9 +172,9 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                         </span>
                                         {booking.status === 'on hold' && (
                                             <div className="space-y-2 pt-1">
-                                                <div className="text-xs text-yellow-700 font-semibold bg-yellow-50 px-2.5 py-1.5 rounded-md border border-yellow-300">
+                                                {/* <div className="text-xs text-yellow-700 font-semibold bg-yellow-50 px-2.5 py-1.5 rounded-md border border-yellow-300">
                                                     Admin Review<br />Required
-                                                </div>
+                                                </div> */}
                                                 <div className="text-xs">
                                                     <div className="font-bold text-gray-800 mb-1.5">Booking Expiry Time</div>
                                                     <div className="flex items-center gap-1.5">
@@ -225,9 +225,9 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                         </button>
 
                                         {/* On Hold booking actions */}
-                                        {booking.status === 'on hold' && (
+                                        {(booking.status === 'on hold' || booking.status === 'pending' || booking.status === 'confirmed') && (
                                             <>
-                                                <button
+                                                {/* <button
                                                     onClick={() => navigate(`/edit-booking/${booking._id}`)}
                                                     className="p-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 rounded-lg transition-all shadow-sm hover:shadow-md border border-slate-200"
                                                     title="Edit Booking"
@@ -249,7 +249,7 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                     </svg>
-                                                </button>
+                                                </button> */}
                                                 <button
                                                     onClick={() => {
                                                         // Handle PDF download
@@ -268,7 +268,7 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                         )}
 
                                         {/* Confirmed booking actions */}
-                                        {booking.status === 'confirmed' && (
+                                        {/* {booking.status === 'confirmed' && (
                                             <button
                                                 onClick={() => {
                                                     // Handle PDF download
@@ -283,7 +283,7 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                 </svg>
                                             </button>
-                                        )}
+                                        )} */}
 
                                         {/* Cancelled bookings only have View Details (already shown above) */}
                                     </div>

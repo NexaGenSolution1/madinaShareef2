@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import axiosInstance from '../../api/axios'
 import { toast } from 'react-toastify'
 import { generateBookingPDF } from '../../utils'
+import MaskedDatePicker from '../../components/MaskedDatePicker'
+
 export default function MyBookings() {
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
@@ -197,21 +199,34 @@ export default function MyBookings() {
 
                     {/* From Date */}
                     <div className="w-full sm:w-auto min-w-37.5">
-                        <input
+                        {/* <input
                             type="date"
                             value={filters.fromDate}
                             onChange={(e) => handleFilterChange('fromDate', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        /> */}
+
+                        <MaskedDatePicker
+                            value={filters.fromDate}
+                            onChange={(date) =>
+                                handleFilterChange('fromDate', date)
+                            }
                         />
                     </div>
 
                     {/* To Date */}
                     <div className="w-full sm:w-auto min-w-37.5">
-                        <input
+                        {/* <input
                             type="date"
                             value={filters.toDate}
                             onChange={(e) => handleFilterChange('toDate', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        /> */}
+                        <MaskedDatePicker
+                            value={filters.toDate}
+                            onChange={(date) =>
+                                handleFilterChange('toDate', date)
+                            }
                         />
                     </div>
 
@@ -416,7 +431,7 @@ export default function MyBookings() {
                                                     </button>
 
                                                     {/* On Hold booking actions */}
-                                                    {booking.status === 'on hold' && (
+                                                    {(booking.status === 'on hold' || booking.status === 'pending') && (
                                                         <>
                                                             <button
                                                                 onClick={() => navigate(`/dashboard/edit-booking/${booking._id}`)}
@@ -441,7 +456,7 @@ export default function MyBookings() {
                                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                                 </svg>
                                                             </button>
-                                                            <button
+                                                            {/* <button
                                                                 onClick={() => {
                                                                     // Handle PDF download
                                                                     generateBookingPDF(booking).catch(err => {
@@ -455,12 +470,13 @@ export default function MyBookings() {
                                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                                 </svg>
-                                                            </button>
+                                                            </button> */}
                                                         </>
                                                     )}
 
                                                     {/* Confirmed booking actions */}
-                                                    {booking.status === 'confirmed' && (
+                                                    {/* {booking.status === 'confirmed' && ( */}
+                                                    {(booking.status === 'on hold' || booking.status === 'pending' || booking.status === 'confirmed') && (
                                                         <button
                                                             onClick={() => {
                                                                 // Handle PDF download

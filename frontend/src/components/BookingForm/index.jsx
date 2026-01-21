@@ -837,6 +837,7 @@ export default function BookingForm() {
                                                 onChange={(date) =>
                                                     handlePassengerChange(index, "dateOfBirth", date)
                                                 }
+                                                size="small"
                                             />
                                         </td>
                                         <td className="px-3 py-2">
@@ -903,6 +904,7 @@ export default function BookingForm() {
                                                 onChange={(date) =>
                                                     handlePassengerChange(index, "passportExpiry", date)
                                                 }
+                                                size="small"
                                             />
                                         </td>
                                         <td className="px-3 py-2">

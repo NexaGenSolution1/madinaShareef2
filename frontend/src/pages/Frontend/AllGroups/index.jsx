@@ -2,9 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axiosInstance from '../../../api/axios'
 import { toast } from 'react-toastify'
-import { parse, isValid } from "date-fns";
-import DatePicker from 'react-datepicker'
-import 'react-datepicker/dist/react-datepicker.css'
+import MaskedDatePicker from '../../../components/MaskedDatePicker'
 
 export default function AllGroups({ headerType, header, searchParams }) {
     const navigate = useNavigate()
@@ -291,7 +289,7 @@ export default function AllGroups({ headerType, header, searchParams }) {
                         {/* <label className="block text-xs font-medium text-gray-700 mb-1">
                             Search by Dept Date
                         </label> */}
-                        <DatePicker
+                        {/* <DatePicker
                             selected={filters.departDate}
                             onChange={(date) => handleFilterChange('departDate', date)}
                             onChangeRaw={(e) => {
@@ -306,6 +304,12 @@ export default function AllGroups({ headerType, header, searchParams }) {
                             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             wrapperClassName="w-full"
                             calendarClassName="custom-datepicker"
+                        /> */}
+                        <MaskedDatePicker
+                            value={filters.departDate}
+                            onChange={(date) =>
+                                handleFilterChange('departDate', date)
+                            }
                         />
                     </div>
 
