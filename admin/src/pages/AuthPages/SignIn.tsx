@@ -6,8 +6,8 @@ export default function SignIn() {
   return (
     <>
       <PageMeta
-        title="Rihla Access SignIn Dashboard"
-        description="This is Admin SignIn Dashboard page for Rihla Access"
+        title="Brothers International SignIn Dashboard"
+        description="This is Admin SignIn Dashboard page for Brothers International"
       />
       <AuthLayout>
         <SignInForm />

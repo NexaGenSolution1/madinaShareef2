@@ -17,7 +17,7 @@ export default function Footer() {
                         <IoMail className='text-6xl sm:text-7xl text-neutral-200' />
                         <div className='space-y-2'>
                             <h2 className='text-2xl sm:text-3xl text-[#d6d30b] font-semibold!'>Your Travel Journey Starts Here</h2>
-                            <p className='text-neutral-200'>Sign up to have best deals with Rihla Access</p>
+                            <p className='text-neutral-200'>Sign up to have best deals with Brothers International</p>
                         </div>
                     </div>
 
@@ -38,8 +38,8 @@ export default function Footer() {
                         <div>
                             <img src={logo} alt="logo" className='w-22 object-contain' />
                             <div>
-                                <h2 className='text-xl mt-6'>Rihla Access Travels</h2>
-                                <p className='mt-4'>We offer a variety of travel packages tailored to your needs, Join us and explore the world with Rihla Access.</p>
+                                <h2 className='text-xl mt-6'>Brother's International Travels</h2>
+                                <p className='mt-4'>We offer a variety of travel packages tailored to your needs, Join us and explore the world with Brothers International.</p>
                             </div>
                         </div>
 
@@ -90,7 +90,7 @@ export default function Footer() {
                 </div>
 
                 <div className='main-container flex flex-col md:flex-row justify-between gap-2 py-6 sm:py-10 text-sm sm:text-base text-neutral-300 border-t border-neutral-600'>
-                    <p>&copy; Rihla Access. All Rights Reserved {dayjs().year()}.</p>
+                    <p>&copy; Brothers International. All Rights Reserved {dayjs().year()}.</p>
                     <p><span className='text-neutral-100 font-semibold'>Designed & Developed By</span> <a href="https://nexagensolution.com/" target='_blank'>Nexagen Solution</a></p>
                 </div>
 

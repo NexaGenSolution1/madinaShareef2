@@ -46,7 +46,7 @@ const RegisteredAgencies = () => {
   const [entriesPerPage, setEntriesPerPage] = useState(50);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [downloadingExcel, setDownloadingExcel] = useState(false);
-  const frontendUrl = import.meta.env.VITE_FRONTEND_URL;
+  const frontendUrl = import.meta.env.VITE_FRONTEND_URL || "https://brothersinttvl.com";
 
   useEffect(() => {
     fetchUsers();

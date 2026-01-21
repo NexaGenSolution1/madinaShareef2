@@ -11,7 +11,7 @@ export default function ChooseUsSection() {
                 <h3 className='text-center text-[#2A166D] font-semibold!'>WHY CHOOSE US?</h3>
                 <div className='flex justify-center mt-2 mb-6'>
                     <div className='relative w-fit'>
-                        <h2 className='relative text-center text-[#2A166D] text-3xl sm:text-4xl md:text-5xl z-1'>Why Choose Rihla Access</h2>
+                        <h2 className='relative text-center text-[#2A166D] text-3xl sm:text-4xl md:text-5xl z-1'>Why Choose Brother's International</h2>
                         <div className='absolute bottom-0 left-0 w-full h-[35%] bg-[#d6d30b]/50 rounded-md z-0'></div>
                     </div>
                 </div>

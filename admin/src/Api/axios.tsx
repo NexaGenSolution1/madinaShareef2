@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const url = "http://localhost:8003/api";
-// const url = "https://brothersinttvl.com/api";
+// const url = "http://localhost:8007/api";
+const url = "https://brothersinttvl.com/api";
 
 const axiosInstance = axios.create({
   baseURL: url,
