@@ -23,7 +23,7 @@ interface Booking {
     passengers?: Array<{ name: string }>;
 }
 
-export const generateBookingPDF = async (booking: Booking): Promise<void> => {
+export const generateBookingPDF = async (booking: any): Promise<void> => {
     // Create a temporary div to hold the HTML content
     const element = document.createElement('div');
     element.style.padding = '30px';

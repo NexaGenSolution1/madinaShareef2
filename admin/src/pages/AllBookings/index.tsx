@@ -80,7 +80,7 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                         </td>
                     </tr>
                 ) : (
-                    bookings.map((booking) => {
+                    bookings.map((booking: Booking) => {
                         const statusBadge = getStatusBadge(booking.status)
                         const userId = typeof booking.userId === 'object' ? booking.userId : null
                         return (
