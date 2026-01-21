@@ -1,7 +1,10 @@
 import { useState, useEffect, memo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
+import { format } from "date-fns"
 import axiosInstance from '../../Api/axios'
 import { generateBookingPDF } from '../../utils'
+import MaskedDatePicker from '../../components/maskedDatePicker'
+
 
 interface Booking {
     _id: string
@@ -300,18 +303,25 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
 BookingsTable.displayName = 'BookingsTable'
 
 export default function AllBookings() {
+    interface Filters {
+        sector: string
+        airline: string
+        fromDate: Date | null
+    }
+
+
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
     const [bookings, setBookings] = useState<Booking[]>([])
     const [initialLoading, setInitialLoading] = useState(true)
     const [fetching, setFetching] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
-    const [filters, setFilters] = useState({
+    const [filters, setFilters] = useState<Filters>({
         sector: '',
         airline: '',
-        fromDate: '',
-        toDate: ''
+        fromDate: null,
     })
+
     const [uniqueSectors, setUniqueSectors] = useState<string[]>([])
     const [uniqueAirlines, setUniqueAirlines] = useState<string[]>([])
     const [timers, setTimers] = useState<{ [key: string]: { hours: number; minutes: number; seconds: number; expired: boolean } }>({})
@@ -374,13 +384,22 @@ export default function AllBookings() {
         try {
             setFetching(true)
 
+            // const params = new URLSearchParams({
+            //     ...(activeStatus && { status: activeStatus }),
+            //     ...(filters.sector && { sector: filters.sector }),
+            //     ...(filters.airline && { airline: filters.airline }),
+            //     ...(searchQuery && { search: searchQuery }),
+            //     ...(filters.fromDate && { fromDate: filters.fromDate }),
+            // })
+
             const params = new URLSearchParams({
                 ...(activeStatus && { status: activeStatus }),
                 ...(filters.sector && { sector: filters.sector }),
                 ...(filters.airline && { airline: filters.airline }),
                 ...(searchQuery && { search: searchQuery }),
-                ...(filters.fromDate && { fromDate: filters.fromDate }),
-                ...(filters.toDate && { toDate: filters.toDate })
+                ...(filters.fromDate && {
+                    fromDate: format(filters.fromDate, 'yyyy-MM-dd'),
+                }),
             })
 
             const response = await axiosInstance.get(`/bookings?${params}`)
@@ -396,17 +415,24 @@ export default function AllBookings() {
         }
     }
 
-    const handleFilterChange = (filterName: string, value: string) => {
+    // const handleFilterChange = (filterName: string, value: string) => {
+    //     setFilters(prev => ({ ...prev, [filterName]: value }))
+    // }
+
+    const handleFilterChange = <K extends keyof Filters>(
+        filterName: K,
+        value: Filters[K]
+    ) => {
         setFilters(prev => ({ ...prev, [filterName]: value }))
     }
+
 
     const resetFilters = () => {
         setSearchQuery('')
         setFilters({
             sector: '',
             airline: '',
-            fromDate: '',
-            toDate: ''
+            fromDate: null
         })
         // Reset status by navigating without status param
         if (activeStatus) {
@@ -495,21 +521,18 @@ export default function AllBookings() {
 
                     {/* From Date */}
                     <div className="w-full sm:w-auto min-w-[150px]">
-                        <input
+                        {/* <input
                             type="date"
                             value={filters.fromDate}
                             onChange={(e) => handleFilterChange('fromDate', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
+                        /> */}
 
-                    {/* To Date */}
-                    <div className="w-full sm:w-auto min-w-[150px]">
-                        <input
-                            type="date"
-                            value={filters.toDate}
-                            onChange={(e) => handleFilterChange('toDate', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        <MaskedDatePicker
+                            value={filters.fromDate}
+                            onChange={(date) => handleFilterChange('fromDate', date)}
+                            placeholderText="Dept Date"
+                            minDate={new Date()}
                         />
                     </div>
 

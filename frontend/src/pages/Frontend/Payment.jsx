@@ -288,7 +288,9 @@ const Payment = () => {
               <MaskedDatePicker
                 value={formData.date}
                 onChange={(date) => setFormData({ ...formData, date })}
+                minDate={new Date()}
               />
+
             </div>
 
             {/* Description */}
@@ -434,12 +436,16 @@ const Payment = () => {
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
               Date To
             </label>
-            <input
+            {/* <input
               type="date"
               name="dateTo"
               value={filters.dateTo}
               onChange={handleFilterChange}
               className="w-full px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            /> */}
+            <MaskedDatePicker
+              value={filters.dateTo}
+              onChange={(date) => setFilters({ ...filters, dateTo: date })}
             />
           </div>
 
@@ -553,10 +559,10 @@ const Payment = () => {
                     <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${payment.status === "Posted"
-                            ? "bg-green-100 text-green-800"
-                            : payment.status === "Pending"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-red-100 text-red-800"
+                          ? "bg-green-100 text-green-800"
+                          : payment.status === "Pending"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-red-100 text-red-800"
                           }`}
                       >
                         {payment.status}

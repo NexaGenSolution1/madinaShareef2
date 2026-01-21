@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import axiosInstance from '../../api/axios'
 import { toast } from 'react-toastify'
 import { generateBookingPDF } from '../../utils'
+import { format } from "date-fns"
 import MaskedDatePicker from '../../components/MaskedDatePicker'
 
 export default function MyBookings() {
@@ -15,9 +16,9 @@ export default function MyBookings() {
     const [filters, setFilters] = useState({
         sector: '',
         airline: '',
-        fromDate: '',
-        toDate: ''
+        fromDate: null,
     })
+
     const [uniqueSectors, setUniqueSectors] = useState([])
     const [uniqueAirlines, setUniqueAirlines] = useState([])
     const [timers, setTimers] = useState({})
@@ -85,8 +86,9 @@ export default function MyBookings() {
                 ...(activeStatus && { status: activeStatus }),
                 ...(filters.sector && { sector: filters.sector }),
                 ...(filters.airline && { airline: filters.airline }),
-                ...(filters.fromDate && { fromDate: filters.fromDate }),
-                ...(filters.toDate && { toDate: filters.toDate })
+                ...(filters.fromDate && {
+                    fromDate: format(filters.fromDate, 'yyyy-MM-dd'),
+                }),
             })
 
             const response = await axiosInstance.get(`/bookings?${params}`)
@@ -112,11 +114,11 @@ export default function MyBookings() {
         setFilters({
             sector: '',
             airline: '',
-            fromDate: '',
-            toDate: ''
+            fromDate: null,
         })
         navigate('/dashboard/my-bookings')
     }
+
 
     const getStatusBadge = (status) => {
         const option = statusOptions.find(opt => opt.value === status)
@@ -199,37 +201,15 @@ export default function MyBookings() {
 
                     {/* From Date */}
                     <div className="w-full sm:w-auto min-w-37.5">
-                        {/* <input
-                            type="date"
-                            value={filters.fromDate}
-                            onChange={(e) => handleFilterChange('fromDate', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        /> */}
-
                         <MaskedDatePicker
                             value={filters.fromDate}
                             onChange={(date) =>
                                 handleFilterChange('fromDate', date)
                             }
+                            placeholderText='Dept Date'
+                            minDate={new Date()}
                         />
                     </div>
-
-                    {/* To Date */}
-                    <div className="w-full sm:w-auto min-w-37.5">
-                        {/* <input
-                            type="date"
-                            value={filters.toDate}
-                            onChange={(e) => handleFilterChange('toDate', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        /> */}
-                        <MaskedDatePicker
-                            value={filters.toDate}
-                            onChange={(date) =>
-                                handleFilterChange('toDate', date)
-                            }
-                        />
-                    </div>
-
                     {/* Reset Button */}
                     <button
                         onClick={resetFilters}

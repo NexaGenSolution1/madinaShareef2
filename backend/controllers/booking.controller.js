@@ -100,7 +100,7 @@ const getAllBookings = async (req, res, next) => {
             sector,
             airline,
             fromDate,
-            toDate,
+            // toDate,
             search
         } = req.query;
 
@@ -119,14 +119,15 @@ const getAllBookings = async (req, res, next) => {
             query['airline.name'] = airline;
         }
 
-        if (fromDate || toDate) {
+        // if (fromDate || toDate) {
+        if (fromDate) {
             query.departureDate = {};
             if (fromDate) {
                 query.departureDate.$gte = new Date(fromDate);
             }
-            if (toDate) {
-                query.departureDate.$lte = new Date(toDate);
-            }
+            // if (toDate) {
+            //     query.departureDate.$lte = new Date(toDate);
+            // }
         }
 
         if (search) {

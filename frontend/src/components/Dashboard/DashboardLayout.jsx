@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { FaBars, FaTimes, FaUniversity, FaMoneyBillWave, FaSignOutAlt, FaHome, FaUsers, FaBook, FaKey, FaUserCircle, FaTicketAlt } from 'react-icons/fa';
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { FaBars, FaUniversity, FaMoneyBillWave, FaSignOutAlt, FaHome, FaUsers, FaBook, FaKey, FaUserCircle, FaTicketAlt } from 'react-icons/fa';
 import './DashboardLayout.css';
 import logo from '../../assets/images/logo.webp';
 
@@ -22,21 +23,22 @@ const DashboardLayout = ({ user, handleLogout }) => {
   const menuItems = [
     { path: '/dashboard', icon: <FaHome />, label: 'Dashboard', exact: true },
     { path: '/dashboard/all-groups', icon: <FaUsers />, label: 'All Groups' },
-    { path: '/dashboard/banks', icon: <FaUniversity />, label: 'Bank' },
-    { path: '/dashboard/payment', icon: <FaMoneyBillWave />, label: 'Payment' },
-    { path: '/dashboard/ledger', icon: <FaBook />, label: 'Ledger' },
-    { 
-      path: '/dashboard/my-bookings', 
-      icon: <FaTicketAlt />, 
+    {
+      path: '/dashboard/my-bookings',
+      icon: <FaTicketAlt />,
       label: 'My Bookings',
       hasSubMenu: true,
       subItems: [
-        { path: '/dashboard/my-bookings', label: 'All Bookings' },
         { path: '/dashboard/my-bookings?status=on hold', label: 'On Hold' },
         { path: '/dashboard/my-bookings?status=confirmed', label: 'Confirmed' },
-        { path: '/dashboard/my-bookings?status=cancelled', label: 'Cancelled' }
+        { path: '/dashboard/my-bookings?status=cancelled', label: 'Cancelled' },
+        { path: '/dashboard/my-bookings', label: 'All Bookings' },
       ]
     },
+    { path: '/dashboard/banks', icon: <FaUniversity />, label: 'Bank' },
+    { path: '/dashboard/payment', icon: <FaMoneyBillWave />, label: 'Payment' },
+    { path: '/dashboard/ledger', icon: <FaBook />, label: 'Ledger' },
+
     { path: '/dashboard/profile', icon: <FaUserCircle />, label: 'My Profile' },
     { path: '/dashboard/change-password', icon: <FaKey />, label: 'Change Password' },
   ];
@@ -73,18 +75,18 @@ const DashboardLayout = ({ user, handleLogout }) => {
                         <span className="menu-icon">{item.icon}</span>
                         {sidebarOpen && <span className="menu-label">{item.label}</span>}
                       </div>
-                      {sidebarOpen && <span className="expand-icon">{bookingsExpanded ? '▼' : '▶'}</span>}
+                      {sidebarOpen && <span className="expand-icon">{bookingsExpanded ? <ChevronDown className="w-4 h-4 expand-icon" /> : <ChevronRight className="w-4 h-4 expand-icon" />}</span>}
                     </div>
                     {bookingsExpanded && sidebarOpen && (
                       <ul className="sub-menu">
                         {item.subItems.map((subItem) => {
                           const currentPath = location.pathname;
                           const currentStatus = new URLSearchParams(location.search).get('status') || '';
-                          const subItemStatus = subItem.path.includes('?status=') 
-                            ? subItem.path.split('status=')[1] 
+                          const subItemStatus = subItem.path.includes('?status=')
+                            ? subItem.path.split('status=')[1]
                             : '';
                           const isSubActive = currentPath === '/dashboard/my-bookings' && currentStatus === subItemStatus;
-                          
+
                           return (
                             <li key={subItem.path}>
                               <Link
@@ -127,11 +129,12 @@ const DashboardLayout = ({ user, handleLogout }) => {
         {/* Header */}
         <header className="dashboard-header">
           <button onClick={toggleSidebar} className="toggle-sidebar-btn">
-            {sidebarOpen ? <FaTimes /> : <FaBars />}
+            {/* {sidebarOpen ? <FaTimes /> : <FaBars />} */}
+            {sidebarOpen ? <FaBars /> : <FaBars />}
           </button>
-          <div className="header-title">
+          {/* <div className="header-title">
             <h1>Dashboard - Brothers International</h1>
-          </div>
+          </div> */}
           <div className="header-user">
             <span>Welcome, {user?.name || 'User'}</span>
           </div>

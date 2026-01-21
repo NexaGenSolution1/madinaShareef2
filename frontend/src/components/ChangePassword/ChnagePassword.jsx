@@ -86,7 +86,7 @@ const ChangePassword = () => {
         {/* Header */}
         <div className="bg-white border border-gray-300 rounded-lg shadow-sm mb-6">
           <div className="px-6 py-4 bg-linear-to-r from-blue-50 to-white border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-gray-900">change password</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Change Password</h1>
             <p className="text-sm text-gray-600 mt-1">update your account password</p>
           </div>
         </div>
@@ -94,7 +94,7 @@ const ChangePassword = () => {
         {/* Form */}
         <div className="bg-white border border-gray-300 rounded-lg shadow-sm">
           <div className="px-6 py-4 bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f] border-b border-gray-200">
-            <h2 className="text-lg font-bold text-white">password information</h2>
+            <h2 className="text-lg font-bold text-white">Password Information</h2>
           </div>
 
           <div className="px-6 py-6">

@@ -310,6 +310,8 @@ export default function AllGroups({ headerType, header, searchParams }) {
                             onChange={(date) =>
                                 handleFilterChange('departDate', date)
                             }
+                            placeholderText='Search By Dept Date'
+                            minDate={new Date()}
                         />
                     </div>
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../api/axios";
+import MaskedDatePicker from "../../components/MaskedDatePicker";
 
 const Ledger = () => {
   const getCurrentYearStart = () => {
@@ -23,7 +24,7 @@ const Ledger = () => {
     const debit = ledgerData.reduce((sum, item) => sum + (item.debit || 0), 0);
     const credit = ledgerData.reduce((sum, item) => sum + (item.credit || 0), 0);
     const closingBalance = debit - credit;
-    
+
     return { debit, credit, closingBalance };
   };
 
@@ -39,16 +40,16 @@ const Ledger = () => {
     try {
       setFetching(true);
       setError(null);
-      
+
       const user = JSON.parse(localStorage.getItem('frontend_user'));
       const userId = user?._id || user?.id;
-      
+
       if (!userId) {
         setError('User not authenticated. Please login again.');
         setFetching(false);
         return;
       }
-      
+
       const response = await axiosInstance.get(`/payment/ledger/${userId}`, {
         params: {
           dateFrom: filters.dateFrom,
@@ -94,23 +95,23 @@ const Ledger = () => {
       const user = JSON.parse(localStorage.getItem('frontend_user'));
       const userId = user?._id || user?.id;
       const userName = user?.name || 'User';
-      
+
       if (type === 'copy') {
-        const tableData = filteredData.map(entry => 
+        const tableData = filteredData.map(entry =>
           `${entry.voucherId || '-'}\t${entry.date ? new Date(entry.date).toLocaleDateString() : '-'}\t${entry.ticketNumber || '-'}\t${entry.description || '-'}\t${entry.debit > 0 ? formatCurrency(entry.debit) : ''}\t${entry.credit > 0 ? formatCurrency(entry.credit) : ''}`
         ).join('\n');
-        
+
         const header = 'Voucher Id\tDate\tTicket #\tDescription\tDebit\tCredit\n';
         const totals = `\nTotal\t\t\t\t${formatCurrency(calculateTotals().debit)}\t${formatCurrency(calculateTotals().credit)}`;
         const fullText = `Ledger of ${userName.toUpperCase()}\nFrom ${filters.dateFrom} To ${filters.dateTo}\n\n${header}${tableData}${totals}`;
-        
+
         await navigator.clipboard.writeText(fullText);
         alert('Table data copied to clipboard!');
         return;
       }
 
       const exportUrl = `/payment/ledger/${userId}/export/${type}`;
-      
+
       const response = await axiosInstance.get(exportUrl, {
         params: {
           dateFrom: filters.dateFrom,
@@ -133,7 +134,7 @@ const Ledger = () => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      
+
       const extension = type === 'csv' ? 'csv' : type === 'excel' ? 'xlsx' : 'pdf';
       link.setAttribute('download', `ledger-${userName}-${Date.now()}.${extension}`);
       document.body.appendChild(link);
@@ -168,7 +169,7 @@ const Ledger = () => {
       </div>
     );
   }
-  
+
 
   if (error && ledgerData.length === 0) {
     return (
@@ -240,12 +241,15 @@ const Ledger = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               From Date
             </label>
-            <input
+            {/* <input
               type="date"
               value={filters.dateFrom}
               onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            /> */}
+            <MaskedDatePicker value={filters.dateFrom}
+              onChange={(date) => handleFilterChange('dateFrom', date)}
+              placeholderText="From Date" />
           </div>
 
           {/* To Date */}
@@ -253,12 +257,15 @@ const Ledger = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               To Date
             </label>
-            <input
+            {/* <input
               type="date"
               value={filters.dateTo}
               onChange={(e) => handleFilterChange('dateTo', e.target.value)}
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            /> */}
+            <MaskedDatePicker value={filters.dateFrom}
+              onChange={(date) => handleFilterChange('dateFrom', date)}
+              placeholderText="From Date" />
           </div>
         </div>
 
@@ -315,7 +322,7 @@ const Ledger = () => {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         )}
-        
+
         <div className="overflow-x-auto -mx-4 sm:mx-0">
           <div className="inline-block min-w-full align-middle px-4 sm:px-0">
             <table className="min-w-full divide-y divide-gray-200">
