@@ -1,6 +1,13 @@
 import Booking from '../models/Booking.js';
 import GroupTicketing from '../models/GroupTicketing.js';
-import { startBookingTimer, cancelBookingTimer } from '../utils/bookingTimer.js';
+// import { startBookingTimer, cancelBookingTimer } from '../utils/bookingTimer.js';
+import {
+    startBookingTimer,
+    cancelBookingTimer,
+    hasBookingTimer,
+    getBookingRemainingTime
+} from '../utils/bookingTimer.js';
+
 
 // Create a new booking
 const createBooking = async (req, res) => {
@@ -63,7 +70,7 @@ const createBooking = async (req, res) => {
 
         await booking.save();
 
-        // Start 2-minute timer for automatic cancellation
+        // Start 2-hours timer for automatic cancellation
         startBookingTimer(booking._id.toString());
 
         // Update GroupTicketing totalSeats - subtract only adults + children (ignore infants)
@@ -153,6 +160,23 @@ const getAllBookings = async (req, res, next) => {
 
         const total = await Booking.countDocuments(query);
 
+        bookings.forEach((booking) => {
+            if (
+                (booking.status === 'on hold' || booking.status === 'pending') &&
+                !hasBookingTimer(booking._id.toString())
+            ) {
+                startBookingTimer(booking._id.toString());
+            }
+        });
+
+        const data = bookings.map((b) => ({
+            ...b.toObject(),
+            remainingTime:
+                b.status === 'on hold' || b.status === 'pending'
+                    ? getBookingRemainingTime(b.createdAt)
+                    : null
+        }));
+
         res.json({
             success: true,
             data: bookings,
@@ -195,7 +219,7 @@ const getBookingById = async (req, res, next) => {
             requestUserId: req.user._id.toString(),
             isMatch: bookingUserId === req.user._id.toString()
         });
-        
+
         if (req.user.role !== 'Admin' && bookingUserId !== req.user._id.toString()) {
             return res.status(403).json({
                 success: false,
@@ -203,9 +227,25 @@ const getBookingById = async (req, res, next) => {
             });
         }
 
+        if (
+            (booking.status === 'on hold' || booking.status === 'pending') &&
+            !hasBookingTimer(booking._id.toString())
+        ) {
+            startBookingTimer(booking._id.toString());
+        }
+
+        // res.json({
+        //     success: true,
+        //     data: booking
+        // });
+
         res.json({
             success: true,
-            data: booking
+            data: booking,
+            remainingTime:
+                booking.status === 'on hold' || booking.status === 'pending'
+                    ? getBookingRemainingTime(booking.createdAt)
+                    : null
         });
     } catch (error) {
         console.error('Error fetching booking:', error);
@@ -241,10 +281,27 @@ const getBookingByReference = async (req, res, next) => {
             });
         }
 
+        // res.json({
+        //     success: true,
+        //     data: booking
+        // });
+
+        if (
+            (booking.status === 'on hold' || booking.status === 'pending') &&
+            !hasBookingTimer(booking._id.toString())
+        ) {
+            startBookingTimer(booking._id.toString());
+        }
+
         res.json({
             success: true,
-            data: booking
+            data: booking,
+            remainingTime:
+                booking.status === 'on hold' || booking.status === 'pending'
+                    ? getBookingRemainingTime(booking.createdAt)
+                    : null
         });
+
     } catch (error) {
         console.error('Error fetching booking:', error);
         res.status(500).json({
@@ -279,7 +336,7 @@ const updateBookingStatus = async (req, res, next) => {
         }
 
         // Cancel timer if booking is being confirmed or cancelled
-        if (status !== 'on hold') {
+        if (status !== 'on hold' && status !== 'pending') {
             cancelBookingTimer(id);
         }
 
@@ -329,7 +386,7 @@ const updateBooking = async (req, res, next) => {
         }
 
         // Only allow updates if booking is on hold
-        if (booking.status !== 'on hold') {
+        if (booking.status !== 'on hold' && booking.status !== 'pending') {
             return res.status(400).json({
                 success: false,
                 message: 'Can only update bookings that are on hold'

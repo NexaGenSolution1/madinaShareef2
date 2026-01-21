@@ -242,7 +242,7 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                         <span className={`inline-block px-3 py-1.5 rounded-md text-xs shadow-sm ${statusBadge.color}`}>
                                             {statusBadge.label}
                                         </span>
-                                        {booking.status === 'on hold' && (
+                                        {(booking.status === 'on hold' || booking.status === 'pending') && (
                                             <div className="space-y-2 pt-1">
                                                 {/* <div className="text-xs text-yellow-700 font-semibold bg-yellow-50 px-2.5 py-1.5 rounded-md border border-yellow-300">
                                                     Admin Review<br />Required
@@ -403,14 +403,34 @@ export default function AllBookings() {
     //     return () => clearInterval(interval)
     // }, [bookings])
 
+    // useEffect(() => {
+    //     const onHoldBookings = bookings.filter(b => b.status === 'on hold')
+    //     if (onHoldBookings.length === 0) return
+
+    //     const interval = setInterval(() => {
+    //         const newTimers: Record<string, Timer> = {}
+
+    //         onHoldBookings.forEach(booking => {
+    //             newTimers[booking._id] = calculateRemainingTime(booking.createdAt)
+    //         })
+
+    //         setTimers(newTimers)
+    //     }, 1000)
+
+    //     return () => clearInterval(interval)
+    // }, [bookings])
+
     useEffect(() => {
-        const onHoldBookings = bookings.filter(b => b.status === 'on hold')
-        if (onHoldBookings.length === 0) return
+        const activeBookings = bookings.filter(
+            b => b.status === 'on hold' || b.status === 'pending'
+        )
+
+        if (activeBookings.length === 0) return
 
         const interval = setInterval(() => {
             const newTimers: Record<string, Timer> = {}
 
-            onHoldBookings.forEach(booking => {
+            activeBookings.forEach(booking => {
                 newTimers[booking._id] = calculateRemainingTime(booking.createdAt)
             })
 
@@ -419,6 +439,7 @@ export default function AllBookings() {
 
         return () => clearInterval(interval)
     }, [bookings])
+
 
 
 
