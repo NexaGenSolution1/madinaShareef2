@@ -13,7 +13,7 @@ import testEmail from "./utils/testEmail.js";
 import alHaiderAPIRoutes from "./routes/alHaiderAPI.routes.js";
 import bookingRoutes from "./routes/booking.routes.js";
 import exportRoutes from "./routes/export.routes.js";
-import { initializeBookingTimers } from "./utils/bookingTimer.js";
+// import { initializeBookingTimers } from "./utils/bookingTimer.js";
 
 
 const app = express();
@@ -53,7 +53,7 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/export", exportRoutes);
 
 // Initialize booking timers on server startup
-initializeBookingTimers();
+// initializeBookingTimers();
 
 app.get('/', (req, res) => {
     res.send('Brother International API is running');

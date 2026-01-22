@@ -173,7 +173,7 @@ const getAllBookings = async (req, res, next) => {
             ...b.toObject(),
             remainingTime:
                 b.status === 'on hold' || b.status === 'pending'
-                    ? getBookingRemainingTime(b.createdAt)
+                    ? getBookingRemainingTime(b.updatedAt)
                     : null
         }));
 
@@ -245,7 +245,7 @@ const getBookingById = async (req, res, next) => {
             data: booking,
             remainingTime:
                 booking.status === 'on hold' || booking.status === 'pending'
-                    ? getBookingRemainingTime(booking.createdAt)
+                    ? getBookingRemainingTime(booking.updatedAt)
                     : null
         });
     } catch (error) {
@@ -300,7 +300,7 @@ const getBookingByReference = async (req, res, next) => {
             data: booking,
             remainingTime:
                 booking.status === 'on hold' || booking.status === 'pending'
-                    ? getBookingRemainingTime(booking.createdAt)
+                    ? getBookingRemainingTime(booking.updatedAt)
                     : null
         });
 
@@ -321,6 +321,14 @@ const updateBookingStatus = async (req, res, next) => {
         const { status, notes } = req.body;
 
         const booking = await Booking.findById(id);
+        const { groupId, adultsCount, childrenCount } = booking;
+        let seatDifference = 0;
+        if (status === 'cancelled') {
+            seatDifference = adultsCount + childrenCount;
+        }
+        else if (booking.status === 'cancelled') {
+            seatDifference = - (adultsCount + childrenCount);
+        }
 
         if (!booking) {
             return res.status(404).json({
@@ -338,8 +346,12 @@ const updateBookingStatus = async (req, res, next) => {
         }
 
         // Cancel timer if booking is being confirmed or cancelled
-        if (status !== 'on hold' && status !== 'pending') {
-            cancelBookingTimer(id);
+        // if (status !== 'on hold' && status !== 'pending') {
+
+        // }
+        cancelBookingTimer(id);
+        if (status === 'on hold' || status === 'pending') {
+            await startBookingTimer(id);
         }
 
         booking.status = status;
@@ -348,6 +360,11 @@ const updateBookingStatus = async (req, res, next) => {
         }
 
         await booking.save();
+
+        await GroupTicketing.updateOne(
+            { _id: groupId },
+            { $inc: { totalSeats: seatDifference } }
+        );
 
         res.json({
             success: true,
@@ -371,6 +388,17 @@ const updateBooking = async (req, res, next) => {
         const { contactPersonName, notes, adultsCount, childrenCount, infantsCount, passengers, pricing } = req.body;
 
         const booking = await Booking.findById(id);
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: 'Booking not found'
+            });
+        }
+
+        const groupId = booking.groupId;
+        const seartsToRevert = booking.adultsCount + booking.childrenCount;
+        const seatsToReduce = adultsCount + childrenCount;
+        const seatDifference = seartsToRevert - seatsToReduce;
 
         if (!booking) {
             return res.status(404).json({
@@ -418,13 +446,31 @@ const updateBooking = async (req, res, next) => {
             booking.pricing = pricing;
         }
 
+        booking.updatedAt = new Date();
         await booking.save();
+
+        await GroupTicketing.updateOne(
+            { _id: groupId },
+            { $inc: { totalSeats: seatDifference } }
+        );
+
+        // Restart timer
+        // Restart or cancel timer correctly
+        if (booking.status === 'on hold' || booking.status === 'pending') {
+            cancelBookingTimer(booking._id.toString());
+            await startBookingTimer(booking._id.toString());
+        }
 
         res.json({
             success: true,
             message: 'Booking updated successfully',
-            data: booking
+            data: booking,
+            remainingTime:
+                booking.status === 'on hold' || booking.status === 'pending'
+                    ? getBookingRemainingTime(booking.updatedAt)
+                    : null
         });
+
     } catch (error) {
         console.error('Error updating booking:', error);
         res.status(500).json({
@@ -441,6 +487,8 @@ const cancelBooking = async (req, res, next) => {
         const { id } = req.params;
 
         const booking = await Booking.findById(id);
+        const { groupId, adultsCount, childrenCount } = booking;
+        const seatDifference = adultsCount + childrenCount;
 
         if (!booking) {
             return res.status(404).json({
@@ -471,6 +519,10 @@ const cancelBooking = async (req, res, next) => {
         booking.status = 'cancelled';
         await booking.save();
 
+        await GroupTicketing.updateOne(
+            { _id: groupId },
+            { $inc: { totalSeats: seatDifference } }
+        );
         res.json({
             success: true,
             message: 'Booking cancelled successfully',
@@ -498,8 +550,7 @@ const deleteBooking = async (req, res, next) => {
                 message: 'Not authorized to delete bookings'
             });
         }
-
-        const booking = await Booking.findByIdAndDelete(id);
+        const booking = await Booking.findById(id);
 
         if (!booking) {
             return res.status(404).json({
@@ -507,6 +558,15 @@ const deleteBooking = async (req, res, next) => {
                 message: 'Booking not found'
             });
         }
+        const { groupId, adultsCount, childrenCount } = booking;
+        const seatDifference = adultsCount + childrenCount;
+        if (booking.status !== 'cancelled') {
+            await GroupTicketing.updateOne(
+                { _id: groupId },
+                { $inc: { totalSeats: seatDifference } }
+            );
+        }
+        await Booking.findByIdAndDelete(id);
 
         res.json({
             success: true,

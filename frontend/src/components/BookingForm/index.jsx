@@ -794,117 +794,23 @@ export default function BookingForm() {
                                             />
                                         </td>
                                         <td className="px-3 py-2">
-                                            {/* <DatePicker
-                                                selected={passenger.dateOfBirth}
-                                                dateFormat="dd/MM/yyyy"
-                                                placeholderText="DD/MM/YYYY"
-
-                                                onChange={(date) =>
-                                                    handlePassengerChange(index, "dateOfBirth", date)
-                                                }
-
-                                                onChangeRaw={(e) => {
-                                                    const formatted = formatDateInput(e.target.value);
-                                                    e.target.value = formatted;
-
-                                                    if (formatted.length === 10) {
-                                                        const parsed = parse(formatted, "dd/MM/yyyy", new Date());
-
-                                                        if (isValid(parsed)) {
-                                                            handlePassengerChange(index, "dateOfBirth", parsed);
-                                                        }
-                                                    }
-                                                }}
-
-                                                onKeyDown={(e) => {
-                                                    const allowed = [
-                                                        "Backspace",
-                                                        "Tab",
-                                                        "ArrowLeft",
-                                                        "ArrowRight",
-                                                        "Delete",
-                                                    ];
-
-                                                    if (!allowed.includes(e.key) && !/\d/.test(e.key)) {
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-
-                                                className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                                            /> */}
                                             <MaskedDatePicker
                                                 value={passenger.dateOfBirth}
                                                 onChange={(date) =>
                                                     handlePassengerChange(index, "dateOfBirth", date)
                                                 }
                                                 size="small"
+                                                maxDate={new Date()}
                                             />
                                         </td>
                                         <td className="px-3 py-2">
-                                            {/* <DatePicker
-                                                selected={passenger.passportExpiry}
-                                                onChange={(date) =>
-                                                    handlePassengerChange(index, 'passportExpiry', date)
-                                                }
-                                                onChangeRaw={(e) => {
-                                                    const value = e.target.value;
-                                                    const parsedDate = parse(value, "dd/MM/yyyy", new Date());
-                                                    if (isValid(parsedDate)) {
-                                                        handlePassengerChange(index, 'passportExpiry', parsedDate);
-                                                    }
-                                                }}
-                                                placeholderText="Passport Expiry"
-                                                dateFormat="dd/MM/yyyy"
-                                                className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                                            /> */}
-
-
-
-                                            {/* <DatePicker
-                                                selected={passenger.dateOfBirth}
-                                                dateFormat="dd/MM/yyyy"
-                                                placeholderText="DD/MM/YYYY"
-
-                                                onChange={(date) =>
-                                                    handlePassengerChange(index, "passportExpiry", date)
-                                                }
-
-                                                onChangeRaw={(e) => {
-                                                    const formatted = formatDateInput(e.target.value);
-                                                    e.target.value = formatted;
-
-                                                    if (formatted.length === 10) {
-                                                        const parsed = parse(formatted, "dd/MM/yyyy", new Date());
-
-                                                        if (isValid(parsed)) {
-                                                            handlePassengerChange(index, "passportExpiry", parsed);
-                                                        }
-                                                    }
-                                                }}
-
-                                                onKeyDown={(e) => {
-                                                    const allowed = [
-                                                        "Backspace",
-                                                        "Tab",
-                                                        "ArrowLeft",
-                                                        "ArrowRight",
-                                                        "Delete",
-                                                    ];
-
-                                                    if (!allowed.includes(e.key) && !/\d/.test(e.key)) {
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-
-                                                className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                                            /> */}
-
                                             <MaskedDatePicker
                                                 value={passenger.passportExpiry}
                                                 onChange={(date) =>
                                                     handlePassengerChange(index, "passportExpiry", date)
                                                 }
                                                 size="small"
+                                                minDate={new Date()}
                                             />
                                         </td>
                                         <td className="px-3 py-2">
