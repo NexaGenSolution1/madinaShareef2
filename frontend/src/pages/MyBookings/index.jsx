@@ -5,7 +5,8 @@ import { toast } from 'react-toastify'
 import { generateBookingPDF } from '../../utils'
 import { format } from "date-fns"
 import MaskedDatePicker from '../../components/MaskedDatePicker'
-import { printGDSBooking } from '../../utils/BookingPDFService'
+// import { printGDSBooking } from '../../utils/BookingPDFService'
+import { printGDSBooking } from '../../utils/bookingPDFService'
 
 export default function MyBookings() {
     const navigate = useNavigate()
