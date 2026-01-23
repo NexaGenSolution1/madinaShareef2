@@ -39,6 +39,14 @@ export const adminOnly = (req, res, next) => {
 export const alHaiderAuthMiddleware = async (req, res, callback) => {
   
   try {
+    // Prefer a pre-provided token from environment if available
+    const staticToken = process.env.ALI_HAIDER_API_TOKEN;
+
+    if (staticToken && staticToken.trim().length > 0) {
+      req.alHaiderAPIToken = staticToken.trim();
+      return callback();
+    }
+
     const credentials = {
       email: process.env.ALI_HAIDER_API_EMAIL,
       password: process.env.ALI_HAIDER_API_PASSWORD
