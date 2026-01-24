@@ -230,17 +230,6 @@ export default function AllGroups({ headerType, header, searchParams }) {
         applyFilters()
     }, [filters, allGroups])
 
-    // if (loading) {
-    //     return (
-    //         <div className="w-full min-h-screen flex items-center justify-center">
-    //             <div className="text-center">
-    //                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-    //                 <p className="mt-4 text-gray-600">Loading groups...</p>
-    //             </div>
-    //         </div>
-    //     )
-    // }
-
     if (error) {
         return (
             <div className="w-full min-h-screen flex items-center justify-center">
@@ -259,13 +248,15 @@ export default function AllGroups({ headerType, header, searchParams }) {
 
     return (
         <div className="w-full min-h-screen mx-auto">
-            <div className={`flex flex-col md:flex-row md:items-center md:justify-between gap-4 ${headerType === 'dashboard' ? 'bg-white rounded-lg shadow p-3 sm:p-4 mb-4' : ''}`}>
-                {header}
+            <div className={`flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 ${headerType === 'dashboard' ? 'bg-white rounded-lg shadow p-4 mb-4' : ''}`}>
+                <div className="w-full xl:w-auto">
+                    {header}
+                </div>
+                
                 {/* Advanced Search Section */}
-                {/* <div className="mb-4 bg-white rounded-lg shadow p-3 sm:p-4"> */}
-                <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
                     {/* Advanced Search Toggle */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-2 border-b sm:border-0 pb-2 sm:pb-0 border-gray-100">
                         <label className="flex items-center cursor-pointer">
                             <div className="relative">
                                 <input
@@ -280,31 +271,12 @@ export default function AllGroups({ headerType, header, searchParams }) {
                                         }`}></div>
                                 </div>
                             </div>
-                            <span className="ml-2 text-sm font-medium text-gray-700">Advance Search</span>
+                            <span className="ml-2 text-sm font-medium text-gray-700 whitespace-nowrap">Advance Search</span>
                         </label>
                     </div>
 
                     {/* Search by Dept Date */}
-                    <div className="shrink-0">
-                        {/* <label className="block text-xs font-medium text-gray-700 mb-1">
-                            Search by Dept Date
-                        </label> */}
-                        {/* <DatePicker
-                            selected={filters.departDate}
-                            onChange={(date) => handleFilterChange('departDate', date)}
-                            onChangeRaw={(e) => {
-                                const value = e.target.value.replace(/[^0-9/]/g, "");
-                                const parsedDate = parse(value, "dd/MM/yyyy", new Date());
-                                if (isValid(parsedDate)) {
-                                    handleFilterChange('departDate', parsedDate);
-                                }
-                            }}
-                            placeholderText="Search by Dept Date"
-                            dateFormat="dd/MM/yyyy"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            wrapperClassName="w-full"
-                            calendarClassName="custom-datepicker"
-                        /> */}
+                    <div className="w-full sm:w-48 shrink-0">
                         <MaskedDatePicker
                             value={filters.departDate}
                             onChange={(date) =>
@@ -316,7 +288,7 @@ export default function AllGroups({ headerType, header, searchParams }) {
                     </div>
 
                     {/* Search by Keyword */}
-                    <div className="flex-1 min-w-50">
+                    <div className="w-full sm:w-64">
                         <div className="relative">
                             <input
                                 type="text"
@@ -331,7 +303,6 @@ export default function AllGroups({ headerType, header, searchParams }) {
                         </div>
                     </div>
                 </div>
-                {/* </div> */}
             </div>
 
             {/* Main Content with Sidebar */}
@@ -377,173 +348,42 @@ export default function AllGroups({ headerType, header, searchParams }) {
                     </div>
                 )}
 
-                {/* Main Table Area */}
-                <div className="flex-1">
+                {/* Main Table Area - Responsive Image View */}
+                <div className="flex-1 w-full overflow-hidden">
                     <div className="bg-white rounded-lg shadow overflow-hidden">
+                        {/* overflow-x-auto allows horizontal scrolling on mobile */}
                         <div className="overflow-x-auto">
-                            <table className="min-w-full">
-                                <thead className="bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f]">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                {/* Deep Blue Header to match image */}
+                                <thead className="bg-[#1e4a76] text-white">
                                     <tr>
-                                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
-                                            Flight#
-                                        </th>
-                                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                        <th className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
                                             Date
                                         </th>
-                                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                        <th className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
+                                            Flight#
+                                        </th>
+                                        <th className="px-3 py-2 text-center text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
                                             Origin-Destination
                                         </th>
-                                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                        <th className="px-3 py-2 text-center text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
                                             Time
                                         </th>
-                                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                        <th className="px-3 py-2 text-center text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
                                             Baggage
                                         </th>
-                                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                        <th className="px-3 py-2 text-center text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
                                             Meal
                                         </th>
-                                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
+                                        <th className="px-3 py-2 text-center text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
                                             Price
                                         </th>
-                                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">
-                                            Actions
+                                        <th className="px-3 py-2 text-center text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
+                                            Action
                                         </th>
                                     </tr>
                                 </thead>
-                                {/* <tbody className="bg-white divide-y divide-dashed divide-gray-300">
-                                    {
-                                        loading ? (
-                                            <tr>
-                                                <td colSpan="8" className="px-6 py-8 text-center text-gray-500 text-sm">
-                                                    Loading groups...
-                                                </td>
-                                            </tr>
-                                        ) : null
-                                    }
-                                    {groups.length === 0 ? (
-                                        <tr>
-                                            <td colSpan="8" className="px-6 py-8 text-center text-gray-500 text-sm">
-                                                No groups available at the moment
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        (() => {
-                                            const groupedData = groups.reduce((acc, group) => {
-                                                const key = `${group.airline?.airline_name || 'Unknown'}-${group.sector || 'Unknown'}`
-                                                if (!acc[key]) {
-                                                    acc[key] = {
-                                                        airline: group.airline?.airline_name || 'Unknown',
-                                                        sector: group.sector || 'Unknown',
-                                                        logo_url: group.airline?.logo_url || null,
-                                                        groups: []
-                                                    }
-                                                }
-                                                acc[key].groups.push(group)
-                                                return acc
-                                            }, {})
-
-                                            const formatDate = (dateStr) => {
-                                                const date = new Date(dateStr)
-                                                const day = date.getDate().toString().padStart(2, '0')
-                                                const month = date.toLocaleDateString('en-US', { month: 'short' })
-                                                const year = date.getFullYear()
-                                                return `${day} ${month} ${year}`
-                                            }
-                                            return Object.entries(groupedData).map(([key, data]) => (
-                                                <React.Fragment key={key}>
-                                                   
-                                                    <tr className="bg-gray-50">
-                                                        <td colSpan="8" className="px-4 py-3">
-                                                            <div className="flex items-center justify-center gap-3">
-                                                                {data.logo_url && (
-                                                                    <img
-                                                                        src={data.logo_url}
-                                                                        alt={data.airline}
-                                                                        className='w-32 object-contain'
-                                                                    />
-                                                                )}
-                                                                <span className="font-semibold text-gray-900 text-base">
-                                                                    {data.sector}
-                                                                </span>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-
-                                                    {data.groups.map((group, groupIndex) => (
-                                                        <tr
-                                                            key={group.id}
-                                                            className=" bg-sky-200/30 text-sm text-gray-900 [&>td]:px-4 [&>td]:py-1 align-middle"
-                                                        >
-                                                            <td className="font-medium">
-                                                                {group.details?.map((flight, i) => (
-                                                                    <div key={i}>
-                                                                        {flight.flight_no}
-                                                                    </div>
-                                                                ))}
-                                                            </td>
-
-                                                            <td>
-                                                                {group.details?.map((flight, i) => (
-                                                                    <div key={i} className="flex justify-center gap-2">
-                                                                        <span className="text-blue-600">✈</span>
-                                                                        <span>{formatDate(flight.flight_date)}</span>
-                                                                    </div>
-                                                                ))}
-                                                            </td>
-                                                            <td>
-                                                                {group.details?.map((flight, i) => (
-                                                                    <div key={i} className="flex justify-center">
-                                                                        {flight.origin}-{flight.destination}
-                                                                    </div>
-                                                                ))}
-                                                            </td>
-
-                                                            <td>
-                                                                {group.details?.map((flight, i) => (
-                                                                    <div key={i} className="flex justify-center">
-                                                                        {flight.dept_time?.substring(0, 5)} - {flight.arv_time?.substring(0, 5)}
-                                                                    </div>
-                                                                ))}
-                                                            </td>
-
-                                                            <td>
-                                                                {group.details?.map((flight, i) => (
-                                                                    <div key={i} className="flex justify-center">
-                                                                        {flight.baggage ? `${flight.baggage} KG` : 'N/A'}
-                                                                    </div>
-                                                                ))}
-                                                            </td>
-
-                                                            <td>
-                                                                {group.details?.map((flight, i) => (
-                                                                    <div key={i} className="flex justify-center">
-                                                                        {flight.meal || 'No'}
-                                                                    </div>
-                                                                ))}
-                                                            </td>
-
-
-                                                            <td className="font-semibold text-center">
-                                                                PKR {group.price?.toLocaleString()}
-                                                            </td>
-
-                                                            <td className="text-center">
-                                                                <button
-                                                                    onClick={() => handleBookNow(group)}
-                                                                    className="px-4 py-2 bg-[#ff6b35] hover:bg-[#ff5722] text-white rounded-md text-sm font-medium transition-colors shadow-sm"
-                                                                >
-                                                                    Book now
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-
-                                                </React.Fragment>
-                                            ))
-                                        })()
-                                    )}
-                                </tbody> */}
-                                <tbody className="bg-white divide-y divide-dashed divide-gray-300">
+                                <tbody className="bg-white">
 
                                     {loading && (
                                         <tr>
@@ -575,6 +415,7 @@ export default function AllGroups({ headerType, header, searchParams }) {
                                             acc[key].groups.push(group);
                                             return acc;
                                         }, {});
+                                        
                                         const formatDate = (dateStr) => {
                                             const date = new Date(dateStr)
                                             const day = date.getDate().toString().padStart(2, '0')
@@ -582,88 +423,95 @@ export default function AllGroups({ headerType, header, searchParams }) {
                                             const year = date.getFullYear()
                                             return `${day} ${month} ${year}`
                                         }
+
                                         return Object.entries(groupedData).map(([key, data]) => (
                                             <React.Fragment key={key}>
 
-                                                {/* Airline Header */}
-                                                <tr className="bg-gray-50">
-                                                    <td colSpan="8" className="px-4 py-3">
-                                                        <div className="flex items-center justify-center gap-3 flex-wrap">
-                                                            {data.logo_url && (
-                                                                <img
-                                                                    src={data.logo_url}
-                                                                    alt={data.airline}
-                                                                    className="w-32 object-contain"
-                                                                />
-                                                            )}
-                                                            <span className="font-semibold text-gray-900 text-base">
+                                                {/* Airline Header Row - Styled like image (Pink Airline + Black Sector) */}
+                                                <tr className="bg-white border-b border-gray-100">
+                                                    <td colSpan="8" className="px-4 py-2 text-center">
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <span className="font-bold text-[#D70F64] text-sm">
+                                                                {data.airline}
+                                                            </span>
+                                                            <span className="font-bold text-gray-900 text-sm">
                                                                 {data.sector}
                                                             </span>
                                                         </div>
                                                     </td>
                                                 </tr>
 
-                                                {/* Group Rows */}
+                                                {/* Group Rows - Condensed, single line per cell */}
                                                 {data.groups.map((group) => (
                                                     <tr
                                                         key={group.id}
-                                                        className="bg-sky-200/30 text-sm text-gray-900"
+                                                        className="hover:bg-gray-50 border-b border-gray-100 bg-[#f4f9ff]"
                                                     >
-                                                        <td className="px-4 py-2 font-semibold">
+                                                        {/* Date Column with Cyan Icon */}
+                                                        <td className="px-3 py-2 whitespace-nowrap align-middle">
                                                             {group.details?.map((flight, i) => (
-                                                                <div key={i}>{flight.flight_no}</div>
-                                                            ))}
-                                                        </td>
-
-                                                        <td className="px-4 py-2 font-semibold">
-                                                            {group.details?.map((flight, i) => (
-                                                                <div key={i} className="flex justify-center">
-                                                                    <span className="text-blue-600">✈</span>
+                                                                <div key={i} className="flex items-center gap-1.5 text-[#06b6d4] font-bold text-[8px] md:text-xs">
+                                                                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                                                        <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                                                                    </svg>
                                                                     <span>{formatDate(flight.flight_date)}</span>
                                                                 </div>
                                                             ))}
                                                         </td>
 
-                                                        <td className="px-4 py-2 font-semibold">
+                                                        {/* Flight Number */}
+                                                        <td className="px-3 py-2 whitespace-nowrap text-[8px] md:text-xs font-bold text-gray-600 align-middle">
                                                             {group.details?.map((flight, i) => (
-                                                                <div key={i} className="flex justify-center">
+                                                                <div key={i}>{flight.flight_no}</div>
+                                                            ))}
+                                                        </td>
+
+                                                        {/* Origin-Destination */}
+                                                        <td className="px-3 py-2 whitespace-nowrap text-center text-[8px] md:text-xs font-bold text-gray-600 align-middle">
+                                                            {group.details?.map((flight, i) => (
+                                                                <div key={i}>
                                                                     {flight.origin.toUpperCase()}-{flight.destination.toUpperCase()}
                                                                 </div>
                                                             ))}
                                                         </td>
 
-                                                        <td className="px-4 py-2 font-semibold">
+                                                        {/* Time */}
+                                                        <td className="px-3 py-2 whitespace-nowrap text-center text-[8px] md:text-xs font-bold text-gray-600 align-middle">
                                                             {group.details?.map((flight, i) => (
-                                                                <div key={i} className="flex justify-center">
-                                                                    {flight.dept_time?.substring(0, 5)} - {flight.arv_time?.substring(0, 5)}
+                                                                <div key={i}>
+                                                                    {flight.dept_time?.substring(0, 5)}-{flight.arv_time?.substring(0, 5)}
                                                                 </div>
                                                             ))}
                                                         </td>
 
-                                                        <td className="px-4 py-2 font-semibold">
+                                                        {/* Baggage */}
+                                                        <td className="px-3 py-2 whitespace-nowrap text-center text-[8px] md:text-xs font-bold text-gray-600 align-middle">
                                                             {group.details?.map((flight, i) => (
-                                                                <div key={i} className="flex justify-center">
+                                                                <div key={i}>
                                                                     {flight.baggage ? `${flight.baggage} KG` : 'N/A'}
                                                                 </div>
                                                             ))}
                                                         </td>
 
-                                                        <td className="px-4 py-2 font-semibold">
+                                                        {/* Meal */}
+                                                        <td className="px-3 py-2 whitespace-nowrap text-center text-[8px] md:text-xs font-bold text-gray-600 align-middle">
                                                             {group.details?.map((flight, i) => (
-                                                                <div key={i} className="flex justify-center">
+                                                                <div key={i}>
                                                                     {flight.meal || 'No'}
                                                                 </div>
                                                             ))}
                                                         </td>
 
-                                                        <td className="px-4 py-2 font-semibold text-center">
+                                                        {/* Price */}
+                                                        <td className="px-3 py-2 whitespace-nowrap text-center text-[8px] md:text-xs font-bold text-gray-600 align-middle">
                                                             PKR {group.price?.toLocaleString()}
                                                         </td>
 
-                                                        <td className="px-4 py-2 font-semibold text-center">
+                                                        {/* Action Button - Orange */}
+                                                        <td className="px-3 py-2 whitespace-nowrap text-center align-middle">
                                                             <button
                                                                 onClick={() => handleBookNow(group)}
-                                                                className="px-4 py-2 bg-[#ff6b35] hover:bg-[#ff5722] text-white rounded-md text-sm font-medium transition-colors shadow-sm"
+                                                                className="px-1.5! py-1! md:px-3! md:py-1.5! bg-[#f97316] hover:bg-[#ea580c] text-white rounded text-[8px]! md:text-xs! font-semibold shadow-sm transition-colors"
                                                             >
                                                                 Book now
                                                             </button>
