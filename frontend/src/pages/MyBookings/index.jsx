@@ -352,7 +352,7 @@ export default function MyBookings() {
                                                             {[
                                                                 { key: 'on hold', label: 'Requested' },
                                                                 { key: 'confirmed', label: 'Confirmed' },
-                                                                { key: 'cancelled', label: 'Cancelled' },
+                                                                // { key: 'cancelled', label: 'Cancelled' },
                                                             ].map(({ key, label }) => {
                                                                 const active = booking.status === key
 
