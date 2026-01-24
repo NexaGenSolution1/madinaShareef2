@@ -34,6 +34,44 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   text-align: center;
   flex-shrink: 0;
+  position: relative;
+}
+
+/* Close button visible only on mobile */
+.sidebar-close-btn {
+  display: none;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 6px;
+  z-index: 1100;
+}
+
+/* Clickable overlay that closes the sidebar on mobile */
+.sidebar-overlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sidebar-close-btn {
+    display: block;
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 999;
+  }
 }
 
 .sidebar-logo {

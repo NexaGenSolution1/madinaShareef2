@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { FaBars, FaUniversity, FaMoneyBillWave, FaSignOutAlt, FaHome, FaUsers, FaBook, FaKey, FaUserCircle, FaTicketAlt } from 'react-icons/fa';
+import { FaBars, FaTimes, FaUniversity, FaMoneyBillWave, FaSignOutAlt, FaHome, FaUsers, FaBook, FaKey, FaUserCircle, FaTicketAlt } from 'react-icons/fa';
 import './DashboardLayout.css';
 import logo from '../../assets/images/logo.webp';
 
@@ -58,6 +58,9 @@ const DashboardLayout = ({ user, handleLogout }) => {
           <Link to="/" className="sidebar-logo">
             <img src={logo} alt="Logo" style={{ width: '80px', height: 'auto' }} onError={(e) => e.target.style.display = 'none'} />
           </Link>
+          <button className="sidebar-close-btn" onClick={toggleSidebar} aria-label="Close sidebar">
+            <FaTimes />
+          </button>
         </div>
 
         <nav className="sidebar-nav">
@@ -124,13 +127,14 @@ const DashboardLayout = ({ user, handleLogout }) => {
         </div>
       </aside>
 
+      {sidebarOpen && <div className="sidebar-overlay" onClick={toggleSidebar} />}
+
       {/* Main Content */}
       <div className={`dashboard-main ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
         {/* Header */}
         <header className="dashboard-header">
-          <button onClick={toggleSidebar} className="toggle-sidebar-btn">
-            {/* {sidebarOpen ? <FaTimes /> : <FaBars />} */}
-            {sidebarOpen ? <FaBars /> : <FaBars />}
+          <button onClick={toggleSidebar} className="toggle-sidebar-btn" aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}>
+            {sidebarOpen ? <FaTimes /> : <FaBars />}
           </button>
           {/* <div className="header-title">
             <h1>Dashboard - Brothers International</h1> 
