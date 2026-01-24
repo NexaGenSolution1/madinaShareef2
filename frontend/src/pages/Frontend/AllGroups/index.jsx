@@ -81,8 +81,8 @@ export default function AllGroups({ headerType, header, searchParams }) {
                         flight_date: flight.depDate,
                         dep_date: flight.depDate,
                         dept_time: flight.depTime,
-                        origin: flight.sectorFrom,
-                        destination: flight.sectorTo,
+                        origin: flight.fromTerminal,
+                        destination: flight.toTerminal,
                         arv_date: flight.arrDate,
                         arv_time: flight.arrTime,
                         baggage: flight.baggage,
@@ -609,30 +609,30 @@ export default function AllGroups({ headerType, header, searchParams }) {
                                                         key={group.id}
                                                         className="bg-sky-200/30 text-sm text-gray-900"
                                                     >
-                                                        <td className="px-4 py-2 font-medium align-middle">
+                                                        <td className="px-4 py-2 font-semibold">
                                                             {group.details?.map((flight, i) => (
                                                                 <div key={i}>{flight.flight_no}</div>
                                                             ))}
                                                         </td>
 
-                                                        <td className="px-4 py-2 align-middle">
+                                                        <td className="px-4 py-2 font-semibold">
                                                             {group.details?.map((flight, i) => (
-                                                                <div key={i} className="flex justify-center gap-2">
+                                                                <div key={i} className="flex justify-center">
                                                                     <span className="text-blue-600">✈</span>
                                                                     <span>{formatDate(flight.flight_date)}</span>
                                                                 </div>
                                                             ))}
                                                         </td>
 
-                                                        <td className="px-4 py-2 align-middle">
+                                                        <td className="px-4 py-2 font-semibold">
                                                             {group.details?.map((flight, i) => (
                                                                 <div key={i} className="flex justify-center">
-                                                                    {flight.origin}-{flight.destination}
+                                                                    {flight.origin.toUpperCase()}-{flight.destination.toUpperCase()}
                                                                 </div>
                                                             ))}
                                                         </td>
 
-                                                        <td className="px-4 py-2 align-middle">
+                                                        <td className="px-4 py-2 font-semibold">
                                                             {group.details?.map((flight, i) => (
                                                                 <div key={i} className="flex justify-center">
                                                                     {flight.dept_time?.substring(0, 5)} - {flight.arv_time?.substring(0, 5)}
@@ -640,7 +640,7 @@ export default function AllGroups({ headerType, header, searchParams }) {
                                                             ))}
                                                         </td>
 
-                                                        <td className="px-4 py-2 align-middle">
+                                                        <td className="px-4 py-2 font-semibold">
                                                             {group.details?.map((flight, i) => (
                                                                 <div key={i} className="flex justify-center">
                                                                     {flight.baggage ? `${flight.baggage} KG` : 'N/A'}
@@ -648,7 +648,7 @@ export default function AllGroups({ headerType, header, searchParams }) {
                                                             ))}
                                                         </td>
 
-                                                        <td className="px-4 py-2 align-middle">
+                                                        <td className="px-4 py-2 font-semibold">
                                                             {group.details?.map((flight, i) => (
                                                                 <div key={i} className="flex justify-center">
                                                                     {flight.meal || 'No'}
@@ -656,11 +656,11 @@ export default function AllGroups({ headerType, header, searchParams }) {
                                                             ))}
                                                         </td>
 
-                                                        <td className="px-4 py-2 font-semibold text-center align-middle">
+                                                        <td className="px-4 py-2 font-semibold text-center">
                                                             PKR {group.price?.toLocaleString()}
                                                         </td>
 
-                                                        <td className="px-4 py-2 text-center align-middle">
+                                                        <td className="px-4 py-2 font-semibold text-center">
                                                             <button
                                                                 onClick={() => handleBookNow(group)}
                                                                 className="px-4 py-2 bg-[#ff6b35] hover:bg-[#ff5722] text-white rounded-md text-sm font-medium transition-colors shadow-sm"

@@ -132,37 +132,10 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                         </div>
                                     </div>
                                 </td>
-
+                                
                                 {/* Passengers */}
                                 <td className="px-4 py-4 align-top border-r border-gray-300">
                                     <div className="inline-block w-full">
-                                        {/* <table className="w-full text-xs border-2 border-[#2d5a8f]">
-                                            <thead>
-                                                <tr className="bg-[#2d5a8f] text-white">
-                                                    <th className="px-3 py-2 text-left font-semibold border-r-2 border-[#4d7aaf]">Status</th>
-                                                    <th className="px-3 py-2 text-center font-semibold border-r-2 border-[#4d7aaf]">Adults</th>
-                                                    <th className="px-3 py-2 text-center font-semibold border-r-2 border-[#4d7aaf]">Child</th>
-                                                    <th className="px-3 py-2 text-center font-semibold border-r-2 border-[#4d7aaf]">Infants</th>
-                                                    <th className="px-3 py-2 text-center font-semibold">Seats</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="bg-white">
-                                                <tr className="border-t-2 border-[#2d5a8f]">
-                                                    <td className="px-3 py-2 font-medium text-gray-700 border-r-2 border-gray-300 bg-gray-50">Requested</td>
-                                                    <td className="px-3 py-2 text-center font-semibold border-r-2 border-gray-300">{booking.adultsCount}</td>
-                                                    <td className="px-3 py-2 text-center font-semibold border-r-2 border-gray-300">{booking.childrenCount}</td>
-                                                    <td className="px-3 py-2 text-center font-semibold border-r-2 border-gray-300">{booking.infantsCount}</td>
-                                                    <td className="px-3 py-2 text-center font-bold">{booking.adultsCount + booking.childrenCount}</td>
-                                                </tr>
-                                                <tr className="border-t-2 border-gray-300">
-                                                    <td className="px-3 py-2 font-medium text-gray-700 border-r-2 border-gray-300 bg-gray-50">Confirm</td>
-                                                    <td className="px-3 py-2 text-center font-semibold border-r-2 border-gray-300">{booking.confirmedAdults || 0}</td>
-                                                    <td className="px-3 py-2 text-center font-semibold border-r-2 border-gray-300">{booking.confirmedChildren || 0}</td>
-                                                    <td className="px-3 py-2 text-center font-semibold border-r-2 border-gray-300">{booking.confirmedInfants || 0}</td>
-                                                    <td className="px-3 py-2 text-center font-bold">{(booking.confirmedAdults || 0) + (booking.confirmedChildren || 0)}</td>
-                                                </tr>
-                                            </tbody>
-                                        </table> */}
                                         <table className="w-full text-xs border border-slate-300 rounded-lg overflow-hidden">
                                             <thead className="bg-[#2d5a8f] text-white">
                                                 <tr>
@@ -186,11 +159,10 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
 
                                             <tbody className="bg-white divide-y divide-slate-200">
                                                 {[
-                                                    { key: 'on hold', label: 'Requested' },
-                                                    { key: 'confirmed', label: 'Confirmed' },
-                                                    { key: 'cancelled', label: 'Cancelled' },
-                                                ].map(({ key, label }) => {
-                                                    const active = booking.status === key
+                                                    { key: 'on hold', label: 'Requested', match: ['on hold', 'pending', 'cancelled'] },
+                                                    { key: 'confirmed', label: 'Confirmed', match: ['confirmed'] },
+                                                ].map(({ key, label, match }) => {
+                                                    const active = match.includes(booking.status)
 
                                                     const adults = active ? booking.adultsCount || 0 : 0
                                                     const children = active ? booking.childrenCount || 0 : 0
@@ -232,50 +204,49 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                 {/* Price */}
                                 <td className="px-4 py-4 align-top border-r border-gray-300">
                                     <div className="font-bold text-base text-gray-900">
-                                        PKR {booking.pricing.grandTotal.toLocaleString()}
+                                        {(booking.status === 'on hold' || booking.status === 'pending') ? (<div className="text-xs text-yellow-700 font-semibold bg-yellow-50 px-2.5 py-1.5 rounded-md border border-yellow-300">
+                                            Admin Review<br />Required
+                                        </div>) :
+                                            `PKR ${booking.pricing?.grandTotal?.toLocaleString() || '0'}`
+                                        }
                                     </div>
                                 </td>
 
                                 {/* Status */}
                                 <td className="px-4 py-4 align-top border-r border-gray-300">
-                                    <div className="space-y-2">
+                                    <div className="flex flex-col gap-2 items-center">
                                         <span className={`inline-block px-3 py-1.5 rounded-md text-xs shadow-sm ${statusBadge.color}`}>
                                             {statusBadge.label}
                                         </span>
                                         {(booking.status === 'on hold' || booking.status === 'pending') && (
-                                            <div className="space-y-2 pt-1">
-                                                {/* <div className="text-xs text-yellow-700 font-semibold bg-yellow-50 px-2.5 py-1.5 rounded-md border border-yellow-300">
-                                                    Admin Review<br />Required
-                                                </div> */}
-                                                <div className="text-xs">
-                                                    <div className="font-bold text-gray-800 mb-1.5">Booking Expiry Time</div>
+                                            <div className="flex flex-col gap-2 items-center text-xs">
+                                                <div className="font-bold text-gray-800">Booking Expiry Time</div>
+                                                {/* <div className="flex items-center gap-1.5"> */}
+                                                {timers[booking._id] && timers[booking._id].expired ? (
+                                                    <div className="text-red-600 font-bold text-xs">EXPIRED</div>
+                                                ) : (
                                                     <div className="flex items-center gap-1.5">
-                                                        {timers[booking._id] && timers[booking._id].expired ? (
-                                                            <div className="text-red-600 font-bold text-xs">EXPIRED</div>
-                                                        ) : (
-                                                            <>
-                                                                <div className="bg-gradient-to-br from-rose-500 to-rose-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-[40px]">
-                                                                    <div className="text-xl font-bold leading-none">
-                                                                        {String(timers[booking._id]?.hours || 0).padStart(2, '0')}
-                                                                    </div>
-                                                                    <div style={{ fontSize: '9px' }} className="font-medium mt-1 opacity-90">HOURS</div>
-                                                                </div>
-                                                                <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-[40px]">
-                                                                    <div className="text-xl font-bold leading-none">
-                                                                        {String(timers[booking._id]?.minutes || 0).padStart(2, '0')}
-                                                                    </div>
-                                                                    <div style={{ fontSize: '9px' }} className="font-medium mt-1 opacity-90">MINS</div>
-                                                                </div>
-                                                                <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-[40px]">
-                                                                    <div className="text-xl font-bold leading-none">
-                                                                        {String(timers[booking._id]?.seconds || 0).padStart(2, '0')}
-                                                                    </div>
-                                                                    <div style={{ fontSize: '9px' }} className="font-medium mt-1 opacity-90">SECS</div>
-                                                                </div>
-                                                            </>
-                                                        )}
+                                                        <div className="bg-linear-to-br from-rose-500 to-rose-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-10">
+                                                            <div className="text-xl font-bold leading-none">
+                                                                {String(timers[booking._id]?.hours || 0).padStart(2, '0')}
+                                                            </div>
+                                                            <div className="text-[9px] font-medium mt-1 opacity-90">HOURS</div>
+                                                        </div>
+                                                        <div className="bg-linear-to-br from-amber-500 to-amber-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-10">
+                                                            <div className="text-xl font-bold leading-none">
+                                                                {String(timers[booking._id]?.minutes || 0).padStart(2, '0')}
+                                                            </div>
+                                                            <div className="text-[9px] font-medium mt-1 opacity-90">MINS</div>
+                                                        </div>
+                                                        <div className="bg-linear-to-br from-indigo-500 to-indigo-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-10">
+                                                            <div className="text-xl font-bold leading-none">
+                                                                {String(timers[booking._id]?.seconds || 0).padStart(2, '0')}
+                                                            </div>
+                                                            <div className="text-[9px] font-medium mt-1 opacity-90">SECS</div>
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                )}
+                                                {/* </div> */}
                                             </div>
                                         )}
                                     </div>

@@ -253,15 +253,13 @@ export default function MyBookings() {
                                         <span>👥</span>
                                     </div>
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-white border-r border-[#3d6fa8]">
+                                <th className="px-4 py-3 text-center text-xs font-semibold text-white border-r border-[#3d6fa8]">
                                     Price (PKR)
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-white border-r border-[#3d6fa8]">
-                                    <div className="flex items-center gap-1">
-                                        <span>Status</span>
-                                    </div>
+                                <th className="px-4 py-3 text-center text-xs font-semibold text-white border-r border-[#3d6fa8]">
+                                    Status
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-white">
+                                <th className="px-4 py-3 text-center text-xs font-semibold text-white">
                                     Action
                                 </th>
                             </tr>
@@ -352,11 +350,10 @@ export default function MyBookings() {
 
                                                         <tbody className="bg-white divide-y divide-slate-200">
                                                             {[
-                                                                { key: 'on hold', label: 'Requested' },
-                                                                { key: 'confirmed', label: 'Confirmed' },
-                                                                // { key: 'cancelled', label: 'Cancelled' },
-                                                            ].map(({ key, label }) => {
-                                                                const active = booking.status === key
+                                                                { key: 'on hold', label: 'Requested', match: ['on hold', 'pending', 'cancelled'] },
+                                                                { key: 'confirmed', label: 'Confirmed', match: ['confirmed'] },
+                                                            ].map(({ key, label, match }) => {
+                                                                const active = match.includes(booking.status)
 
                                                                 const adults = active ? booking.adultsCount || 0 : 0
                                                                 const children = active ? booking.childrenCount || 0 : 0
@@ -398,50 +395,49 @@ export default function MyBookings() {
                                             {/* Price */}
                                             <td className="px-4 py-4 align-top border-r border-gray-300">
                                                 <div className="font-bold text-base text-gray-900">
-                                                    PKR {booking.pricing?.grandTotal?.toLocaleString() || '0'}
+                                                    {(booking.status === 'on hold' || booking.status === 'pending') ? (<div className="text-xs text-yellow-700 font-semibold bg-yellow-50 px-2.5 py-1.5 rounded-md border border-yellow-300">
+                                                        Admin Review<br />Required
+                                                    </div>) :
+                                                        `PKR ${booking.pricing?.grandTotal?.toLocaleString() || '0'}`
+                                                    }
                                                 </div>
                                             </td>
 
                                             {/* Status */}
                                             <td className="px-4 py-4 align-top border-r border-gray-300">
-                                                <div className="space-y-2">
+                                                <div className="flex flex-col gap-2 items-center">
                                                     <span className={`inline-block px-3 py-1.5 rounded-md text-xs shadow-sm ${statusBadge.color}`}>
                                                         {statusBadge.label}
                                                     </span>
                                                     {(booking.status === 'on hold' || booking.status === 'pending') && (
-                                                        <div className="space-y-2 pt-1">
-                                                            <div className="text-xs text-yellow-700 font-semibold bg-yellow-50 px-2.5 py-1.5 rounded-md border border-yellow-300">
-                                                                Admin Review<br />Required
-                                                            </div>
-                                                            <div className="text-xs">
-                                                                <div className="font-bold text-gray-800 mb-1.5">Booking Expiry Time</div>
+                                                        <div className="flex flex-col gap-2 items-center text-xs">
+                                                            <div className="font-bold text-gray-800">Booking Expiry Time</div>
+                                                            {/* <div className="flex items-center gap-1.5"> */}
+                                                            {timers[booking._id] && timers[booking._id].expired ? (
+                                                                <div className="text-red-600 font-bold text-xs">EXPIRED</div>
+                                                            ) : (
                                                                 <div className="flex items-center gap-1.5">
-                                                                    {timers[booking._id] && timers[booking._id].expired ? (
-                                                                        <div className="text-red-600 font-bold text-xs">EXPIRED</div>
-                                                                    ) : (
-                                                                        <>
-                                                                            <div className="bg-linear-to-br from-rose-500 to-rose-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-10">
-                                                                                <div className="text-xl font-bold leading-none">
-                                                                                    {String(timers[booking._id]?.hours || 0).padStart(2, '0')}
-                                                                                </div>
-                                                                                <div className="text-[9px] font-medium mt-1 opacity-90">HOURS</div>
-                                                                            </div>
-                                                                            <div className="bg-linear-to-br from-amber-500 to-amber-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-10">
-                                                                                <div className="text-xl font-bold leading-none">
-                                                                                    {String(timers[booking._id]?.minutes || 0).padStart(2, '0')}
-                                                                                </div>
-                                                                                <div className="text-[9px] font-medium mt-1 opacity-90">MINS</div>
-                                                                            </div>
-                                                                            <div className="bg-linear-to-br from-indigo-500 to-indigo-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-10">
-                                                                                <div className="text-xl font-bold leading-none">
-                                                                                    {String(timers[booking._id]?.seconds || 0).padStart(2, '0')}
-                                                                                </div>
-                                                                                <div className="text-[9px] font-medium mt-1 opacity-90">SECS</div>
-                                                                            </div>
-                                                                        </>
-                                                                    )}
+                                                                    <div className="bg-linear-to-br from-rose-500 to-rose-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-10">
+                                                                        <div className="text-xl font-bold leading-none">
+                                                                            {String(timers[booking._id]?.hours || 0).padStart(2, '0')}
+                                                                        </div>
+                                                                        <div className="text-[9px] font-medium mt-1 opacity-90">HOURS</div>
+                                                                    </div>
+                                                                    <div className="bg-linear-to-br from-amber-500 to-amber-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-10">
+                                                                        <div className="text-xl font-bold leading-none">
+                                                                            {String(timers[booking._id]?.minutes || 0).padStart(2, '0')}
+                                                                        </div>
+                                                                        <div className="text-[9px] font-medium mt-1 opacity-90">MINS</div>
+                                                                    </div>
+                                                                    <div className="bg-linear-to-br from-indigo-500 to-indigo-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-10">
+                                                                        <div className="text-xl font-bold leading-none">
+                                                                            {String(timers[booking._id]?.seconds || 0).padStart(2, '0')}
+                                                                        </div>
+                                                                        <div className="text-[9px] font-medium mt-1 opacity-90">SECS</div>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
+                                                            )}
+                                                            {/* </div> */}
                                                         </div>
                                                     )}
                                                 </div>
@@ -495,23 +491,23 @@ export default function MyBookings() {
                                                     {/* Second row: 2 buttons (Print, Download PDF) */}
                                                     {(booking.status === 'on hold' || booking.status === 'pending' || booking.status === 'confirmed') && (
                                                         <div className="flex flex-row justify-center items-center gap-2 w-full">
-                                                           {(booking.status === 'on hold' || booking.status === 'pending' || booking.status === 'confirmed') && (
-                                                        <button
-                                                            onClick={() => {
-                                                                // Handle PDF download
-                                                                generateBookingPDF(booking).catch(err => {
-                                                                    console.error('Error generating PDF:', err)
-                                                                    toast.error('Failed to generate PDF')
-                                                                })
-                                                            }}
-                                                            className="p-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 rounded-lg transition-all shadow-sm hover:shadow-md border border-slate-200"
-                                                            title="Download PDF"
-                                                        >
-                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                            </svg>
-                                                        </button>
-                                                    )}
+                                                            {(booking.status === 'on hold' || booking.status === 'pending' || booking.status === 'confirmed') && (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        // Handle PDF download
+                                                                        generateBookingPDF(booking).catch(err => {
+                                                                            console.error('Error generating PDF:', err)
+                                                                            toast.error('Failed to generate PDF')
+                                                                        })
+                                                                    }}
+                                                                    className="p-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 rounded-lg transition-all shadow-sm hover:shadow-md border border-slate-200"
+                                                                    title="Download PDF"
+                                                                >
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                    </svg>
+                                                                </button>
+                                                            )}
 
                                                             <button
                                                                 onClick={() => printGDSBooking(booking)}
