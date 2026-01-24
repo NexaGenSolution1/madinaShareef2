@@ -28,15 +28,15 @@ const passengerSchema = new mongoose.Schema({
     },
     dateOfBirth: {
         type: Date,
-        required: true
+        required: false
     },
     passportExpiry: {
         type: Date,
-        required: true
+        required: false
     },
     nationality: {
         type: String,
-        required: false
+        required: true
     }
 });
 

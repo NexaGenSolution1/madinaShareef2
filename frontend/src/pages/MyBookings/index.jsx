@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import axiosInstance from '../../api/axios'
 import { toast } from 'react-toastify'
 import { generateBookingPDF } from '../../utils'
 import { format } from "date-fns"
 import MaskedDatePicker from '../../components/MaskedDatePicker'
-// import { printGDSBooking } from '../../utils/BookingPDFService'
 import { printGDSBooking } from '../../utils/bookingPDFService'
+import { Check } from 'lucide-react'
 
 export default function MyBookings() {
     const navigate = useNavigate()
+    const location = useLocation()
     const [searchParams] = useSearchParams()
     const [bookings, setBookings] = useState([])
     const [initialLoading, setInitialLoading] = useState(true)
@@ -25,6 +26,9 @@ export default function MyBookings() {
     const [uniqueAirlines, setUniqueAirlines] = useState([])
     const [timers, setTimers] = useState({})
 
+    // --- MODAL STATE ---
+    const [successModalData, setSuccessModalData] = useState(null)
+
     // Get status from URL params
     const activeStatus = searchParams.get('status') || ''
 
@@ -34,6 +38,23 @@ export default function MyBookings() {
         { value: 'confirmed', label: 'Confirmed', color: 'bg-green-50 text-green-700 border border-green-300' },
         { value: 'cancelled', label: 'Cancelled', color: 'bg-red-50 text-red-700 border border-red-300' }
     ]
+
+    // --- EFFECT: CHECK FOR BOOKING SUCCESS REDIRECT ---
+    useEffect(() => {
+        if (location.state?.bookingSuccess) {
+            const createdTime = location.state.created ? new Date(location.state.created) : new Date();
+            // Calculate 2 hours from creation time
+            const deadline = new Date(createdTime.getTime() + 2 * 60 * 60 * 1000);
+            
+            setSuccessModalData({
+                ref: location.state.bookingReference,
+                deadline: deadline
+            });
+
+            // Clear state to prevent modal from showing on refresh
+            window.history.replaceState({}, document.title)
+        }
+    }, [location]);
 
     // Calculate remaining time for a booking (2 hours from creation)
     const calculateRemainingTime = (createdAt) => {
@@ -52,6 +73,15 @@ export default function MyBookings() {
 
         return { hours, minutes, seconds, expired: false }
     }
+
+    // --- UPDATED: 12-HOUR FORMAT ---
+    const formatDeadline = (date) => {
+        if (!date) return '';
+        // Changed hour12 to true
+        const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        const dateStr = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        return `${timeStr}, ${dateStr}`;
+    };
 
     useEffect(() => {
         const onHoldBookings = bookings.filter(b => b.status === 'on hold' || b.status === 'pending')
@@ -253,13 +283,15 @@ export default function MyBookings() {
                                         <span>👥</span>
                                     </div>
                                 </th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold text-white border-r border-[#3d6fa8]">
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-white border-r border-[#3d6fa8]">
                                     Price (PKR)
                                 </th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold text-white border-r border-[#3d6fa8]">
-                                    Status
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-white border-r border-[#3d6fa8]">
+                                    <div className="flex items-center gap-1">
+                                        <span>Status</span>
+                                    </div>
                                 </th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold text-white">
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-white">
                                     Action
                                 </th>
                             </tr>
@@ -405,39 +437,41 @@ export default function MyBookings() {
 
                                             {/* Status */}
                                             <td className="px-4 py-4 align-top border-r border-gray-300">
-                                                <div className="flex flex-col gap-2 items-center">
+                                                <div className="space-y-2">
                                                     <span className={`inline-block px-3 py-1.5 rounded-md text-xs shadow-sm ${statusBadge.color}`}>
                                                         {statusBadge.label}
                                                     </span>
                                                     {(booking.status === 'on hold' || booking.status === 'pending') && (
-                                                        <div className="flex flex-col gap-2 items-center text-xs">
-                                                            <div className="font-bold text-gray-800">Booking Expiry Time</div>
-                                                            {/* <div className="flex items-center gap-1.5"> */}
-                                                            {timers[booking._id] && timers[booking._id].expired ? (
-                                                                <div className="text-red-600 font-bold text-xs">EXPIRED</div>
-                                                            ) : (
+                                                        <div className="space-y-2 pt-1">
+                                                            <div className="text-xs">
+                                                                <div className="font-bold text-gray-800 mb-1.5">Booking Expiry Time</div>
                                                                 <div className="flex items-center gap-1.5">
-                                                                    <div className="bg-linear-to-br from-rose-500 to-rose-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-10">
-                                                                        <div className="text-xl font-bold leading-none">
-                                                                            {String(timers[booking._id]?.hours || 0).padStart(2, '0')}
-                                                                        </div>
-                                                                        <div className="text-[9px] font-medium mt-1 opacity-90">HOURS</div>
-                                                                    </div>
-                                                                    <div className="bg-linear-to-br from-amber-500 to-amber-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-10">
-                                                                        <div className="text-xl font-bold leading-none">
-                                                                            {String(timers[booking._id]?.minutes || 0).padStart(2, '0')}
-                                                                        </div>
-                                                                        <div className="text-[9px] font-medium mt-1 opacity-90">MINS</div>
-                                                                    </div>
-                                                                    <div className="bg-linear-to-br from-indigo-500 to-indigo-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-10">
-                                                                        <div className="text-xl font-bold leading-none">
-                                                                            {String(timers[booking._id]?.seconds || 0).padStart(2, '0')}
-                                                                        </div>
-                                                                        <div className="text-[9px] font-medium mt-1 opacity-90">SECS</div>
-                                                                    </div>
+                                                                    {timers[booking._id] && timers[booking._id].expired ? (
+                                                                        <div className="text-red-600 font-bold text-xs">EXPIRED</div>
+                                                                    ) : (
+                                                                        <>
+                                                                            <div className="bg-linear-to-br from-rose-500 to-rose-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-10">
+                                                                                <div className="text-xl font-bold leading-none">
+                                                                                    {String(timers[booking._id]?.hours || 0).padStart(2, '0')}
+                                                                                </div>
+                                                                                <div className="text-[9px] font-medium mt-1 opacity-90">HOURS</div>
+                                                                            </div>
+                                                                            <div className="bg-linear-to-br from-amber-500 to-amber-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-10">
+                                                                                <div className="text-xl font-bold leading-none">
+                                                                                    {String(timers[booking._id]?.minutes || 0).padStart(2, '0')}
+                                                                                </div>
+                                                                                <div className="text-[9px] font-medium mt-1 opacity-90">MINS</div>
+                                                                            </div>
+                                                                            <div className="bg-linear-to-br from-indigo-500 to-indigo-600 text-white px-3 py-2 rounded-lg shadow-md text-center min-w-10">
+                                                                                <div className="text-xl font-bold leading-none">
+                                                                                    {String(timers[booking._id]?.seconds || 0).padStart(2, '0')}
+                                                                                </div>
+                                                                                <div className="text-[9px] font-medium mt-1 opacity-90">SECS</div>
+                                                                            </div>
+                                                                        </>
+                                                                    )}
                                                                 </div>
-                                                            )}
-                                                            {/* </div> */}
+                                                            </div>
                                                         </div>
                                                     )}
                                                 </div>
@@ -531,6 +565,44 @@ export default function MyBookings() {
                     </table>
                 </div>
             </div>
+
+            {/* --- BOOKING SUCCESS MODAL --- */}
+            {successModalData && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/25 animate-in fade-in duration-300">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 flex flex-col items-center text-center relative overflow-hidden animate-in zoom-in-95 duration-300">
+                        
+                        {/* Header Background */}
+                        <div className="absolute top-0 left-0 w-full h-24 bg-linear-to-b from-green-50 to-white -z-10"></div>
+
+                        {/* Icon */}
+                        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-lg border-4 border-green-50">
+                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                                <Check size={40} className="text-green-600 stroke-[3]" />
+                            </div>
+                        </div>
+
+                        <h2 className="text-2xl font-bold text-gray-800 mb-2">Booking Success</h2>
+                        
+                        <div className="text-gray-600 space-y-4 mb-8">
+                            <p>
+                                This is to inform you that your ticket reservation has been successfully placed <span className="font-bold text-gray-800">ON HOLD</span>.
+                            </p>
+                            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm text-blue-900 leading-relaxed">
+                                We request you to make the payment by <br/>
+                                <span className="font-bold text-lg block mt-1 text-[#3d6a8f]">{formatDeadline(successModalData.deadline)}</span> 
+                                <span className="block mt-1">to guarantee your booking on the requested flight.</span>
+                            </div>
+                        </div>
+
+                        <button 
+                            onClick={() => setSuccessModalData(null)}
+                            className="px-10 py-3 bg-[#6C63FF] hover:bg-[#5a52d5] text-white text-sm font-bold rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:translate-y-0 w-full sm:w-auto"
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

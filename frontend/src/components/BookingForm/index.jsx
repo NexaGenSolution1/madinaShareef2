@@ -1,13 +1,12 @@
-// import React, { useState, useEffect } from 'react'
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import axiosInstance from '../../api/axios'
 import { toast } from 'react-toastify'
 import { buildPassengers } from '../../utils/passengerBuilder'
 import MaskedDatePicker from '../MaskedDatePicker'
-// import { parse, isValid } from "date-fns";
-// import DatePicker from "react-datepicker";
-// import "react-datepicker/dist/react-datepicker.css";
+import {
+    X, CheckCircle, Edit, FileText, UserCheck
+} from 'lucide-react'
 
 export default function BookingForm() {
     const navigate = useNavigate()
@@ -28,7 +27,9 @@ export default function BookingForm() {
     const [existingBooking, setExistingBooking] = useState(null)
     const [groupData, setGroupData] = useState(location.state?.groupData || null)
 
-    // console.log('BookingForm loaded with groupData:', groupData, 'editMode:', isEditMode, 'bookingId:', bookingId)
+    // --- NEW STATE FOR MODAL ---
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [isReviewed, setIsReviewed] = useState(false);
 
     // Load existing booking if in edit mode
     useEffect(() => {
@@ -45,7 +46,6 @@ export default function BookingForm() {
             if (response.data.success) {
                 const booking = response.data.data
 
-                // Check if booking can be edited
                 if (booking.status !== 'on hold') {
                     toast.error('Can only edit pending bookings')
                     navigate('/dashboard/my-bookings')
@@ -54,7 +54,6 @@ export default function BookingForm() {
 
                 setExistingBooking(booking)
 
-                // Reconstruct groupData from booking for display and pricing
                 const reconstructedGroupData = {
                     id: booking.groupId,
                     type: booking.groupType,
@@ -82,22 +81,21 @@ export default function BookingForm() {
                         baggage: flight.baggage,
                         meal: flight.meal
                     })) || [],
-                    available_no_of_pax: 50 // Set a high limit for editing
+                    available_no_of_pax: 50
                 }
 
                 setGroupData(reconstructedGroupData)
 
-                // Convert date strings to YYYY-MM-DD format for date inputs
                 const formattedPassengers = booking.passengers?.map(passenger => ({
                     ...passenger,
-                    dateOfBirth: passenger.dateOfBirth ? new Date(passenger.dateOfBirth).toISOString().split('T')[0] : '',
-                    passportExpiry: passenger.passportExpiry ? new Date(passenger.passportExpiry).toISOString().split('T')[0] : ''
+                    dateOfBirth: passenger.dateOfBirth ? new Date(passenger.dateOfBirth) : '',
+                    passportExpiry: passenger.passportExpiry ? new Date(passenger.passportExpiry) : ''
                 })) || []
 
                 setFormData({
-                    // contactPersonName: booking.contactPersonName,
+                    contactPersonName: booking.contactPersonName || 'N/A',
                     adults: booking.adultsCount,
-                    // children: booking.childrenCount,
+                    children: booking.childrenCount,
                     infants: booking.infantsCount,
                     passengers: formattedPassengers
                 })
@@ -113,7 +111,6 @@ export default function BookingForm() {
 
     const totalPassengers = (parseInt(formData.adults) || 0) + (parseInt(formData.children) || 0) + (parseInt(formData.infants) || 0)
 
-    // Helper functions to check if prices are available
     const isChildPriceAvailable = () => {
         const price = groupData?.childPrice
         return price !== null && price !== undefined && price !== 0
@@ -124,68 +121,6 @@ export default function BookingForm() {
         return price !== null && price !== undefined && price !== 0
     }
 
-    // Initialize passenger array when counts change
-    // useEffect(() => {
-    //     const currentPassengers = formData.passengers || []
-    //     const targetAdults = parseInt(formData.adults) || 0
-    //     const targetChildren = parseInt(formData.children) || 0
-    //     const targetInfants = parseInt(formData.infants) || 0
-
-    //     const passengers = []
-
-    //     // Add adults - preserve existing data if available
-    //     for (let i = 0; i < targetAdults; i++) {
-    //         const existing = currentPassengers.find((p, idx) => p.type === 'Adult' && currentPassengers.filter((x, xIdx) => xIdx < idx && x.type === 'Adult').length === i)
-    //         passengers.push(existing || {
-    //             type: 'Adult',
-    //             title: 'Mr',
-    //             givenName: '',
-    //             surName: '',
-    //             passport: '',
-    //             dateOfBirth: '',
-    //             passportExpiry: '',
-    //             nationality: ''
-    //         })
-    //     }
-
-    //     // Add children - preserve existing data if available (only if price available in create mode)
-    //     if (!isEditMode || isChildPriceAvailable()) {
-    //         for (let i = 0; i < targetChildren; i++) {
-    //             const existing = currentPassengers.find((p, idx) => p.type === 'Child' && currentPassengers.filter((x, xIdx) => xIdx < idx && x.type === 'Child').length === i)
-    //             passengers.push(existing || {
-    //                 type: 'Child',
-    //                 title: 'Mr',
-    //                 givenName: '',
-    //                 surName: '',
-    //                 passport: '',
-    //                 dateOfBirth: '',
-    //                 passportExpiry: '',
-    //                 nationality: ''
-    //             })
-    //         }
-    //     }
-
-    //     // Add infants - preserve existing data if available (only if price available in create mode)
-    //     if (!isEditMode || isInfantPriceAvailable()) {
-    //         for (let i = 0; i < targetInfants; i++) {
-    //             const existing = currentPassengers.find((p, idx) => p.type === 'Infant' && currentPassengers.filter((x, xIdx) => xIdx < idx && x.type === 'Infant').length === i)
-    //             passengers.push(existing || {
-    //                 type: 'Infant',
-    //                 title: 'INF',
-    //                 givenName: '',
-    //                 surName: '',
-    //                 passport: '',
-    //                 dateOfBirth: '',
-    //                 passportExpiry: '',
-    //                 nationality: ''
-    //             })
-    //         }
-    //     }
-
-    //     setFormData(prev => ({ ...prev, passengers }))
-    // }, [formData.adults, formData.children, formData.infants, isEditMode])
-
-
     useEffect(() => {
         setFormData(prev => ({
             ...prev,
@@ -195,88 +130,63 @@ export default function BookingForm() {
                 infants: +prev.infants || 0,
                 existing: prev.passengers,
                 allowChildren: isEditMode || isChildPriceAvailable(),
-                allowInfants: isEditMode || isInfantPriceAvailable(),
+                allowInfants: true,
             }),
         }));
     }, [formData.adults, formData.children, formData.infants, isEditMode]);
 
+    // --- Helper to safely render dates ---
+    const formatDateForDisplay = (dateValue) => {
+        if (!dateValue) return '';
+        if (dateValue instanceof Date) {
+            return dateValue.toLocaleDateString('en-GB'); // DD/MM/YYYY
+        }
+        const parsedDate = new Date(dateValue);
+        if (!isNaN(parsedDate)) {
+            return parsedDate.toLocaleDateString('en-GB');
+        }
+        return dateValue;
+    };
 
-    // Helper function to validate passenger input
     const validatePassengerInput = (name, value) => {
-        // Allow empty string during editing
         if (value === '') return true
-
         const numValue = parseInt(value)
-
-        // Block negative values
         if (numValue < 0) return false
-
-        // Adults must be at least 1
         if (name === 'adults' && numValue === 0) return false
-
         return true
     }
 
-    const formatDateInput = (value) => {
-        // Remove everything except digits
-        const digits = value.replace(/\D/g, "");
-
-        let result = "";
-
-        if (digits.length <= 2) {
-            result = digits;
-        } else if (digits.length <= 4) {
-            result = `${digits.slice(0, 2)}/${digits.slice(2)}`;
-        } else {
-            result = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
-        }
-
-        return result;
-    };
-
-
-    // Helper function to get default passenger value
     const getDefaultPassengerValue = (name) => {
         return name === 'adults' ? 1 : 0
     }
 
-    // Helper function to validate seat limits
     const validateSeatLimit = (adults, children) => {
         if (isEditMode) return true
-
         const totalSeats = adults + children
         const availableSeats = groupData?.available_no_of_pax || 0
-
         return totalSeats <= availableSeats
     }
 
     const handleChange = (e) => {
         const { name, value } = e.target
-
-        // Validate passenger count fields
         if (['adults', 'children', 'infants'].includes(name)) {
             if (!validatePassengerInput(name, value)) {
-                return // Block invalid input
+                return
             }
         }
-
         setFormData(prev => ({ ...prev, [name]: value }))
     }
 
     const handlePassengerBlur = (e) => {
         const { name, value } = e.target
-
-        // Not a passenger field
         if (!['adults', 'children', 'infants'].includes(name)) return
 
-        // Set default if empty or invalid
         if (value === '' || parseInt(value) < 0 || (name === 'adults' && parseInt(value) === 0)) {
             const defaultValue = getDefaultPassengerValue(name)
             setFormData(prev => ({ ...prev, [name]: defaultValue }))
             return
         }
 
-        // Validate seat limit for adults and children (excluding infants)
         if (!isEditMode && (name === 'adults' || name === 'children')) {
             const adults = name === 'adults' ? parseInt(value) : (parseInt(formData.adults) || 0)
             const children = name === 'children' ? parseInt(value) : (parseInt(formData.children) || 0)
@@ -284,13 +194,7 @@ export default function BookingForm() {
             if (!validateSeatLimit(adults, children)) {
                 const totalSeats = adults + children
                 const availableSeats = groupData?.available_no_of_pax || 0
-
-                toast.error(
-                    `Seats not available! You selected ${totalSeats} seats but only ${availableSeats} are available.`,
-                    { toastId: 'seat-limit-error' }
-                )
-
-                // Reset to default value
+                toast.error(`Seats not available! You selected ${totalSeats} seats but only ${availableSeats} are available.`, { toastId: 'seat-limit-error' })
                 const defaultValue = getDefaultPassengerValue(name)
                 setFormData(prev => ({ ...prev, [name]: defaultValue }))
                 e.target.focus()
@@ -306,52 +210,27 @@ export default function BookingForm() {
         })
     }
 
-    const calculateTotalPrice = () => {
-        if (!groupData?.price) return 0
-        const adultPrice = groupData.price || 0
-        const childPrice = groupData.childPrice || groupData.price || 0
-        const infantPrice = groupData.infantPrice || (groupData.price * 0.24) || 0
-
-        return (
-            (parseInt(formData.adults) || 0) * adultPrice +
-            (parseInt(formData.children) || 0) * childPrice +
-            (parseInt(formData.infants) || 0) * infantPrice
-        )
-    }
-
     const calculateAdultTotal = () => (parseInt(formData.adults) || 0) * (groupData?.price || 0)
-    const calculateChildTotal = () => (parseInt(formData.children) || 0) * (groupData?.childPrice || groupData?.price || 0)
-    const calculateInfantTotal = () => (parseInt(formData.infants) || 0) * (groupData?.infantPrice || ((groupData?.price || 0) * 0.24))
+    const calculateChildTotal = () => (parseInt(formData.children) || 0) * (groupData?.childPrice || 0)
+    const calculateInfantTotal = () => (parseInt(formData.infants) || 0) * (groupData?.infantPrice || 0)
+    const calculateTotalPrice = () => calculateAdultTotal() + calculateChildTotal() + calculateInfantTotal()
 
-    const handleSubmit = async (e) => {
+    // --- MODIFIED: Initial Submit Trigger (Opens Modal) ---
+    const handleSubmit = (e) => {
         e.preventDefault()
 
         if (isEditMode) {
-            // Edit mode - simplified update
             return handleUpdate()
         }
 
-        // Validate contact person name
-        // if (!formData.contactPersonName.trim()) {
-        //     toast.error('Contact person name is required')
-        //     return
-        // }
-
-        // Validate passenger count excluding infants
         const payingPassengers = (parseInt(formData.adults) || 0) + (parseInt(formData.children) || 0)
         if (payingPassengers > (groupData?.available_no_of_pax || 0)) {
             toast.error(`Adults and Children (${payingPassengers}) cannot exceed available seats (${groupData?.available_no_of_pax || 0})`)
             return
         }
 
-        // Validate all passenger details are filled
         const hasEmptyFields = formData.passengers.some(passenger =>
-            !passenger.givenName ||
-            !passenger.surName ||
-            !passenger.passport ||
-            !passenger.dateOfBirth ||
-            !passenger.passportExpiry ||
-            !passenger.nationality
+            !passenger.givenName || !passenger.surName || !passenger.passport
         )
 
         if (hasEmptyFields) {
@@ -359,10 +238,17 @@ export default function BookingForm() {
             return
         }
 
+        // --- Show Modal instead of submitting ---
+        setShowReviewModal(true);
+        setIsReviewed(false);
+    }
+
+    // --- NEW: Final Submit Logic (Called from Modal) ---
+    const handleFinalSubmit = async () => {
         setIsSubmitting(true)
+        setShowReviewModal(false) // Close modal
 
         try {
-            // Prepare booking data according to API schema
             const bookingData = {
                 groupId: groupData.id,
                 groupType: groupData.type,
@@ -381,7 +267,7 @@ export default function BookingForm() {
                 pricing: {
                     adultPrice: groupData.price || 0,
                     childPrice: groupData.childPrice || 0,
-                    infantPrice: groupData.infantPrice || (groupData.price * 0.24) || 0,
+                    infantPrice: groupData.infantPrice || 0,
                     adultTotal: calculateAdultTotal(),
                     childTotal: calculateChildTotal(),
                     infantTotal: Math.round(calculateInfantTotal()),
@@ -392,11 +278,11 @@ export default function BookingForm() {
                     flightNo: flight.flight_no,
                     flightDate: flight.flight_date,
                     depDate: flight.dep_date,
-                    depTime: flight.dept_time,
+                    depTime: flight.dep_time,
                     origin: flight.origin,
                     destination: flight.destination,
                     arrDate: flight.arv_date,
-                    arrTime: flight.arv_time,
+                    arrTime: flight.arrTime,
                     baggage: flight.baggage,
                     meal: flight.meal
                 })) || [],
@@ -404,21 +290,16 @@ export default function BookingForm() {
                 arrivalDate: groupData.arv_date
             }
 
-            console.log('Submitting booking data:', bookingData)
-
             const response = await axiosInstance.post('/bookings', bookingData)
 
             if (response.data.success) {
-                toast.success(`Booking confirmed! Reference: ${response.data.data.bookingReference}`)
-                // Navigate to bookings page or show confirmation
-                setTimeout(() => {
-                    navigate('/dashboard/all-groups', {
-                        state: {
-                            bookingSuccess: true,
-                            bookingReference: response.data.data.bookingReference
-                        }
-                    })
-                }, 1500)
+                // toast.success(`Booking confirmed! Reference: ${response.data.data.bookingReference}`)
+                navigate('/dashboard/my-bookings', {
+                    state: {
+                        bookingSuccess: true,
+                        bookingReference: response.data.data.bookingReference
+                    }
+                })
             }
         } catch (error) {
             console.error('Error creating booking:', error)
@@ -439,7 +320,6 @@ export default function BookingForm() {
                 childrenCount: parseInt(formData.children),
                 infantsCount: parseInt(formData.infants),
                 passengers: formData.passengers,
-                // Recalculate pricing based on new passenger counts
                 pricing: {
                     adultPrice: groupData?.price || 0,
                     childPrice: groupData?.childPrice || 0,
@@ -451,15 +331,13 @@ export default function BookingForm() {
                 }
             }
 
-            console.log('Updating booking:', updateData)
-
             const response = await axiosInstance.put(`/bookings/${bookingId}`, updateData)
 
             if (response.data.success) {
                 toast.success('Booking updated successfully')
                 setTimeout(() => {
                     navigate('/dashboard/my-bookings')
-                }, 1500)
+                }, 1000)
             }
         } catch (error) {
             console.error('Error updating booking:', error)
@@ -553,20 +431,15 @@ export default function BookingForm() {
                                 <p className="text-xs text-gray-600 font-semibold mb-0.5">Adult Price</p>
                                 <p className="text-sm font-extrabold text-[#3d6a8f] bg-blue-50 px-2 py-1 rounded-2xl">PKR {groupData?.price?.toLocaleString() || 0}</p>
                             </div>
-                            {isChildPriceAvailable() && (
-                                <div className='flex flex-col'>
-                                    <p className="text-xs text-gray-600 font-semibold mt-1 mb-0.5">Child</p>
-                                    {/* <p className="text-sm font-extrabold text-[#3d6a8f] bg-blue-50 px-2 py-1 rounded">PKR {groupData?.childPrice?.toLocaleString()}</p> */}
-                                    <p className="text-sm font-semibold text-white bg-red-600 px-2 py-1 rounded-2xl">N/A</p>
-                                </div>
-                            )}
+                            <div className='flex flex-col'>
+                                <p className="text-xs text-gray-600 font-semibold mt-1 mb-0.5">Child</p>
+                                <p className="text-sm font-semibold text-white bg-red-600 px-2 py-1 rounded-2xl">N/A</p>
+                            </div>
 
-                            {isInfantPriceAvailable() && (
-                                <div className='flex flex-col'>
-                                    <p className="text-xs text-gray-600 font-semibold mt-1 mb-0.5">Infant</p>
-                                    <p className={`text-sm font-extrabold px-2 py-1 rounded-2xl ${groupData?.infantPrice ? "text-[#3d6a8f] bg-blue-50" : "text-white bg-red-600"}`}>{`${groupData?.infantPrice ? `PKR ${groupData.infantPrice.toLocaleString()}` : "Price On Call"}`}</p>
-                                </div>
-                            )}
+                            <div className='flex flex-col'>
+                                <p className="text-xs text-gray-600 font-semibold mt-1 mb-0.5">Infant</p>
+                                <p className={`text-sm font-extrabold px-2 py-1 rounded-2xl ${isInfantPriceAvailable() ? "text-[#3d6a8f] bg-blue-50" : "text-white bg-red-600"}`}>{`${isInfantPriceAvailable() ? `PKR ${groupData.infantPrice.toLocaleString()}` : "Price On Call"}`}</p>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -574,23 +447,6 @@ export default function BookingForm() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-                {/* Contact Person Name */}
-                {/* <div className="bg-white border border-gray-300 shadow-sm p-4 rounded">
-                    <label className="block mb-2">
-                        <span className="text-sm font-semibold text-gray-700 mb-2 block">Contact Person Name <span className="text-red-500">*</span></span>
-                        <input
-                            type="text"
-                            name="contactPersonName"
-                            value={formData.contactPersonName}
-                            onChange={handleChange}
-                            placeholder="Enter contact person's full name"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            required
-                        />
-                    </label>
-                    <p className="text-xs text-gray-600 mt-1">This person will be the primary contact for this booking</p>
-                </div> */}
-
                 {/* Passengers and Pricing Table */}
                 <div className="bg-white border border-gray-300 shadow-sm">
                     <table className="w-full border-collapse">
@@ -631,37 +487,6 @@ export default function BookingForm() {
                                     PKR {calculateAdultTotal().toLocaleString()}
                                 </td>
                             </tr>
-
-                            {/* Children Row */}
-                            {/* {(isEditMode || isChildPriceAvailable()) && (
-                                <tr className="border-b border-gray-200">
-                                    <td className="px-3 py-2">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs w-1/4 font-medium text-gray-900">Children</span>
-                                            <div className='w-3/4'>
-                                                <input
-                                                    type="number"
-                                                    name="children"
-                                                    value={formData.children}
-                                                    onChange={handleChange}
-                                                    onBlur={handlePassengerBlur}
-                                                    min="0"
-                                                    className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-center text-xs font-semibold focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                                                />
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-3 py-2 text-xs font-medium text-gray-900 border-r border-gray-200">
-                                        PKR {groupData?.childPrice?.toLocaleString() || 0}
-                                    </td>
-                                    <td className="px-3 py-2 text-center text-xs font-bold text-gray-900 border-r border-gray-200">
-                                        {formData.children}
-                                    </td>
-                                    <td className="px-3 py-2 text-right text-xs font-bold text-gray-900">
-                                        PKR {calculateChildTotal().toLocaleString()}
-                                    </td>
-                                </tr>
-                            )} */}
 
                             {/* Infants Row */}
                             <tr className="border-b border-gray-200">
@@ -751,7 +576,6 @@ export default function BookingForm() {
                                                 required
                                                 className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                                             >
-                                                {/* <option value="">{passenger.type === 'Infant' ? 'INF' : passenger.type === 'Child' ? 'CHLD' : 'Mr'}</option> */}
                                                 {passenger.type === 'Adult' && (
                                                     <>
                                                         <option value="Mr">Mr</option>
@@ -857,7 +681,117 @@ export default function BookingForm() {
                     </button>
                 </div>
             </form>
+
+            {/* --- REFACTORED REVIEW MODAL --- */}
+            {showReviewModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
+                    <div className="bg-white rounded-md shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col max-h-[90vh]">
+
+                        {/* Modal Header */}
+                        <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                {/* <div className="bg-[#3d6a8f]/10 p-2 rounded-full">
+                                    <UserCheck size={24} className="text-[#3d6a8f]" />
+                                </div> */}
+                                <div>
+                                    <h4 className="text-xl font-semibold! text-gray-900">Please review passenger booking data before submission</h4>
+                                    {/* <p className="text-xs text-gray-500">Please verify all passenger information before final submission.</p> */}
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setShowReviewModal(false)}
+                                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        {/* Modal Body (Scrollable) */}
+                        <div className="overflow-y-auto p-6 flex-1">
+                            <div className="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                                <table className="w-full text-sm text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-[#3d6a8f] text-white">
+                                            <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">SR #</th>
+                                            <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">Title</th>
+                                            <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">Surname</th>
+                                            <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">Given Name</th>
+                                            <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">Passport</th>
+                                            <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">DOB</th>
+                                            <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">Passport Expiry</th>
+                                            <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider">Nationality</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100 bg-white">
+                                        {formData.passengers.map((p, i) => (
+                                            <tr key={i} className="hover:bg-blue-50/30 transition-colors">
+                                                <td className="px-4 py-3 border-r border-gray-100">
+                                                    {`${p.type} ${p.type === 'Adult' ? i + 1 : ''}`}
+                                                </td>
+                                                <td className="px-4 py-3 border-r border-gray-100">{p.title}</td>
+                                                <td className="px-4 py-3 border-r border-gray-100 font-bold">{p.surName}</td>
+                                                <td className="px-4 py-3 border-r border-gray-100 font-bold">{p.givenName}</td>
+                                                <td className="px-4 py-3 border-r border-gray-100 tracking-wide">{p.passport}</td>
+                                                <td className="px-4 py-3 border-r border-gray-100">{formatDateForDisplay(p.dateOfBirth)}</td>
+                                                <td className="px-4 py-3 border-r border-gray-100">{formatDateForDisplay(p.passportExpiry)}</td>
+                                                <td className="px-4 py-3">{p.nationality}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="bg-gray-50 border-t border-gray-200 px-6 py-5 flex flex-col sm:flex-row justify-between items-center gap-4">
+
+                            {/* Confirmation Checkbox */}
+                            <label className="flex items-center gap-3 cursor-pointer group bg-white border border-gray-200 px-4 py-3 rounded-lg hover:border-[#3d6a8f] transition-all shadow-sm w-full sm:w-auto">
+                                <div className="relative flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={isReviewed}
+                                        onChange={(e) => setIsReviewed(e.target.checked)}
+                                        className="peer w-5 h-5 cursor-pointer appearance-none rounded border-2 border-gray-400 checked:border-[#3d6a8f] checked:bg-[#3d6a8f] transition-all"
+                                    />
+                                    <CheckCircle size={14} className="absolute left-0.5 top-0.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
+                                </div>
+                                <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900 select-none">
+                                    {/* I confirm that all data is accurate. */}
+                                    I hereby confirm that all the information I have provided in this form is accurate and complete.
+                                </span>
+                            </label>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3 w-full sm:w-auto justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowReviewModal(false)}
+                                    className="px-6 py-2.5 rounded-lg text-sm font-bold text-gray-600 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-800 transition-colors flex items-center gap-2"
+                                    disabled={isSubmitting}
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleFinalSubmit}
+                                    disabled={!isReviewed || isSubmitting}
+                                    className={`px-8 py-2.5 rounded-lg text-sm font-bold shadow-md flex items-center gap-2 transition-all transform active:scale-95
+                                        ${isReviewed && !isSubmitting
+                                            ? 'bg-[#3d6a8f] text-white hover:bg-[#2d5a8f] hover:shadow-lg'
+                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                                >
+                                    {isSubmitting ? (
+                                        <>Loading...</>
+                                    ) : (
+                                        <>Submit</>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
-        // </div>
     )
 }
