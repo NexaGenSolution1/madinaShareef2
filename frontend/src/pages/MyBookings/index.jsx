@@ -45,7 +45,7 @@ export default function MyBookings() {
             const createdTime = location.state.created ? new Date(location.state.created) : new Date();
             // Calculate 2 hours from creation time
             const deadline = new Date(createdTime.getTime() + 2 * 60 * 60 * 1000);
-            
+
             setSuccessModalData({
                 ref: location.state.bookingReference,
                 deadline: deadline
@@ -283,15 +283,13 @@ export default function MyBookings() {
                                         <span>👥</span>
                                     </div>
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-white border-r border-[#3d6fa8]">
+                                <th className="px-4 py-3 text-center text-xs font-semibold text-white border-r border-[#3d6fa8]">
                                     Price (PKR)
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-white border-r border-[#3d6fa8]">
-                                    <div className="flex items-center gap-1">
-                                        <span>Status</span>
-                                    </div>
+                                <th className="px-4 py-3 text-center text-xs font-semibold text-white border-r border-[#3d6fa8]">
+                                    <span>Status</span>
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-white">
+                                <th className="px-4 py-3 text-center text-xs font-semibold text-white">
                                     Action
                                 </th>
                             </tr>
@@ -310,7 +308,7 @@ export default function MyBookings() {
                                     return (
                                         <tr key={booking._id} className="border-b border-gray-300 hover:bg-blue-50/20 transition-colors">
                                             {/* Booking Details */}
-                                            <td className="px-4 py-4 align-top border-r border-gray-300">
+                                            <td className="px-4 py-4 align-middle border-r border-gray-300">
                                                 <div className="space-y-1.5">
                                                     <div className="flex items-center gap-2">
                                                         <span className="inline-block bg-linear-to-r from-amber-600 to-amber-700 text-white px-3 py-1.5 rounded-md text-xs font-semibold shadow-md">
@@ -332,7 +330,7 @@ export default function MyBookings() {
                                             </td>
 
                                             {/* Group */}
-                                            <td className="px-4 py-4 align-top border-r border-gray-300">
+                                            <td className="px-4 py-4 align-middle border-r border-gray-300">
                                                 <div className="space-y-1.5">
                                                     <div className="font-bold text-sm text-gray-900">
                                                         {booking.airline?.name || 'Air Sial'}
@@ -357,7 +355,7 @@ export default function MyBookings() {
                                             </td>
 
                                             {/* Passengers */}
-                                            <td className="px-4 py-4 align-top border-r border-gray-300">
+                                            <td className="px-4 py-4 align-middle border-r border-gray-300">
                                                 <div className="inline-block w-full">
                                                     <table className="w-full text-xs border border-slate-300 rounded-lg overflow-hidden">
                                                         <thead className="bg-[#2d5a8f] text-white">
@@ -425,7 +423,7 @@ export default function MyBookings() {
                                             </td>
 
                                             {/* Price */}
-                                            <td className="px-4 py-4 align-top border-r border-gray-300">
+                                            <td className="px-4 py-4 align-middle text-center border-r border-gray-300">
                                                 <div className="font-bold text-base text-gray-900">
                                                     {(booking.status === 'on hold' || booking.status === 'pending') ? (<div className="text-xs text-yellow-700 font-semibold bg-yellow-50 px-2.5 py-1.5 rounded-md border border-yellow-300">
                                                         Admin Review<br />Required
@@ -436,7 +434,7 @@ export default function MyBookings() {
                                             </td>
 
                                             {/* Status */}
-                                            <td className="px-4 py-4 align-top border-r border-gray-300">
+                                            <td className="px-4 py-4 align-middle text-center border-r border-gray-300">
                                                 <div className="space-y-2">
                                                     <span className={`inline-block px-3 py-1.5 rounded-md text-xs shadow-sm ${statusBadge.color}`}>
                                                         {statusBadge.label}
@@ -478,7 +476,7 @@ export default function MyBookings() {
                                             </td>
 
                                             {/* Action */}
-                                            <td className="py-4 align-top">
+                                            <td className="py-4 align-middle text-center">
                                                 <div className="flex flex-col items-center gap-2">
                                                     {/* First row: 3 buttons */}
                                                     <div className="flex flex-row justify-center items-center gap-2 w-full">
@@ -568,33 +566,33 @@ export default function MyBookings() {
 
             {/* --- BOOKING SUCCESS MODAL --- */}
             {successModalData && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/25 animate-in fade-in duration-300">
+                <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/25 animate-in fade-in duration-300">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 flex flex-col items-center text-center relative overflow-hidden animate-in zoom-in-95 duration-300">
-                        
+
                         {/* Header Background */}
                         <div className="absolute top-0 left-0 w-full h-24 bg-linear-to-b from-green-50 to-white -z-10"></div>
 
                         {/* Icon */}
                         <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-lg border-4 border-green-50">
                             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                                <Check size={40} className="text-green-600 stroke-[3]" />
+                                <Check size={40} className="text-green-600 stroke-3" />
                             </div>
                         </div>
 
                         <h2 className="text-2xl font-bold text-gray-800 mb-2">Booking Success</h2>
-                        
+
                         <div className="text-gray-600 space-y-4 mb-8">
                             <p>
                                 This is to inform you that your ticket reservation has been successfully placed <span className="font-bold text-gray-800">ON HOLD</span>.
                             </p>
                             <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm text-blue-900 leading-relaxed">
-                                We request you to make the payment by <br/>
-                                <span className="font-bold text-lg block mt-1 text-[#3d6a8f]">{formatDeadline(successModalData.deadline)}</span> 
+                                We request you to make the payment by <br />
+                                <span className="font-bold text-lg block mt-1 text-[#3d6a8f]">{formatDeadline(successModalData.deadline)}</span>
                                 <span className="block mt-1">to guarantee your booking on the requested flight.</span>
                             </div>
                         </div>
 
-                        <button 
+                        <button
                             onClick={() => setSuccessModalData(null)}
                             className="px-10 py-3 bg-[#6C63FF] hover:bg-[#5a52d5] text-white text-sm font-bold rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:translate-y-0 w-full sm:w-auto"
                         >

@@ -76,7 +76,8 @@ textarea {
 }
 
 /* Button responsive */
-button, .btn {
+button,
+.btn {
     font-size: 0.875rem;
     padding: 0.5rem 1rem;
 }
@@ -97,15 +98,15 @@ textarea {
     .main-container {
         padding-inline: 20px;
     }
-    
+
     .responsive-text-3xl {
         font-size: 1.5rem;
     }
-    
+
     .responsive-text-2xl {
         font-size: 1.25rem;
     }
-    
+
     .responsive-grid {
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         gap: 0.75rem;
@@ -116,39 +117,40 @@ textarea {
     .main-container {
         padding-inline: 16px;
     }
-    
+
     .responsive-text-3xl {
         font-size: 1.25rem;
     }
-    
+
     .responsive-text-2xl {
         font-size: 1.125rem;
     }
-    
+
     .responsive-text-xl {
         font-size: 1rem;
     }
-    
+
     .responsive-p {
         padding: 0.75rem;
     }
-    
+
     .responsive-px {
         padding-left: 0.75rem;
         padding-right: 0.75rem;
     }
-    
+
     .responsive-py {
         padding-top: 0.75rem;
         padding-bottom: 0.75rem;
     }
-    
+
     .responsive-grid {
         grid-template-columns: 1fr;
         gap: 0.5rem;
     }
-    
-    button, .btn {
+
+    button,
+    .btn {
         font-size: 0.8125rem;
         padding: 0.4rem 0.75rem;
     }
@@ -158,38 +160,39 @@ textarea {
     .main-container {
         padding-inline: 12px;
     }
-    
+
     .responsive-text-3xl {
         font-size: 1.125rem;
     }
-    
+
     .responsive-text-2xl {
         font-size: 1rem;
     }
-    
+
     .responsive-text-xl {
         font-size: 0.9375rem;
     }
-    
+
     .responsive-p {
         padding: 0.5rem;
     }
-    
+
     .responsive-px {
         padding-left: 0.5rem;
         padding-right: 0.5rem;
     }
-    
+
     .responsive-py {
         padding-top: 0.5rem;
         padding-bottom: 0.5rem;
     }
-    
-    button, .btn {
+
+    button,
+    .btn {
         font-size: 0.75rem;
         padding: 0.375rem 0.625rem;
     }
-    
+
     input[type="text"],
     input[type="email"],
     input[type="password"],
@@ -210,6 +213,7 @@ img {
 
 /* Prevent horizontal scroll */
 body {
+    font-family: 'Roboto', sans-serif;
     overflow-x: hidden;
 }
 
@@ -224,12 +228,12 @@ body {
         width: 6px;
         height: 6px;
     }
-    
+
     ::-webkit-scrollbar-thumb {
         background: #cbd5e0;
         border-radius: 3px;
     }
-    
+
     ::-webkit-scrollbar-track {
         background: #f7fafc;
     }

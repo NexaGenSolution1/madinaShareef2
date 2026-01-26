@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import heroImg from '../../assets/images/hero.jpg'
 import makkahImg from '../../assets/images/makkah.webp'
 import ukImg from '../../assets/images/uk.webp'
 import qatarImg from '../../assets/images/qatar.jpg'
@@ -25,7 +26,7 @@ export default function HeroSection() {
         <section
             // style={{ backgroundImage: `url(${heroImg})` }}
             // style={{ backgroundImage: `url(https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)` }}
-            style={{ backgroundImage: `url(https://images.unsplash.com/photo-1707343848552-893e05dba6ac?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)` }}
+            style={{ backgroundImage: `url(${heroImg})` }}
             className='relative bg-cover bg-center mt-17 md:mt-21 z-1'
         >
             <div className='realtive main-container min-h-[60vh] text-white py-18 sm:py-24 z-10'>

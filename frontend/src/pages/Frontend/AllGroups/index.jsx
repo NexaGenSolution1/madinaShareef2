@@ -252,7 +252,7 @@ export default function AllGroups({ headerType, header, searchParams }) {
                 <div className="w-full xl:w-auto">
                     {header}
                 </div>
-                
+
                 {/* Advanced Search Section */}
                 <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
                     {/* Advanced Search Toggle */}
@@ -358,10 +358,10 @@ export default function AllGroups({ headerType, header, searchParams }) {
                                 <thead className="bg-[#1e4a76] text-white">
                                     <tr>
                                         <th className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
-                                            Date
-                                        </th>
-                                        <th className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
                                             Flight#
+                                        </th>
+                                        <th className="px-3 py-2 text-center text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
+                                            Date
                                         </th>
                                         <th className="px-3 py-2 text-center text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
                                             Origin-Destination
@@ -383,8 +383,7 @@ export default function AllGroups({ headerType, header, searchParams }) {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white">
-
+                                <tbody className="bg-white text-gray-700 font-bold whitespace-nowrap text-[8px] md:text-[12.5px]">
                                     {loading && (
                                         <tr>
                                             <td colSpan="8" className="px-6 py-8 text-center text-gray-500 text-sm">
@@ -415,7 +414,7 @@ export default function AllGroups({ headerType, header, searchParams }) {
                                             acc[key].groups.push(group);
                                             return acc;
                                         }, {});
-                                        
+
                                         const formatDate = (dateStr) => {
                                             const date = new Date(dateStr)
                                             const day = date.getDate().toString().padStart(2, '0')
@@ -434,23 +433,32 @@ export default function AllGroups({ headerType, header, searchParams }) {
                                                             <span className="font-bold text-[#D70F64] text-sm">
                                                                 {data.airline}
                                                             </span>
-                                                            <span className="font-bold text-gray-900 text-sm">
+                                                            <span className="font-bold text-lg">
                                                                 {data.sector}
                                                             </span>
                                                         </div>
                                                     </td>
                                                 </tr>
 
+
+                                                {/* */}
+
                                                 {/* Group Rows - Condensed, single line per cell */}
                                                 {data.groups.map((group) => (
                                                     <tr
                                                         key={group.id}
-                                                        className="hover:bg-gray-50 border-b border-gray-100 bg-[#f4f9ff]"
+                                                        className="border-b border-dashed border-gray-100 bg-cyan-50/70"
                                                     >
-                                                        {/* Date Column with Cyan Icon */}
-                                                        <td className="px-3 py-2 whitespace-nowrap align-middle">
+                                                        {/* Flight Number */}
+                                                        <td className="text-left px-3 py-2">
                                                             {group.details?.map((flight, i) => (
-                                                                <div key={i} className="flex items-center gap-1.5 text-[#06b6d4] font-bold text-[8px] md:text-xs">
+                                                                <div key={i} className="flex items-center gap-1.5">{flight.flight_no}</div>
+                                                            ))}
+                                                        </td>
+                                                        {/* Date Column with Cyan Icon */}
+                                                        <td className="text-center py-2">
+                                                            {group.details?.map((flight, i) => (
+                                                                <div key={i} className="flex justify-center items-center gap-1.5">
                                                                     <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                                                                         <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                                                                     </svg>
@@ -458,60 +466,55 @@ export default function AllGroups({ headerType, header, searchParams }) {
                                                                 </div>
                                                             ))}
                                                         </td>
-
-                                                        {/* Flight Number */}
-                                                        <td className="px-3 py-2 whitespace-nowrap text-[8px] md:text-xs font-bold text-gray-600 align-middle">
-                                                            {group.details?.map((flight, i) => (
-                                                                <div key={i}>{flight.flight_no}</div>
-                                                            ))}
-                                                        </td>
-
-                                                        {/* Origin-Destination */}
-                                                        <td className="px-3 py-2 whitespace-nowrap text-center text-[8px] md:text-xs font-bold text-gray-600 align-middle">
-                                                            {group.details?.map((flight, i) => (
-                                                                <div key={i}>
-                                                                    {flight.origin.toUpperCase()}-{flight.destination.toUpperCase()}
-                                                                </div>
-                                                            ))}
+                                                        <td className="text-center py-2">
+                                                            {group.details?.map((flight, i) => {
+                                                                const sectors = group.sector.split("-");
+                                                                if (i >= sectors.length - 1) return null;
+                                                                return (
+                                                                    <div key={i} className="flex justify-center items-center gap-1.5">
+                                                                        {sectors[i].toUpperCase()}-{sectors[i + 1].toUpperCase()}
+                                                                    </div>
+                                                                );
+                                                            })}
                                                         </td>
 
                                                         {/* Time */}
-                                                        <td className="px-3 py-2 whitespace-nowrap text-center text-[8px] md:text-xs font-bold text-gray-600 align-middle">
+                                                        <td className="text-center py-2">
                                                             {group.details?.map((flight, i) => (
-                                                                <div key={i}>
+                                                                <div key={i} className="flex justify-center items-center gap-1.5">
                                                                     {flight.dept_time?.substring(0, 5)}-{flight.arv_time?.substring(0, 5)}
                                                                 </div>
                                                             ))}
                                                         </td>
 
                                                         {/* Baggage */}
-                                                        <td className="px-3 py-2 whitespace-nowrap text-center text-[8px] md:text-xs font-bold text-gray-600 align-middle">
+                                                        <td className="text-center py-2">
                                                             {group.details?.map((flight, i) => (
-                                                                <div key={i}>
+                                                                <div key={i} className="flex justify-center items-center gap-1.5">
                                                                     {flight.baggage ? `${flight.baggage} KG` : 'N/A'}
                                                                 </div>
                                                             ))}
                                                         </td>
 
                                                         {/* Meal */}
-                                                        <td className="px-3 py-2 whitespace-nowrap text-center text-[8px] md:text-xs font-bold text-gray-600 align-middle">
+                                                        <td className="text-center py-2">
                                                             {group.details?.map((flight, i) => (
-                                                                <div key={i}>
+                                                                <div key={i} className="flex justify-center items-center gap-1.5">
                                                                     {flight.meal || 'No'}
                                                                 </div>
                                                             ))}
                                                         </td>
 
                                                         {/* Price */}
-                                                        <td className="px-3 py-2 whitespace-nowrap text-center text-[8px] md:text-xs font-bold text-gray-600 align-middle">
+                                                        <td className="text-center py-2">
                                                             PKR {group.price?.toLocaleString()}
                                                         </td>
 
                                                         {/* Action Button - Orange */}
-                                                        <td className="px-3 py-2 whitespace-nowrap text-center align-middle">
+                                                        <td className="text-center py-2">
                                                             <button
                                                                 onClick={() => handleBookNow(group)}
-                                                                className="px-1.5! py-1! md:px-3! md:py-1.5! bg-[#f97316] hover:bg-[#ea580c] text-white rounded text-[8px]! md:text-xs! font-semibold shadow-sm transition-colors"
+                                                                className="px-1.5! py-1! md:px-3! md:py-1.5! bg-[#f97316] hover:bg-[#ea580c] text-white rounded text-[8px]! md:text-[12.5px]! font-semibold shadow-sm transition-colors"
                                                             >
                                                                 Book now
                                                             </button>
