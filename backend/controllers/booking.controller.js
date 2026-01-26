@@ -183,15 +183,19 @@ export const updateBooking = async (req, res) => {
     if (!["on hold", "pending"].includes(booking.status))
       return res.status(400).json({ success: false, message: "Only on-hold bookings can be edited" });
 
-    if (booking.expiresAt && new Date() > booking.expiresAt) {
-      booking.status = "expired";
-      await booking.save();
-      return res.status(400).json({ success: false, message: "Booking expired" });
-    }
+    // if (booking.expiresAt && new Date() > booking.expiresAt) {
+    //   booking.status = "cancelled";
+    //   await booking.save();
+    //   return res.status(400).json({ success: false, message: "Booking timer expired. It is cancelled now" });
+    // }
 
     const oldSeats = booking.adultsCount + booking.childrenCount;
     Object.assign(booking, req.body);
     const newSeats = booking.adultsCount + booking.childrenCount;
+    booking.expiresAt =
+      req.body.status === "on hold" || req.body.status === "pending"
+        ? new Date(Date.now() + HOLD_DURATION)
+        : null;
 
     await booking.save();
     await GroupTicketing.updateOne(

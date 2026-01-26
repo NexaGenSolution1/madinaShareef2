@@ -24,7 +24,8 @@ interface Booking {
     createdAt: string
     pnr?: string
     pricing: { grandTotal: number }
-    status: string
+    status: string,
+    expiresAt: string | null
 }
 
 interface StatusOption {
@@ -61,15 +62,13 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                             <span>👥</span>
                         </div>
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-white border-r border-[#3d6fa8]">
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-white border-r border-[#3d6fa8]">
                         Price (PKR)
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-white border-r border-[#3d6fa8]">
-                        <div className="flex items-center gap-1">
-                            <span>Status</span>
-                        </div>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-white border-r border-[#3d6fa8]">
+                        <span>Status</span>
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-white">
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-white">
                         Action
                     </th>
                 </tr>
@@ -132,7 +131,7 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                         </div>
                                     </div>
                                 </td>
-                                
+
                                 {/* Passengers */}
                                 <td className="px-4 py-4 align-top border-r border-gray-300">
                                     <div className="inline-block w-full">
@@ -202,7 +201,7 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                 </td>
 
                                 {/* Price */}
-                                <td className="px-4 py-4 align-top border-r border-gray-300">
+                                <td className={`px-4 py-4 ${(booking.status === 'on hold' || booking.status === 'pending') ? "align-bottom" : "align-middle"} text-center border-r border-gray-300`}>
                                     <div className="font-bold text-base text-gray-900">
                                         {(booking.status === 'on hold' || booking.status === 'pending') ? (<div className="text-xs text-yellow-700 font-semibold bg-yellow-50 px-2.5 py-1.5 rounded-md border border-yellow-300">
                                             Admin Review<br />Required
@@ -342,11 +341,28 @@ export default function AllBookings() {
     ]
 
     // Calculate remaining time for a booking (2 hours from creation)
-    const calculateRemainingTime = (createdAt: string) => {
-        const createdDate = new Date(createdAt)
-        const expiryDate = new Date(createdDate.getTime() + 2 * 60 * 60 * 1000) // Add 2 hours
-        const now = new Date()
-        const diff = expiryDate.getTime() - now.getTime()
+    // const calculateRemainingTime = (createdAt: string) => {
+    //     const createdDate = new Date(createdAt)
+    //     const expiryDate = new Date(createdDate.getTime() + 2 * 60 * 60 * 1000) // Add 2 hours
+    //     const now = new Date()
+    //     const diff = expiryDate.getTime() - now.getTime()
+
+    //     if (diff <= 0) {
+    //         return { hours: 0, minutes: 0, seconds: 0, expired: true }
+    //     }
+
+    //     const hours = Math.floor(diff / (1000 * 60 * 60))
+    //     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+    //     const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+
+    //     return { hours, minutes, seconds, expired: false }
+    // }
+
+    const calculateRemainingTime = (expiresAt: string | null) => {
+        console.log('Calculating remaining time for expiryAt:', expiresAt)
+        if (!expiresAt) return { hours: 0, minutes: 0, seconds: 0, expired: true }
+
+        const diff = new Date(expiresAt).getTime() - new Date().getTime()
 
         if (diff <= 0) {
             return { hours: 0, minutes: 0, seconds: 0, expired: true }
@@ -359,29 +375,17 @@ export default function AllBookings() {
         return { hours, minutes, seconds, expired: false }
     }
 
-    // Update timers every second for on hold bookings
     // useEffect(() => {
-    //     const interval = setInterval(() => {
-    //         const newTimers: { [key: string]: { hours: number; minutes: number; seconds: number; expired: boolean } } = {}
-    //         bookings.forEach(booking => {
-    //             if (booking.status === 'on hold') {
-    //                 newTimers[booking._id] = calculateRemainingTime(booking.createdAt)
-    //             }
-    //         })
-    //         setTimers(newTimers)
-    //     }, 1000)
+    //     const activeBookings = bookings.filter(
+    //         b => b.status === 'on hold' || b.status === 'pending'
+    //     )
 
-    //     return () => clearInterval(interval)
-    // }, [bookings])
-
-    // useEffect(() => {
-    //     const onHoldBookings = bookings.filter(b => b.status === 'on hold')
-    //     if (onHoldBookings.length === 0) return
+    //     if (activeBookings.length === 0) return
 
     //     const interval = setInterval(() => {
     //         const newTimers: Record<string, Timer> = {}
 
-    //         onHoldBookings.forEach(booking => {
+    //         activeBookings.forEach(booking => {
     //             newTimers[booking._id] = calculateRemainingTime(booking.createdAt)
     //         })
 
@@ -392,26 +396,22 @@ export default function AllBookings() {
     // }, [bookings])
 
     useEffect(() => {
-        const activeBookings = bookings.filter(
-            b => b.status === 'on hold' || b.status === 'pending'
+        const onHoldBookings = bookings.filter(
+            b => (b.status === 'on hold' || b.status === 'pending') && b.expiresAt
         )
 
-        if (activeBookings.length === 0) return
+        if (onHoldBookings.length === 0) return
 
         const interval = setInterval(() => {
             const newTimers: Record<string, Timer> = {}
-
-            activeBookings.forEach(booking => {
-                newTimers[booking._id] = calculateRemainingTime(booking.createdAt)
+            onHoldBookings.forEach(booking => {
+                newTimers[booking._id] = calculateRemainingTime(booking.expiresAt)
             })
-
             setTimers(newTimers)
         }, 1000)
 
         return () => clearInterval(interval)
     }, [bookings])
-
-
 
 
     useEffect(() => {
