@@ -39,29 +39,21 @@ export default function MyBookings() {
         { value: 'cancelled', label: 'Cancelled', color: 'bg-red-50 text-red-700 border border-red-300' }
     ]
 
-    // --- EFFECT: CHECK FOR BOOKING SUCCESS REDIRECT ---
     useEffect(() => {
         if (location.state?.bookingSuccess) {
-            const createdTime = location.state.created ? new Date(location.state.created) : new Date();
-            // Calculate 2 hours from creation time
-            const deadline = new Date(createdTime.getTime() + 2 * 60 * 60 * 1000);
-
             setSuccessModalData({
                 ref: location.state.bookingReference,
-                deadline: deadline
-            });
-
-            // Clear state to prevent modal from showing on refresh
+                deadline: new Date(location.state.expiresAt) // use backend expiry
+            })
             window.history.replaceState({}, document.title)
         }
-    }, [location]);
+    }, [location])
 
-    // Calculate remaining time for a booking (2 hours from creation)
-    const calculateRemainingTime = (createdAt) => {
-        const createdDate = new Date(createdAt)
-        const expiryDate = new Date(createdDate.getTime() + 2 * 60 * 60 * 1000) // Add 2 hours
-        const now = new Date()
-        const diff = expiryDate - now
+    const calculateRemainingTime = (expiresAt) => {
+        console.log('Calculating remaining time for expiryAt:', expiresAt)
+        if (!expiresAt) return { hours: 0, minutes: 0, seconds: 0, expired: true }
+
+        const diff = new Date(expiresAt) - new Date()
 
         if (diff <= 0) {
             return { hours: 0, minutes: 0, seconds: 0, expired: true }
@@ -74,6 +66,7 @@ export default function MyBookings() {
         return { hours, minutes, seconds, expired: false }
     }
 
+
     // --- UPDATED: 12-HOUR FORMAT ---
     const formatDeadline = (date) => {
         if (!date) return '';
@@ -83,20 +76,25 @@ export default function MyBookings() {
         return `${timeStr}, ${dateStr}`;
     };
 
+
     useEffect(() => {
-        const onHoldBookings = bookings.filter(b => b.status === 'on hold' || b.status === 'pending')
+        const onHoldBookings = bookings.filter(
+            b => (b.status === 'on hold' || b.status === 'pending') && b.expiresAt
+        )
+
         if (onHoldBookings.length === 0) return
 
         const interval = setInterval(() => {
             const newTimers = {}
             onHoldBookings.forEach(booking => {
-                newTimers[booking._id] = calculateRemainingTime(booking.createdAt)
+                newTimers[booking._id] = calculateRemainingTime(booking.expiresAt)
             })
             setTimers(newTimers)
         }, 1000)
 
         return () => clearInterval(interval)
     }, [bookings])
+
 
     useEffect(() => {
         fetchBookings()
@@ -423,7 +421,7 @@ export default function MyBookings() {
                                             </td>
 
                                             {/* Price */}
-                                            <td className="px-4 py-4 align-middle text-center border-r border-gray-300">
+                                            <td className={`px-4 py-4 ${(booking.status === 'on hold' || booking.status === 'pending') ? "align-bottom" : "align-middle"} text-center border-r border-gray-300`}>
                                                 <div className="font-bold text-base text-gray-900">
                                                     {(booking.status === 'on hold' || booking.status === 'pending') ? (<div className="text-xs text-yellow-700 font-semibold bg-yellow-50 px-2.5 py-1.5 rounded-md border border-yellow-300">
                                                         Admin Review<br />Required
@@ -443,7 +441,7 @@ export default function MyBookings() {
                                                         <div className="space-y-2 pt-1">
                                                             <div className="text-xs">
                                                                 <div className="font-bold text-gray-800 mb-1.5">Booking Expiry Time</div>
-                                                                <div className="flex items-center gap-1.5">
+                                                                <div className="flex justify-center items-center gap-1.5">
                                                                     {timers[booking._id] && timers[booking._id].expired ? (
                                                                         <div className="text-red-600 font-bold text-xs">EXPIRED</div>
                                                                     ) : (

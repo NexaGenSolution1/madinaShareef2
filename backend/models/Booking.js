@@ -176,7 +176,13 @@ const bookingSchema = new mongoose.Schema({
     notes: {
         type: String,
         default: ''
-    }
+    },
+    expiresAt: {
+        type: Date,
+        default: null,
+        index: true, // helps cron/queries
+    },
+
 }, {
     timestamps: true
 });

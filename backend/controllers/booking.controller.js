@@ -1,662 +1,291 @@
-import Booking from '../models/Booking.js';
-import GroupTicketing from '../models/GroupTicketing.js';
-// import { startBookingTimer, cancelBookingTimer } from '../utils/bookingTimer.js';
-import {
-    startBookingTimer,
-    cancelBookingTimer,
-    hasBookingTimer,
-    getBookingRemainingTime
-} from '../utils/bookingTimer.js';
+import Booking from "../models/Booking.js";
+import GroupTicketing from "../models/GroupTicketing.js";
 
+const HOLD_DURATION = 2 * 60 * 60 * 1000; // 2 hours
 
-// Create a new booking
-const createBooking = async (req, res) => {
-    try {
-        const {
-            groupId,
-            groupType,
-            airline,
-            sector,
-            pnr,
-            contactPersonName,
-            adultsCount,
-            childrenCount,
-            infantsCount,
-            totalPassengers,
-            pricing,
-            passengers,
-            flights,
-            departureDate,
-            arrivalDate
-        } = req.body;
+/* =========================================================
+   CREATE BOOKING
+========================================================= */
+export const createBooking = async (req, res) => {
+  try {
+    const {
+      groupId, groupType, airline, sector, pnr, contactPersonName,
+      adultsCount, childrenCount, infantsCount, totalPassengers,
+      pricing, passengers, flights, departureDate, arrivalDate
+    } = req.body;
 
-        // Validate passenger count matches passenger details
-        if (passengers.length !== totalPassengers) {
-            return res.status(400).json({
-                success: false,
-                message: 'Passenger count does not match passenger details'
-            });
-        }
+    if (passengers.length !== totalPassengers)
+      return res.status(400).json({ success: false, message: "Passenger mismatch" });
 
-        // Validate pricing totals
-        const calculatedTotal = pricing.adultTotal + pricing.childTotal + pricing.infantTotal;
-        if (Math.abs(calculatedTotal - pricing.grandTotal) > 0.01) {
-            return res.status(400).json({
-                success: false,
-                message: 'Price calculation mismatch'
-            });
-        }
+    const calculatedTotal =
+      pricing.adultTotal + pricing.childTotal + pricing.infantTotal;
 
-        // Create new booking
-        const booking = new Booking({
-            groupId,
-            groupType,
-            airline,
-            sector,
-            pnr,
-            contactPersonName,
-            adultsCount,
-            childrenCount,
-            infantsCount,
-            totalPassengers,
-            pricing,
-            passengers,
-            flights,
-            departureDate,
-            arrivalDate,
-            userId: req.user._id,
-            status: 'on hold'
-        });
+    if (Math.abs(calculatedTotal - pricing.grandTotal) > 0.01)
+      return res.status(400).json({ success: false, message: "Price mismatch" });
 
-        await booking.save();
+    const expiresAt = new Date(Date.now() + HOLD_DURATION);
 
-        // Start 2-hours timer for automatic cancellation
-        startBookingTimer(booking._id.toString());
+    const booking = await Booking.create({
+      groupId, groupType, airline, sector, pnr, contactPersonName,
+      adultsCount, childrenCount, infantsCount, totalPassengers,
+      pricing, passengers, flights, departureDate, arrivalDate,
+      userId: req.user._id,
+      status: "on hold",
+      expiresAt
+    });
 
-        // Update GroupTicketing totalSeats - subtract only adults + children (ignore infants)
-        const seatsToReduce = adultsCount + childrenCount;
-        await GroupTicketing.updateOne(
-            { _id: groupId },
-            { $inc: { totalSeats: -seatsToReduce } }
-        );
+    // Reduce seats (infants don't take seats)
+    await GroupTicketing.updateOne(
+      { _id: groupId },
+      { $inc: { totalSeats: -(adultsCount + childrenCount) } }
+    );
 
-        res.status(201).json({
-            success: true,
-            message: 'Booking created successfully',
-            data: booking
-        });
-    } catch (error) {
-        console.error('Error creating booking:', error);
-        console.error('Error stack:', error.stack);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to create booking',
-            error: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-        });
-    }
+    res.status(201).json({ success: true, data: booking });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to create booking" });
+  }
 };
 
-// Get all bookings (with filters and pagination)
-const getAllBookings = async (req, res, next) => {
-    try {
-        const {
-            page = 1,
-            limit = 10,
-            status,
-            sector,
-            airline,
-            fromDate,
-            // toDate,
-            search
-        } = req.query;
+/* =========================================================
+   GET ALL BOOKINGS
+========================================================= */
+export const getAllBookings = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, status, sector, airline, fromDate, search } = req.query;
+    const query = {};
 
-        const query = {};
+    if (status) query.status = status;
+    if (sector) query.sector = sector;
+    if (airline) query["airline.name"] = airline;
+    if (fromDate) query.departureDate = { $gte: new Date(fromDate) };
 
-        // Apply filters
-        if (status) {
-            query.status = status;
-        }
-
-        if (sector) {
-            query.sector = sector;
-        }
-
-        if (airline) {
-            query['airline.name'] = airline;
-        }
-
-        // if (fromDate || toDate) {
-        if (fromDate) {
-            query.departureDate = {};
-            if (fromDate) {
-                query.departureDate.$gte = new Date(fromDate);
-            }
-            // if (toDate) {
-            //     query.departureDate.$lte = new Date(toDate);
-            // }
-        }
-
-        if (search) {
-            query.$or = [
-                { bookingReference: { $regex: search, $options: 'i' } },
-                { contactPersonName: { $regex: search, $options: 'i' } },
-                { pnr: { $regex: search, $options: 'i' } }
-            ];
-        }
-
-        // If not admin, filter by user
-        if (req.user.role !== 'Admin') {
-            query.userId = req.user._id;
-        }
-
-        const skip = (parseInt(page) - 1) * parseInt(limit);
-
-        const bookings = await Booking.find(query)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(parseInt(limit))
-            .populate('userId', 'name email agencyCode companyName');
-
-        const total = await Booking.countDocuments(query);
-
-        bookings.forEach((booking) => {
-            if (
-                (booking.status === 'on hold' || booking.status === 'pending') &&
-                !hasBookingTimer(booking._id.toString())
-            ) {
-                startBookingTimer(booking._id.toString());
-            }
-        });
-
-        const data = bookings.map(b => ({
-            ...b.toObject(),
-            remainingTime:
-                b.status === 'on hold' || b.status === 'pending'
-                    ? getBookingRemainingTime(b.updatedAt)
-                    : null
-        }));
-
-        res.json({
-            success: true,
-            data: data,
-            pagination: {
-                currentPage: parseInt(page),
-                totalPages: Math.ceil(total / parseInt(limit)),
-                totalBookings: total,
-                limit: parseInt(limit)
-            }
-        });
-    } catch (error) {
-        console.error('Error fetching bookings:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch bookings',
-            error: error.message
-        });
+    if (search) {
+      query.$or = [
+        { bookingReference: { $regex: search, $options: "i" } },
+        { contactPersonName: { $regex: search, $options: "i" } },
+        { pnr: { $regex: search, $options: "i" } }
+      ];
     }
+
+    if (req.user.role !== "Admin") query.userId = req.user._id;
+
+    const skip = (page - 1) * limit;
+
+    const bookings = await Booking.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
+      .populate("userId", "name email agencyCode companyName");
+
+    const total = await Booking.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: bookings,
+      pagination: {
+        currentPage: Number(page),
+        totalPages: Math.ceil(total / limit),
+        totalBookings: total
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to fetch bookings" });
+  }
 };
 
-// Get booking by ID
-const getBookingById = async (req, res, next) => {
-    try {
-        const { id } = req.params;
+/* =========================================================
+   GET BOOKING BY ID
+========================================================= */
+export const getBookingById = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id)
+      .populate("userId", "name email agencyCode companyName");
 
-        const booking = await Booking.findById(id).populate('userId', 'name email agencyCode companyName');
+    if (!booking)
+      return res.status(404).json({ success: false, message: "Booking not found" });
 
-        if (!booking) {
-            return res.status(404).json({
-                success: false,
-                message: 'Booking not found'
-            });
-        }
+    if (req.user.role !== "Admin" && booking.userId._id.toString() !== req.user._id.toString())
+      return res.status(403).json({ success: false, message: "Not authorized" });
 
-        // Check if user has permission to view this booking
-        const bookingUserId = booking.userId._id ? booking.userId._id.toString() : booking.userId.toString();
-        console.log('Authorization check:', {
-            userRole: req.user.role,
-            bookingUserId,
-            requestUserId: req.user._id.toString(),
-            isMatch: bookingUserId === req.user._id.toString()
-        });
-
-        if (req.user.role !== 'Admin' && bookingUserId !== req.user._id.toString()) {
-            return res.status(403).json({
-                success: false,
-                message: 'Not authorized to view this booking'
-            });
-        }
-
-        if (
-            (booking.status === 'on hold' || booking.status === 'pending') &&
-            !hasBookingTimer(booking._id.toString())
-        ) {
-            startBookingTimer(booking._id.toString());
-        }
-
-
-        // res.json({
-        //     success: true,
-        //     data: booking
-        // });
-
-        res.json({
-            success: true,
-            data: booking,
-            remainingTime:
-                booking.status === 'on hold' || booking.status === 'pending'
-                    ? getBookingRemainingTime(booking.updatedAt)
-                    : null
-        });
-    } catch (error) {
-        console.error('Error fetching booking:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch booking',
-            error: error.message
-        });
-    }
+    res.json({ success: true, data: booking });
+  } catch {
+    res.status(500).json({ success: false, message: "Failed to fetch booking" });
+  }
 };
 
-// Get booking by reference
-const getBookingByReference = async (req, res, next) => {
-    try {
-        const { reference } = req.params;
+/* =========================================================
+   GET BOOKING BY REFERENCE
+========================================================= */
+export const getBookingByReference = async (req, res) => {
+  try {
+    const booking = await Booking.findOne({ bookingReference: req.params.reference })
+      .populate("userId", "name email agencyCode companyName");
 
-        const booking = await Booking.findOne({ bookingReference: reference })
-            .populate('userId', 'name email agencyCode companyName');
+    if (!booking)
+      return res.status(404).json({ success: false, message: "Booking not found" });
 
-        if (!booking) {
-            return res.status(404).json({
-                success: false,
-                message: 'Booking not found'
-            });
-        }
+    if (req.user.role !== "Admin" && booking.userId._id.toString() !== req.user._id.toString())
+      return res.status(403).json({ success: false, message: "Not authorized" });
 
-        // Check if user has permission to view this booking
-        const bookingUserId = booking.userId._id ? booking.userId._id.toString() : booking.userId.toString();
-        if (req.user.role !== 'Admin' && bookingUserId !== req.user._id.toString()) {
-            return res.status(403).json({
-                success: false,
-                message: 'Not authorized to view this booking'
-            });
-        }
-
-        // res.json({
-        //     success: true,
-        //     data: booking
-        // });
-
-        if (
-            (booking.status === 'on hold' || booking.status === 'pending') &&
-            !hasBookingTimer(booking._id.toString())
-        ) {
-            startBookingTimer(booking._id.toString());
-        }
-
-
-        res.json({
-            success: true,
-            data: booking,
-            remainingTime:
-                booking.status === 'on hold' || booking.status === 'pending'
-                    ? getBookingRemainingTime(booking.updatedAt)
-                    : null
-        });
-
-    } catch (error) {
-        console.error('Error fetching booking:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch booking',
-            error: error.message
-        });
-    }
+    res.json({ success: true, data: booking });
+  } catch {
+    res.status(500).json({ success: false, message: "Failed to fetch booking" });
+  }
 };
 
-// Update booking status
-const updateBookingStatus = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const { status, notes } = req.body;
+/* =========================================================
+   UPDATE BOOKING STATUS (ADMIN)
+========================================================= */
+export const updateBookingStatus = async (req, res) => {
+  try {
+    const { status, notes } = req.body;
+    const booking = await Booking.findById(req.params.id);
 
-        const booking = await Booking.findById(id);
-        const { groupId, adultsCount, childrenCount } = booking;
-        let seatDifference = 0;
-        if (status === 'cancelled') {
-            seatDifference = adultsCount + childrenCount;
-        }
-        else if (booking.status === 'cancelled') {
-            seatDifference = - (adultsCount + childrenCount);
-        }
+    if (!booking)
+      return res.status(404).json({ success: false, message: "Booking not found" });
 
-        if (!booking) {
-            return res.status(404).json({
-                success: false,
-                message: 'Booking not found'
-            });
-        }
+    if (req.user.role !== "Admin")
+      return res.status(403).json({ success: false, message: "Not authorized" });
 
-        // Only admin can update booking status
-        if (req.user.role !== 'Admin') {
-            return res.status(403).json({
-                success: false,
-                message: 'Not authorized to update booking status'
-            });
-        }
+    const oldStatus = booking.status;
+    const seats = booking.adultsCount + booking.childrenCount;
+    let seatDiff = 0;
 
-        // Cancel timer if booking is being confirmed or cancelled
-        // if (status !== 'on hold' && status !== 'pending') {
+    if (status === "cancelled" && oldStatus !== "cancelled") seatDiff = seats;
+    if (oldStatus === "cancelled" && status !== "cancelled") seatDiff = -seats;
 
-        // }
-        cancelBookingTimer(id);
-        if (status === 'on hold' || status === 'pending') {
-            await startBookingTimer(id);
-        }
+    booking.status = status;
+    booking.notes = notes ?? booking.notes;
+    booking.expiresAt =
+      status === "on hold" || status === "pending"
+        ? new Date(Date.now() + HOLD_DURATION)
+        : null;
 
-        booking.status = status;
-        if (notes) {
-            booking.notes = notes;
-        }
+    await booking.save();
+    await GroupTicketing.updateOne({ _id: booking.groupId }, { $inc: { totalSeats: seatDiff } });
 
-        await booking.save();
-
-        await GroupTicketing.updateOne(
-            { _id: groupId },
-            { $inc: { totalSeats: seatDifference } }
-        );
-
-        res.json({
-            success: true,
-            message: 'Booking status updated successfully',
-            data: booking
-        });
-    } catch (error) {
-        console.error('Error updating booking:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to update booking',
-            error: error.message
-        });
-    }
+    res.json({ success: true, data: booking });
+  } catch {
+    res.status(500).json({ success: false, message: "Failed to update status" });
+  }
 };
 
-// Update booking details (limited fields)
-const updateBooking = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const { contactPersonName, notes, adultsCount, childrenCount, infantsCount, passengers, pricing } = req.body;
+/* =========================================================
+   UPDATE BOOKING DETAILS
+========================================================= */
+export const updateBooking = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking)
+      return res.status(404).json({ success: false, message: "Booking not found" });
 
-        const booking = await Booking.findById(id);
-        if (!booking) {
-            return res.status(404).json({
-                success: false,
-                message: 'Booking not found'
-            });
-        }
+    if (!["on hold", "pending"].includes(booking.status))
+      return res.status(400).json({ success: false, message: "Only on-hold bookings can be edited" });
 
-        const groupId = booking.groupId;
-        const seartsToRevert = booking.adultsCount + booking.childrenCount;
-        const seatsToReduce = adultsCount + childrenCount;
-        const seatDifference = seartsToRevert - seatsToReduce;
-
-        if (!booking) {
-            return res.status(404).json({
-                success: false,
-                message: 'Booking not found'
-            });
-        }
-
-        // Check permissions
-        if (req.user.role !== 'Admin' && booking.userId.toString() !== req.user._id.toString()) {
-            return res.status(403).json({
-                success: false,
-                message: 'Not authorized to update this booking'
-            });
-        }
-
-        // Only allow updates if booking is on hold
-        if (booking.status !== 'on hold' && booking.status !== 'pending') {
-            return res.status(400).json({
-                success: false,
-                message: 'Can only update bookings that are on hold'
-            });
-        }
-
-        if (contactPersonName) {
-            booking.contactPersonName = contactPersonName;
-        }
-        if (notes !== undefined) {
-            booking.notes = notes;
-        }
-        if (adultsCount !== undefined) {
-            booking.adultsCount = adultsCount;
-        }
-        if (childrenCount !== undefined) {
-            booking.childrenCount = childrenCount;
-        }
-        if (infantsCount !== undefined) {
-            booking.infantsCount = infantsCount;
-        }
-        if (passengers !== undefined) {
-            booking.passengers = passengers;
-            booking.totalPassengers = adultsCount + childrenCount + infantsCount;
-        }
-        if (pricing !== undefined) {
-            booking.pricing = pricing;
-        }
-
-        booking.updatedAt = new Date();
-        await booking.save();
-
-        await GroupTicketing.updateOne(
-            { _id: groupId },
-            { $inc: { totalSeats: seatDifference } }
-        );
-
-        // Restart timer
-        // Restart or cancel timer correctly
-        if (booking.status === 'on hold' || booking.status === 'pending') {
-            cancelBookingTimer(booking._id.toString());
-            await startBookingTimer(booking._id.toString());
-        }
-
-        res.json({
-            success: true,
-            message: 'Booking updated successfully',
-            data: booking,
-            remainingTime:
-                booking.status === 'on hold' || booking.status === 'pending'
-                    ? getBookingRemainingTime(booking.updatedAt)
-                    : null
-        });
-
-    } catch (error) {
-        console.error('Error updating booking:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to update booking',
-            error: error.message
-        });
+    if (booking.expiresAt && new Date() > booking.expiresAt) {
+      booking.status = "expired";
+      await booking.save();
+      return res.status(400).json({ success: false, message: "Booking expired" });
     }
+
+    const oldSeats = booking.adultsCount + booking.childrenCount;
+    Object.assign(booking, req.body);
+    const newSeats = booking.adultsCount + booking.childrenCount;
+
+    await booking.save();
+    await GroupTicketing.updateOne(
+      { _id: booking.groupId },
+      { $inc: { totalSeats: oldSeats - newSeats } }
+    );
+
+    res.json({ success: true, data: booking });
+  } catch {
+    res.status(500).json({ success: false, message: "Failed to update booking" });
+  }
 };
 
-// Cancel booking
-const cancelBooking = async (req, res, next) => {
-    try {
-        const { id } = req.params;
+/* =========================================================
+   CANCEL BOOKING
+========================================================= */
+export const cancelBooking = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking)
+      return res.status(404).json({ success: false, message: "Booking not found" });
 
-        const booking = await Booking.findById(id);
-        const { groupId, adultsCount, childrenCount } = booking;
-        const seatDifference = adultsCount + childrenCount;
+    if (booking.status === "cancelled")
+      return res.status(400).json({ success: false, message: "Already cancelled" });
 
-        if (!booking) {
-            return res.status(404).json({
-                success: false,
-                message: 'Booking not found'
-            });
-        }
+    const seats = booking.adultsCount + booking.childrenCount;
 
-        // Check permissions
-        if (req.user.role !== 'Admin' && booking.userId.toString() !== req.user._id.toString()) {
-            return res.status(403).json({
-                success: false,
-                message: 'Not authorized to cancel this booking'
-            });
-        }
+    booking.status = "cancelled";
+    booking.expiresAt = null;
+    await booking.save();
 
-        // Cannot cancel already cancelled bookings
-        if (booking.status === 'cancelled') {
-            return res.status(400).json({
-                success: false,
-                message: `Cannot cancel ${booking.status} booking`
-            });
-        }
+    await GroupTicketing.updateOne({ _id: booking.groupId }, { $inc: { totalSeats: seats } });
 
-        // Cancel the timer
-        cancelBookingTimer(id);
-
-        booking.status = 'cancelled';
-        await booking.save();
-
-        await GroupTicketing.updateOne(
-            { _id: groupId },
-            { $inc: { totalSeats: seatDifference } }
-        );
-        res.json({
-            success: true,
-            message: 'Booking cancelled successfully',
-            data: booking
-        });
-    } catch (error) {
-        console.error('Error cancelling booking:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to cancel booking',
-            error: error.message
-        });
-    }
+    res.json({ success: true, message: "Booking cancelled", data: booking });
+  } catch {
+    res.status(500).json({ success: false, message: "Failed to cancel booking" });
+  }
 };
 
-// Delete booking (admin only)
-const deleteBooking = async (req, res, next) => {
-    try {
-        const { id } = req.params;
+/* =========================================================
+   DELETE BOOKING (ADMIN ONLY)
+========================================================= */
+export const deleteBooking = async (req, res) => {
+  try {
+    if (req.user.role !== "Admin")
+      return res.status(403).json({ success: false, message: "Not authorized" });
 
-        // Only admin can delete bookings
-        if (req.user.role !== 'Admin') {
-            return res.status(403).json({
-                success: false,
-                message: 'Not authorized to delete bookings'
-            });
-        }
-        const booking = await Booking.findById(id);
+    const booking = await Booking.findById(req.params.id);
+    if (!booking)
+      return res.status(404).json({ success: false, message: "Booking not found" });
 
-        if (!booking) {
-            return res.status(404).json({
-                success: false,
-                message: 'Booking not found'
-            });
-        }
-        const { groupId, adultsCount, childrenCount } = booking;
-        const seatDifference = adultsCount + childrenCount;
-        if (booking.status !== 'cancelled') {
-            await GroupTicketing.updateOne(
-                { _id: groupId },
-                { $inc: { totalSeats: seatDifference } }
-            );
-        }
-        await Booking.findByIdAndDelete(id);
-
-        res.json({
-            success: true,
-            message: 'Booking deleted successfully'
-        });
-    } catch (error) {
-        console.error('Error deleting booking:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to delete booking',
-            error: error.message
-        });
+    // Restore seats if not already cancelled
+    if (booking.status !== "cancelled") {
+      const seats = booking.adultsCount + booking.childrenCount;
+      await GroupTicketing.updateOne({ _id: booking.groupId }, { $inc: { totalSeats: seats } });
     }
+
+    await booking.deleteOne();
+
+    res.json({ success: true, message: "Booking deleted" });
+  } catch {
+    res.status(500).json({ success: false, message: "Failed to delete booking" });
+  }
 };
 
-// Get booking statistics (admin only)
-const getBookingStatistics = async (req, res, next) => {
-    try {
-        if (req.user.role !== 'Admin') {
-            return res.status(403).json({
-                success: false,
-                message: 'Not authorized'
-            });
+/* =========================================================
+   BOOKING STATISTICS (ADMIN DASHBOARD)
+========================================================= */
+export const getBookingStatistics = async (req, res) => {
+  try {
+    const stats = await Booking.aggregate([
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+          revenue: { $sum: "$pricing.grandTotal" }
         }
+      }
+    ]);
 
-        const totalBookings = await Booking.countDocuments();
-        const onHoldBookings = await Booking.countDocuments({ status: 'on hold' });
-        const confirmedBookings = await Booking.countDocuments({ status: 'confirmed' });
-        const cancelledBookings = await Booking.countDocuments({ status: 'cancelled' });
+    const totalBookings = await Booking.countDocuments();
+    const totalRevenue = await Booking.aggregate([
+      { $group: { _id: null, total: { $sum: "$pricing.grandTotal" } } }
+    ]);
 
-        // Get total revenue from confirmed bookings
-        const revenueData = await Booking.aggregate([
-            {
-                $match: {
-                    status: 'confirmed'
-                }
-            },
-            {
-                $group: {
-                    _id: null,
-                    totalRevenue: { $sum: '$pricing.grandTotal' }
-                }
-            }
-        ]);
-
-        const totalRevenue = revenueData.length > 0 ? revenueData[0].totalRevenue : 0;
-
-        // Get bookings by sector
-        const bookingsBySector = await Booking.aggregate([
-            {
-                $group: {
-                    _id: '$sector',
-                    count: { $sum: 1 },
-                    revenue: { $sum: '$pricing.grandTotal' }
-                }
-            },
-            {
-                $sort: { count: -1 }
-            }
-        ]);
-
-        res.json({
-            success: true,
-            data: {
-                totalBookings,
-                onHoldBookings,
-                confirmedBookings,
-                cancelledBookings,
-                totalRevenue,
-                bookingsBySector
-            }
-        });
-    } catch (error) {
-        console.error('Error fetching statistics:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch statistics',
-            error: error.message
-        });
-    }
-};
-
-export {
-    createBooking,
-    getAllBookings,
-    getBookingById,
-    getBookingByReference,
-    updateBookingStatus,
-    updateBooking,
-    cancelBooking,
-    deleteBooking,
-    getBookingStatistics
+    res.json({
+      success: true,
+      data: {
+        byStatus: stats,
+        totalBookings,
+        totalRevenue: totalRevenue[0]?.total || 0
+      }
+    });
+  } catch {
+    res.status(500).json({ success: false, message: "Failed to fetch statistics" });
+  }
 };
