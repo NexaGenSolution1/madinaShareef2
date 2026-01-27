@@ -175,7 +175,7 @@ export const printGDSBooking = (booking) => {
                     <div style="font-size: 12px; line-height: 1.6;">
                         <div style="margin-bottom: 8px;">1- PASSENGER SHOULD REPORT AT CHECK-IN COUNTER AT LEAST 04:00 HOURS PRIOR TO FLIGHT.</div>
                         <div>2- TICKETS ARE NON-REFUNDABLE AND NON-CHANGEABLE ANY TIME.</div>
-                    </div>
+                    </div>  
                 </div>
             </div>
         </body>

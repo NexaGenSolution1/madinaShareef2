@@ -19,7 +19,7 @@ export const generateBookingPDF = async (booking) => {
     element.style.color = '#000000';
     element.style.boxSizing = 'border-box';
     element.style.position = 'absolute';
-    element.style.left = '-9999px';
+    element.style.left = '-9999px';  
 
     // Colors
     const colors = {
