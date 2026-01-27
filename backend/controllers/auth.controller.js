@@ -181,7 +181,8 @@ export const loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        status: user.status
+        status: user.status,
+        priceOnCall: user.priceOnCall || false
       }
     });
 
@@ -305,7 +306,7 @@ export const updateUserProfile = async (req, res) => {
     if (flightMarginPercent !== undefined) user.flightMarginPercent = flightMarginPercent;
     if (flightMarginAmount !== undefined) user.flightMarginAmount = flightMarginAmount;
     if (status !== undefined) user.status = status;
-    
+
     // Handle logo upload (supports base64 or Cloudinary URL from file upload)
     if (logo !== undefined) {
       user.logo = logo;
@@ -396,6 +397,27 @@ export const updateUserStatus = async (req, res) => {
     });
   }
 };
+
+export const updatePriceOnCall = async (req, res) => {
+  try {
+    const { priceOnCall } = req.body;
+
+    const user = await Register.findByIdAndUpdate(
+      req.params.id,
+      { priceOnCall: priceOnCall },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.json({ success: true, data: user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 
 /* ===========================
    DELETE USER

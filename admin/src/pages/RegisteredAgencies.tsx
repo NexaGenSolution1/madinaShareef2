@@ -13,6 +13,7 @@ interface User {
   agencyCode?: string;
   role: string;
   status: "Active" | "Inactive" | "Pending";
+  priceOnCall?: boolean;
   plainPassword?: string;
   city?: string;
   accountId?: string;
@@ -46,6 +47,7 @@ const RegisteredAgencies = () => {
   const [entriesPerPage, setEntriesPerPage] = useState(50);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [downloadingExcel, setDownloadingExcel] = useState(false);
+  const [priceLoading, setPriceLoading] = useState<string | null>(null);
   const frontendUrl = import.meta.env.VITE_FRONTEND_URL || "https://brothersinttvl.com";
 
   useEffect(() => {
@@ -125,14 +127,14 @@ const RegisteredAgencies = () => {
         const updated = response.data.data as User;
         setUsers(
           users.map((user) =>
-            user._id === userId 
-              ? { 
-                  ...user, 
-                  status: newStatus, 
-                  activatedBy: updated.activatedBy,
-                  deactivatedBy: updated.deactivatedBy,
-                  deactivatedAt: updated.deactivatedAt
-                } 
+            user._id === userId
+              ? {
+                ...user,
+                status: newStatus,
+                activatedBy: updated.activatedBy,
+                deactivatedBy: updated.deactivatedBy,
+                deactivatedAt: updated.deactivatedAt
+              }
               : user
           )
         );
@@ -165,7 +167,7 @@ const RegisteredAgencies = () => {
     try {
       setSendingCredentials(userId);
       const token = localStorage.getItem("admin_token");
-      
+
       const response = await axiosInstance.post(
         `/auth/users/${userId}/send-credentials`,
         {},
@@ -181,9 +183,9 @@ const RegisteredAgencies = () => {
       }
     } catch (error: any) {
       console.error("Error sending credentials:", error);
-      
+
       let errorMessage = "❌ Failed to send credentials email.\n\n";
-      
+
       if (error.response?.status === 500) {
         errorMessage += "Email service is not configured properly.\n\n";
         errorMessage += "Please check the backend EMAIL_SETUP_GUIDE.md for instructions on:\n";
@@ -193,7 +195,7 @@ const RegisteredAgencies = () => {
       } else {
         errorMessage += error.response?.data?.message || "An unexpected error occurred. Please try again.";
       }
-      
+
       window.alert(errorMessage);
     } finally {
       setSendingCredentials(null);
@@ -204,20 +206,20 @@ const RegisteredAgencies = () => {
     try {
       setDownloadingPDF(true);
       const token = localStorage.getItem("admin_token");
-      
+
       const params = new URLSearchParams({
         searchTerm: searchTerm,
         city: cityFilter,
         status: statusFilter,
       });
-      
+
       const response = await axiosInstance.get(`/export/users/pdf?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
         responseType: 'blob',
       });
-      
+
       // Create download link
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
@@ -227,7 +229,7 @@ const RegisteredAgencies = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      
+
     } catch (error) {
       console.error("Error downloading PDF:", error);
       window.alert("Failed to download PDF. Please try again.");
@@ -240,20 +242,20 @@ const RegisteredAgencies = () => {
     try {
       setDownloadingExcel(true);
       const token = localStorage.getItem("admin_token");
-      
+
       const params = new URLSearchParams({
         searchTerm: searchTerm,
         city: cityFilter,
         status: statusFilter,
       });
-      
+
       const response = await axiosInstance.get(`/export/users/excel?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
         responseType: 'blob',
       });
-      
+
       // Create download link
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
@@ -263,7 +265,7 @@ const RegisteredAgencies = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      
+
     } catch (error) {
       console.error("Error downloading Excel:", error);
       window.alert("Failed to download Excel. Please try again.");
@@ -302,6 +304,35 @@ const RegisteredAgencies = () => {
     }
     return user.margin || "0";
   };
+
+  const togglePriceOnCall = async (userId: string, currentValue?: boolean) => {
+    try {
+      setPriceLoading(userId);
+      const token = localStorage.getItem("admin_token");
+
+      const response = await axiosInstance.patch(
+        `/auth/users/${userId}/price-on-call`,
+        { priceOnCall: !currentValue },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data.success) {
+        setUsers(prev =>
+          prev.map(u =>
+            u._id === userId ? { ...u, priceOnCall: response.data.data.priceOnCall } : u
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error updating Price on Call:", error);
+      window.alert("Failed to update Price on Call");
+    } finally {
+      setPriceLoading(null);
+    }
+  };
+
 
   const activeCount = users.filter(u => u.role === "Agency" && u.status === "Active").length;
   const pendingCount = users.filter(u => u.role === "Agency" && u.status === "Pending").length;
@@ -461,6 +492,7 @@ const RegisteredAgencies = () => {
                     <th className="px-4 py-4 text-left text-sm font-medium text-white">Margin</th>
                     <th className="px-4 py-4 text-left text-sm font-medium text-white">Status</th>
                     <th className="px-4 py-4 text-left text-sm font-medium text-white">Register Date</th>
+                    <th className="px-4 py-4 text-left text-sm font-medium text-white">Price on Call</th>
                     <th className="px-4 py-4 text-left text-sm font-medium text-white">Action</th>
                   </tr>
                 </thead>
@@ -505,6 +537,23 @@ const RegisteredAgencies = () => {
                       <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">
                         {formatDate(user.createdAt)}
                       </td>
+                      <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">
+                        <button
+                          onClick={() => togglePriceOnCall(user._id, user.priceOnCall)}
+                          disabled={priceLoading === user._id}
+                          className={`px-3 py-1 rounded-full text-xs font-semibold transition ${user.priceOnCall
+                            ? "bg-red-100 text-red-700 hover:bg-red-200"
+                            : "bg-green-100 text-green-700 hover:bg-green-200"
+                            } disabled:opacity-50`}
+                        >
+                          {priceLoading === user._id
+                            ? "Updating..."
+                            : user.priceOnCall
+                              ? "ON"
+                              : "OFF"}
+                        </button>
+                      </td>
+
                       <td className="px-4 py-4">
                         <div className="flex flex-col gap-2">
                           {user.status === "Active" ? (

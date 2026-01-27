@@ -5,6 +5,7 @@ import { toast } from 'react-toastify'
 import MaskedDatePicker from '../../../components/MaskedDatePicker'
 
 export default function AllGroups({ headerType, header, searchParams }) {
+    const user = JSON.parse(localStorage.getItem('frontend_user'));
     const navigate = useNavigate()
     const [groups, setGroups] = useState([])
     const [allGroups, setAllGroups] = useState([])
@@ -507,7 +508,7 @@ export default function AllGroups({ headerType, header, searchParams }) {
 
                                                         {/* Price */}
                                                         <td className="text-center py-2">
-                                                            PKR {group.price?.toLocaleString()}
+                                                            {user.priceOnCall ? "Price on Call" : `PKR ${group.price?.toLocaleString()}`}
                                                         </td>
 
                                                         {/* Action Button - Orange */}

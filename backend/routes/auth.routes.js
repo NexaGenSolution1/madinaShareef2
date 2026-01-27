@@ -1,18 +1,19 @@
 import express from "express";
 import {
-  registerUser,
-  loginUser,
-  getProfile,
-  getAllUsers,
+   registerUser,
+   loginUser,
+   getProfile,
+   getAllUsers,
    getUserById,
-  updateUserStatus,
+   updateUserStatus,
+   updatePriceOnCall,
    updateUserProfile,
-  deleteUser,
-  changePassword,
-  requestPasswordReset,
-  resetPassword,
-  changeUserPassword,
-  sendUserCredentials
+   deleteUser,
+   changePassword,
+   requestPasswordReset,
+   resetPassword,
+   changeUserPassword,
+   sendUserCredentials,
 } from "../controllers/auth.controller.js";
 
 import { protect, adminOnly } from "../middleware/auth.middleware.js";
@@ -39,6 +40,8 @@ router.get("/users/:id", protect, adminOnly, getUserById);
 router.put("/users/:id", protect, adminOnly, uploadProfileLogo.single('logo'), updateUserProfile);
 
 router.patch("/users/:id/status", protect, adminOnly, updateUserStatus);
+router.patch("/users/:id/price-on-call", protect, adminOnly, updatePriceOnCall);
+
 
 router.delete("/users/:id", protect, adminOnly, deleteUser);
 

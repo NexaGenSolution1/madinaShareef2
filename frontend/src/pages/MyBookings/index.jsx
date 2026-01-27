@@ -25,6 +25,7 @@ export default function MyBookings() {
     const [uniqueSectors, setUniqueSectors] = useState([])
     const [uniqueAirlines, setUniqueAirlines] = useState([])
     const [timers, setTimers] = useState({})
+    const [deletingId, setDeletingId] = useState(null)
 
     // --- MODAL STATE ---
     const [successModalData, setSuccessModalData] = useState(null)
@@ -502,12 +503,32 @@ export default function MyBookings() {
                                                                     </svg>
                                                                 </button>
                                                                 <button
-                                                                    onClick={() => {
-                                                                        if (window.confirm('Are you sure you want to delete this booking?')) {
-                                                                            // Handle delete booking
-                                                                            toast.info('Delete functionality to be implemented')
+                                                                    // onClick={() => {
+                                                                    //     if (window.confirm('Are you sure you want to delete this booking?')) {
+                                                                    //         // Handle delete booking
+                                                                    //         toast.info('Delete functionality to be implemented')
+                                                                    //     }
+                                                                    // }}
+
+                                                                    onClick={async () => {
+                                                                        const confirmDelete = window.confirm('Are you sure you want to delete this booking? This action cannot be undone.')
+                                                                        if (!confirmDelete) return
+
+                                                                        try {
+                                                                            setDeletingId(booking._id)
+
+                                                                            await axiosInstance.delete(`/bookings/${booking._id}`)
+
+                                                                            toast.success('Booking deleted successfully')
+                                                                            setBookings(prev => prev.filter(b => b._id !== booking._id))
+
+                                                                        } catch (err) {
+                                                                            toast.error(err.response?.data?.message || 'Failed to delete booking')
+                                                                        } finally {
+                                                                            setDeletingId(null)
                                                                         }
                                                                     }}
+                                                                    disabled={deletingId === booking._id}
                                                                     className="p-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 rounded-lg transition-all shadow-sm hover:shadow-md border border-slate-200"
                                                                     title="Delete Booking"
                                                                 >

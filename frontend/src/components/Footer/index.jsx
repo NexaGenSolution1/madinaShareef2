@@ -1,5 +1,4 @@
-import React from 'react'
-import footerImg from '../../assets/images/footer.webp'
+// import footerImg from '../../assets/images/footer.webp'
 import logo from '../../assets/images/logo.webp'
 import { CiLogin } from 'react-icons/ci';
 import { FaWhatsapp, FaPhoneAlt } from "react-icons/fa";
@@ -32,7 +31,9 @@ export default function Footer() {
                 </div>
             </div>
 
-            <footer style={{ position: 'relative', color: '#fff', backgroundImage: `url(${footerImg})`, backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 }}>
+            {/* <footer style={{ position: 'relative', color: '#fff', backgroundImage: `url(${footerImg})`, backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 }}> */}
+            {/* <footer style={{ position: 'relative', color: '#fff', backgroundImage: `url(https://img.freepik.com/free-photo/empty-sea-beach-background_74190-313.jpg)`, backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 }}> */}
+            <footer className='bg-white'>
                 <div className='main-container min-h-96 grid grid-cols-1 lg:grid-cols-2 gap-6 py-20'>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-12'>
                         <div>
@@ -89,9 +90,9 @@ export default function Footer() {
                     </div>
                 </div>
 
-                <div className='main-container flex flex-col md:flex-row justify-between gap-2 py-6 sm:py-10 text-sm sm:text-base text-neutral-300 border-t border-neutral-600'>
+                <div className='main-container flex flex-col md:flex-row justify-between gap-2 py-6 sm:py-10 text-sm sm:text-base border-t border-neutral-600'>
                     <p>&copy; Brothers International. All Rights Reserved {dayjs().year()}.</p>
-                    <p><span className='text-neutral-100 font-semibold'>Designed & Developed By</span> <a href="https://nexagensolution.com/" target='_blank'>Nexagen Solution</a></p>
+                    {/* <p><span className='text-neutral-100 font-semibold'>Designed & Developed By</span> <a href="https://nexagensolution.com/" target='_blank'>Nexagen Solution</a></p> */}
                 </div>
 
                 <div className='absolute inset-0 bg-black/70 -z-1'></div>

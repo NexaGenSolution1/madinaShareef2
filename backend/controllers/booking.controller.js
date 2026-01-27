@@ -468,8 +468,8 @@ export const cancelBooking = async (req, res) => {
 
 export const deleteBooking = async (req, res) => {
   try {
-    if (req.user.role !== "Admin")
-      throw new Error("Not authorized");
+    // if (req.user.role !== "Admin")
+    //   throw new Error("Not authorized");
 
     const booking = await Booking.findById(req.params.id);
     if (!booking) throw new Error("Booking not found");

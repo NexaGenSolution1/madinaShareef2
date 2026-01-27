@@ -297,7 +297,8 @@ export default function BookingForm() {
                 navigate('/dashboard/my-bookings', {
                     state: {
                         bookingSuccess: true,
-                        bookingReference: response.data.data.bookingReference
+                        bookingReference: response.data.data.bookingReference,
+                        expiresAt: response.data.data.expiresAt
                     }
                 })
             }

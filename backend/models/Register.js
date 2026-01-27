@@ -90,6 +90,10 @@ const RegisterSchema = new mongoose.Schema(
       enum: ["Active", "Inactive", "Pending", "Suspended"],
       default: "Inactive"
     },
+    priceOnCall: {
+      type: Boolean,
+      default: false
+    },
 
     marginType: {
       type: String,
@@ -120,9 +124,8 @@ const RegisterSchema = new mongoose.Schema(
 
     lastLogin: {
       type: Date
-    }
-
-    ,activatedBy: {
+    },
+    activatedBy: {
       type: String,
       default: ""
     },
