@@ -2,6 +2,14 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 export const generateBookingPDF = async (booking) => {
+    // Debug: Log the complete booking object structure
+    console.log('=== BOOKING DATA STRUCTURE ===');
+    console.log('Full booking object:', JSON.stringify(booking, null, 2));
+    console.log('booking.flights:', booking.flights);
+    console.log('booking.sector:', booking.sector);
+    console.log('booking.airline:', booking.airline);
+    console.log('=== END BOOKING DATA ===');
+
     // Create a temporary div to hold the HTML content
     const element = document.createElement('div');
     element.style.width = '850px';
@@ -30,17 +38,34 @@ export const generateBookingPDF = async (booking) => {
     const flightNo = booking.flightNumber || flight.flightNo || flight.flightNumber || 'XX000';
     const depTime = flight.depTime || booking.depTime || booking.departureTime || '00:00';
     const arrTime = flight.arrTime || booking.arrTime || booking.arrivalTime || '00:00';
+    
+    // Extract origin and destination cities
     const originCity = (flight.origin || booking.origin || booking.originCity || '').toUpperCase() || 'ISLAMABAD';
-    const originCode = flight.originCode || booking.originCode || booking.originIata || 'ISB';
-    const originCountry = booking.originCountry || flight.originCountry || '';
     const destinationCity = (flight.destination || booking.destination || booking.destinationCity || '').toUpperCase() || 'UAE';
-    const destinationCode = flight.destinationCode || booking.destinationCode || booking.destinationIata || 'AUH';
+    
+    // Try to extract airport codes from multiple sources
+    let originCode = flight.originCode || booking.originCode || booking.originIata || flight.sectorFrom || 'ISB';
+    let destinationCode = flight.destinationCode || booking.destinationCode || booking.destinationIata || flight.sectorTo || 'AUH';
+    
+    // If codes are not available, try to parse from the sector string
+    if (booking.sector && (!originCode || originCode === 'ISB') && (!destinationCode || destinationCode === 'AUH')) {
+        const sectorMatch = booking.sector.match(/([A-Z]{3})-([A-Z]{3})/);
+        if (sectorMatch) {
+            originCode = sectorMatch[1];
+            destinationCode = sectorMatch[2];
+        }
+    }
+    
+    console.log('Extracted codes - Origin:', originCode, 'Destination:', destinationCode);
+    
+    const originCountry = booking.originCountry || flight.originCountry || '';
     const destinationCountry = booking.destinationCountry || flight.destinationCountry || '';
     const baggage = booking.baggageWeight || flight.baggage || '20+07 KG';
     const meal = flight.meal || booking.meal || 'MEAL';
     const equipment = flight.equipment || booking.equipment || 'UNKNOWN';
-    const sector = booking.sector || `${originCity} to ${destinationCity}`;
+    const sector = `${originCity} (${originCode}) - ${destinationCity} (${destinationCode})`;
     const route = `${originCity} TO ${destinationCity}`;
+    
 
     element.innerHTML = `
     <div>
@@ -173,7 +198,6 @@ export const generateBookingPDF = async (booking) => {
             <div style="font-size: 11px; font-weight: bold; line-height: 1.6; color: #000;">
                 <div>1- PASSENGER SHOULD REPORT AT CHECK-IN COUNTER AT LEAST 04:00 HOURS PRIOR TO FLIGHT.</div>
                 <div>2- TICKETS ARE NON-REFUNDABLE AND NON-CHANGEABLE ANY TIME.</div>
-                <div>3- IN CASE YOU REQUEST A REFUND DUE TO FLIGHT DELAY OR EARLY DEPARTURE, PSF IS NON-REFUNDABLE.</div>
             </div>
         </div>
 
