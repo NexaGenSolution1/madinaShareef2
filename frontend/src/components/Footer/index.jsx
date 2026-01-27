@@ -38,7 +38,7 @@ export default function Footer() {
                         <div>
                             <img src={logo} alt="logo" className='w-22 object-contain' />
                             <div>
-                                <h2 className='text-xl mt-6'>Brother's International Travels</h2>
+                                <h2 className='text-xl mt-6'>Brothers International Travels</h2>
                                 <p className='mt-4'>We offer a variety of travel packages tailored to your needs, Join us and explore the world with Brothers International.</p>
                             </div>
                         </div>

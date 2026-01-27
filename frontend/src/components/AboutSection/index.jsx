@@ -18,14 +18,14 @@ export default function AboutSection() {
                 </div>
 
                 <div className='w-full'>
-                    <h2 className='text-lg text-[#2A166D] font-semibold!'>About Brother's International Travels</h2>
+                    <h2 className='text-lg text-[#2A166D] font-semibold!'>About Brothers International Travels</h2>
                     <div className='relative w-fit mt-4 mb-6'>
                         <h2 className='relative text-[#2A166D] text-3xl sm:text-4xl z-1'>Trusted Travel Services</h2>
                         <div className='absolute bottom-0 left-0 w-full h-[35%] bg-[#d6d30b]/50 rounded-md z-0'></div>
                     </div>
                     {/* <h2 className='text-3xl sm:text-4xl text-neutral-900 mt-4 mb-6'>Trusted Travel Services</h2> */}
                     <p className='text-neutral-700 text-base sm:text-lg mb-4'>
-                        If you are looking for a dependable and professional travel partner, Brother's International Travels is your premier choice. With years of industry expertise, we have built a reputation for excellence and integrity in every journey we plan. We specialize in providing comprehensive travel management, dedicated customer care, and a commitment to making your travel dreams a reality.
+                        If you are looking for a dependable and professional travel partner, Brothers International Travels is your premier choice. With years of industry expertise, we have built a reputation for excellence and integrity in every journey we plan. We specialize in providing comprehensive travel management, dedicated customer care, and a commitment to making your travel dreams a reality.
                     </p>
                     <p className='text-neutral-700 text-base sm:text-lg mb-4'>
                         <strong className='text-neutral-900'>Expert Travel Solutions</strong><br />

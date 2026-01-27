@@ -375,26 +375,6 @@ export default function AllBookings() {
         return { hours, minutes, seconds, expired: false }
     }
 
-    // useEffect(() => {
-    //     const activeBookings = bookings.filter(
-    //         b => b.status === 'on hold' || b.status === 'pending'
-    //     )
-
-    //     if (activeBookings.length === 0) return
-
-    //     const interval = setInterval(() => {
-    //         const newTimers: Record<string, Timer> = {}
-
-    //         activeBookings.forEach(booking => {
-    //             newTimers[booking._id] = calculateRemainingTime(booking.createdAt)
-    //         })
-
-    //         setTimers(newTimers)
-    //     }, 1000)
-
-    //     return () => clearInterval(interval)
-    // }, [bookings])
-
     useEffect(() => {
         const onHoldBookings = bookings.filter(
             b => (b.status === 'on hold' || b.status === 'pending') && b.expiresAt
@@ -429,15 +409,6 @@ export default function AllBookings() {
     const fetchBookings = async () => {
         try {
             setFetching(true)
-
-            // const params = new URLSearchParams({
-            //     ...(activeStatus && { status: activeStatus }),
-            //     ...(filters.sector && { sector: filters.sector }),
-            //     ...(filters.airline && { airline: filters.airline }),
-            //     ...(searchQuery && { search: searchQuery }),
-            //     ...(filters.fromDate && { fromDate: filters.fromDate }),
-            // })
-
             const params = new URLSearchParams({
                 ...(activeStatus && { status: activeStatus }),
                 ...(filters.sector && { sector: filters.sector }),
@@ -460,10 +431,6 @@ export default function AllBookings() {
             setFetching(false)
         }
     }
-
-    // const handleFilterChange = (filterName: string, value: string) => {
-    //     setFilters(prev => ({ ...prev, [filterName]: value }))
-    // }
 
     const handleFilterChange = <K extends keyof Filters>(
         filterName: K,
