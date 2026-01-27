@@ -1,12 +1,81 @@
 import Booking from "../models/Booking.js";
 import GroupTicketing from "../models/GroupTicketing.js";
+import mongoose from "mongoose";
 
 const HOLD_DURATION = 2 * 60 * 60 * 1000; // 2 hours
+
+const adjustSeatsIfLocalGroup = async (groupId, seatChange, session, checkAvailability = false) => {
+  if (!mongoose.Types.ObjectId.isValid(groupId)) return; // External group → ignore
+
+  const query = { _id: groupId };
+
+  if (checkAvailability && seatChange < 0) {
+    query.totalSeats = { $gte: Math.abs(seatChange) };
+  }
+
+  const result = await GroupTicketing.updateOne(
+    query,
+    { $inc: { totalSeats: seatChange } },
+    { session }
+  );
+
+  if (result.matchedCount === 0) return; // Not stored locally → ignore
+  if (checkAvailability && result.modifiedCount === 0)
+    throw new Error("Not enough seats available");
+};
+
 
 /* =========================================================
    CREATE BOOKING
 ========================================================= */
+// export const createBooking = async (req, res) => {
+//   try {
+//     const {
+//       groupId, groupType, airline, sector, pnr, contactPersonName,
+//       adultsCount, childrenCount, infantsCount, totalPassengers,
+//       pricing, passengers, flights, departureDate, arrivalDate
+//     } = req.body;
+
+//     if (passengers.length !== totalPassengers)
+//       return res.status(400).json({ success: false, message: "Passenger mismatch" });
+
+//     const calculatedTotal =
+//       pricing.adultTotal + pricing.childTotal + pricing.infantTotal;
+
+//     if (Math.abs(calculatedTotal - pricing.grandTotal) > 0.01)
+//       return res.status(400).json({ success: false, message: "Price mismatch" });
+
+//     const expiresAt = new Date(Date.now() + HOLD_DURATION);
+
+//     const booking = await Booking.create({
+//       groupId, groupType, airline, sector, pnr, contactPersonName,
+//       adultsCount, childrenCount, infantsCount, totalPassengers,
+//       pricing, passengers, flights, departureDate, arrivalDate,
+//       userId: req.user._id,
+//       status: "on hold",
+//       expiresAt
+//     });
+
+//     // Reduce seats (infants don't take seats)
+//     if (mongoose.Types.ObjectId.isValid(groupId)) {
+//       await GroupTicketing.updateOne(
+//         { _id: groupId },
+//         { $inc: { totalSeats: -(adultsCount + childrenCount) } }
+//       );
+//     }
+
+
+//     res.status(201).json({ success: true, data: booking });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ success: false, message: "Failed to create booking" });
+//   }
+// };
+
 export const createBooking = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const {
       groupId, groupType, airline, sector, pnr, contactPersonName,
@@ -15,37 +84,41 @@ export const createBooking = async (req, res) => {
     } = req.body;
 
     if (passengers.length !== totalPassengers)
-      return res.status(400).json({ success: false, message: "Passenger mismatch" });
+      throw new Error("Passenger mismatch");
 
     const calculatedTotal =
       pricing.adultTotal + pricing.childTotal + pricing.infantTotal;
 
     if (Math.abs(calculatedTotal - pricing.grandTotal) > 0.01)
-      return res.status(400).json({ success: false, message: "Price mismatch" });
+      throw new Error("Price mismatch");
 
+    const seatCount = adultsCount + childrenCount;
     const expiresAt = new Date(Date.now() + HOLD_DURATION);
 
-    const booking = await Booking.create({
+    // Reduce seats ONLY if local group
+    await adjustSeatsIfLocalGroup(groupId, -seatCount, session, true);
+
+    const [booking] = await Booking.create([{
       groupId, groupType, airline, sector, pnr, contactPersonName,
       adultsCount, childrenCount, infantsCount, totalPassengers,
       pricing, passengers, flights, departureDate, arrivalDate,
       userId: req.user._id,
       status: "on hold",
       expiresAt
-    });
+    }], { session });
 
-    // Reduce seats (infants don't take seats)
-    await GroupTicketing.updateOne(
-      { _id: groupId },
-      { $inc: { totalSeats: -(adultsCount + childrenCount) } }
-    );
+    await session.commitTransaction();
+    session.endSession();
 
     res.status(201).json({ success: true, data: booking });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Failed to create booking" });
+    await session.abortTransaction();
+    session.endSession();
+    res.status(400).json({ success: false, message: err.message });
   }
 };
+
 
 /* =========================================================
    GET ALL BOOKINGS
@@ -137,123 +210,265 @@ export const getBookingByReference = async (req, res) => {
 /* =========================================================
    UPDATE BOOKING STATUS (ADMIN)
 ========================================================= */
+// export const updateBookingStatus = async (req, res) => {
+//   try {
+//     const { status, notes } = req.body;
+//     const booking = await Booking.findById(req.params.id);
+
+//     if (!booking)
+//       return res.status(404).json({ success: false, message: "Booking not found" });
+
+//     if (req.user.role !== "Admin")
+//       return res.status(403).json({ success: false, message: "Not authorized" });
+
+//     const oldStatus = booking.status;
+//     const seats = booking.adultsCount + booking.childrenCount;
+//     let seatDiff = 0;
+
+//     if (status === "cancelled" && oldStatus !== "cancelled") seatDiff = seats;
+//     if (oldStatus === "cancelled" && status !== "cancelled") seatDiff = -seats;
+
+//     booking.status = status;
+//     booking.notes = notes ?? booking.notes;
+//     booking.expiresAt =
+//       status === "on hold" || status === "pending"
+//         ? new Date(Date.now() + HOLD_DURATION)
+//         : null;
+
+//     await booking.save();
+//     await GroupTicketing.updateOne({ _id: booking.groupId }, { $inc: { totalSeats: seatDiff } });
+
+//     res.json({ success: true, data: booking });
+//   } catch {
+//     res.status(500).json({ success: false, message: "Failed to update status" });
+//   }
+// };
+
 export const updateBookingStatus = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { status, notes } = req.body;
-    const booking = await Booking.findById(req.params.id);
-
-    if (!booking)
-      return res.status(404).json({ success: false, message: "Booking not found" });
-
-    if (req.user.role !== "Admin")
-      return res.status(403).json({ success: false, message: "Not authorized" });
+    const booking = await Booking.findById(req.params.id).session(session);
+    if (!booking) throw new Error("Booking not found");
 
     const oldStatus = booking.status;
     const seats = booking.adultsCount + booking.childrenCount;
-    let seatDiff = 0;
 
-    if (status === "cancelled" && oldStatus !== "cancelled") seatDiff = seats;
-    if (oldStatus === "cancelled" && status !== "cancelled") seatDiff = -seats;
+    if (oldStatus !== "cancelled" && status === "cancelled") {
+      await adjustSeatsIfLocalGroup(booking.groupId, seats, session);
+    }
+
+    if (oldStatus === "cancelled" && status !== "cancelled") {
+      await adjustSeatsIfLocalGroup(booking.groupId, -seats, session, true);
+    }
 
     booking.status = status;
     booking.notes = notes ?? booking.notes;
-    booking.expiresAt =
-      status === "on hold" || status === "pending"
-        ? new Date(Date.now() + HOLD_DURATION)
-        : null;
+    booking.expiresAt = status === "on hold"
+      ? new Date(Date.now() + HOLD_DURATION)
+      : null;
 
-    await booking.save();
-    await GroupTicketing.updateOne({ _id: booking.groupId }, { $inc: { totalSeats: seatDiff } });
+    await booking.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
 
     res.json({ success: true, data: booking });
-  } catch {
-    res.status(500).json({ success: false, message: "Failed to update status" });
+
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    res.status(400).json({ success: false, message: err.message });
   }
 };
+
 
 /* =========================================================
    UPDATE BOOKING DETAILS
 ========================================================= */
-export const updateBooking = async (req, res) => {
-  try {
-    const booking = await Booking.findById(req.params.id);
-    if (!booking)
-      return res.status(404).json({ success: false, message: "Booking not found" });
+// export const updateBooking = async (req, res) => {
+//   try {
+//     const booking = await Booking.findById(req.params.id);
+//     if (!booking)
+//       return res.status(404).json({ success: false, message: "Booking not found" });
 
-    if (!["on hold", "pending"].includes(booking.status))
-      return res.status(400).json({ success: false, message: "Only on-hold bookings can be edited" });
+//     if (!["on hold", "pending"].includes(booking.status))
+//       return res.status(400).json({ success: false, message: "Only on-hold bookings can be edited" });
+
+//     const oldSeats = booking.adultsCount + booking.childrenCount;
+//     Object.assign(booking, req.body);
+//     const newSeats = booking.adultsCount + booking.childrenCount;
+//     booking.expiresAt =
+//       req.body.status === "on hold" || req.body.status === "pending"
+//         ? new Date(Date.now() + HOLD_DURATION)
+//         : null;
+
+//     await booking.save();
+//     await GroupTicketing.updateOne(
+//       { _id: booking.groupId },
+//       { $inc: { totalSeats: oldSeats - newSeats } }
+//     );
+
+//     res.json({ success: true, data: booking });
+//   } catch {
+//     res.status(500).json({ success: false, message: "Failed to update booking" });
+//   }
+// };
+
+export const updateBooking = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const booking = await Booking.findById(req.params.id).session(session);
+    if (!booking) throw new Error("Booking not found");
+
+    if (booking.status !== "on hold")
+      throw new Error("Only on-hold bookings can be edited");
 
     const oldSeats = booking.adultsCount + booking.childrenCount;
-    Object.assign(booking, req.body);
-    const newSeats = booking.adultsCount + booking.childrenCount;
-    booking.expiresAt =
-      req.body.status === "on hold" || req.body.status === "pending"
-        ? new Date(Date.now() + HOLD_DURATION)
-        : null;
 
-    await booking.save();
-    await GroupTicketing.updateOne(
-      { _id: booking.groupId },
-      { $inc: { totalSeats: oldSeats - newSeats } }
-    );
+    Object.assign(booking, req.body);
+
+    const newSeats = booking.adultsCount + booking.childrenCount;
+    const diff = newSeats - oldSeats;
+
+    if (diff !== 0) {
+      await adjustSeatsIfLocalGroup(booking.groupId, -diff, session, diff > 0);
+    }
+
+    booking.expiresAt = booking.status === "on hold"
+      ? new Date(Date.now() + HOLD_DURATION)
+      : null;
+
+    await booking.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
 
     res.json({ success: true, data: booking });
-  } catch {
-    res.status(500).json({ success: false, message: "Failed to update booking" });
+
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    res.status(400).json({ success: false, message: err.message });
   }
 };
+
 
 /* =========================================================
    CANCEL BOOKING
 ========================================================= */
-export const cancelBooking = async (req, res) => {
-  try {
-    const booking = await Booking.findById(req.params.id);
-    if (!booking)
-      return res.status(404).json({ success: false, message: "Booking not found" });
+// export const cancelBooking = async (req, res) => {
+//   try {
+//     const booking = await Booking.findById(req.params.id);
+//     if (!booking)
+//       return res.status(404).json({ success: false, message: "Booking not found" });
 
-    if (booking.status === "cancelled")
-      return res.status(400).json({ success: false, message: "Already cancelled" });
+//     if (booking.status === "cancelled")
+//       return res.status(400).json({ success: false, message: "Already cancelled" });
+
+//     const seats = booking.adultsCount + booking.childrenCount;
+
+//     booking.status = "cancelled";
+//     booking.expiresAt = null;
+//     await booking.save();
+
+//     await GroupTicketing.updateOne({ _id: booking.groupId }, { $inc: { totalSeats: seats } });
+
+//     res.json({ success: true, message: "Booking cancelled", data: booking });
+//   } catch {
+//     res.status(500).json({ success: false, message: "Failed to cancel booking" });
+//   }
+// };
+
+export const cancelBooking = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const booking = await Booking.findById(req.params.id).session(session);
+    if (!booking) throw new Error("Booking not found");
+    if (booking.status === "cancelled") throw new Error("Already cancelled");
 
     const seats = booking.adultsCount + booking.childrenCount;
 
     booking.status = "cancelled";
     booking.expiresAt = null;
-    await booking.save();
+    await booking.save({ session });
 
-    await GroupTicketing.updateOne({ _id: booking.groupId }, { $inc: { totalSeats: seats } });
+    await adjustSeatsIfLocalGroup(booking.groupId, seats, session);
+
+    await session.commitTransaction();
+    session.endSession();
 
     res.json({ success: true, message: "Booking cancelled", data: booking });
-  } catch {
-    res.status(500).json({ success: false, message: "Failed to cancel booking" });
+
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    res.status(400).json({ success: false, message: err.message });
   }
 };
+
 
 /* =========================================================
    DELETE BOOKING (ADMIN ONLY)
 ========================================================= */
+// export const deleteBooking = async (req, res) => {
+//   try {
+//     if (req.user.role !== "Admin")
+//       return res.status(403).json({ success: false, message: "Not authorized" });
+
+//     const booking = await Booking.findById(req.params.id);
+//     if (!booking)
+//       return res.status(404).json({ success: false, message: "Booking not found" });
+
+//     // Restore seats if not already cancelled
+//     if (booking.status !== "cancelled") {
+//       const seats = booking.adultsCount + booking.childrenCount;
+//       await GroupTicketing.updateOne({ _id: booking.groupId }, { $inc: { totalSeats: seats } });
+//     }
+
+//     await booking.deleteOne();
+
+//     res.json({ success: true, message: "Booking deleted" });
+//   } catch {
+//     res.status(500).json({ success: false, message: "Failed to delete booking" });
+//   }
+// };
+
 export const deleteBooking = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    if (req.user.role !== "Admin")
-      return res.status(403).json({ success: false, message: "Not authorized" });
+    if (req.user.role !== "Admin") throw new Error("Not authorized");
 
-    const booking = await Booking.findById(req.params.id);
-    if (!booking)
-      return res.status(404).json({ success: false, message: "Booking not found" });
+    const booking = await Booking.findById(req.params.id).session(session);
+    if (!booking) throw new Error("Booking not found");
 
-    // Restore seats if not already cancelled
     if (booking.status !== "cancelled") {
       const seats = booking.adultsCount + booking.childrenCount;
-      await GroupTicketing.updateOne({ _id: booking.groupId }, { $inc: { totalSeats: seats } });
+      await adjustSeatsIfLocalGroup(booking.groupId, seats, session);
     }
 
-    await booking.deleteOne();
+    await booking.deleteOne({ session });
+
+    await session.commitTransaction();
+    session.endSession();
 
     res.json({ success: true, message: "Booking deleted" });
-  } catch {
-    res.status(500).json({ success: false, message: "Failed to delete booking" });
+
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    res.status(400).json({ success: false, message: err.message });
   }
 };
+
 
 /* =========================================================
    BOOKING STATISTICS (ADMIN DASHBOARD)

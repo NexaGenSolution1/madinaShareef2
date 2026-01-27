@@ -5,7 +5,7 @@ import { toast } from 'react-toastify'
 import { buildPassengers } from '../../utils/passengerBuilder'
 import MaskedDatePicker from '../MaskedDatePicker'
 import {
-    X, CheckCircle, Edit, FileText, UserCheck
+    X, CheckCircle
 } from 'lucide-react'
 
 export default function BookingForm() {
@@ -230,7 +230,7 @@ export default function BookingForm() {
         }
 
         const hasEmptyFields = formData.passengers.some(passenger =>
-            !passenger.givenName || !passenger.surName || !passenger.passport
+            !passenger.givenName || !passenger.surName || !passenger.passport || !passenger.nationality
         )
 
         if (hasEmptyFields) {
