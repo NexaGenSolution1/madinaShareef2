@@ -43,9 +43,9 @@ const passengerSchema = new mongoose.Schema({
 const bookingSchema = new mongoose.Schema({
     // Group and Flight Information
     groupId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "GroupTicketing",
-        required: true
+        type: String,
+        required: true,
+        index: true
     },
     groupType: {
         type: String,
