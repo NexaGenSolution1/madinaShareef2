@@ -542,6 +542,7 @@ export default function MyBookings() {
                                                     {/* Second row: 2 buttons (Print, Download PDF) */}
                                                     {(booking.status === 'on hold' || booking.status === 'pending' || booking.status === 'confirmed') && (
                                                         <div className="flex flex-row justify-center items-center gap-2 w-full">
+                                                            {console.log(booking)}
                                                             {(booking.status === 'on hold' || booking.status === 'pending' || booking.status === 'confirmed') && (
                                                                 <button
                                                                     onClick={() => {

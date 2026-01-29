@@ -278,11 +278,11 @@ export default function BookingForm() {
                     flightNo: flight.flight_no,
                     flightDate: flight.flight_date,
                     depDate: flight.dep_date,
-                    depTime: flight.dep_time,
+                    depTime: flight.dept_time,
                     origin: flight.origin,
                     destination: flight.destination,
                     arrDate: flight.arv_date,
-                    arrTime: flight.arrTime,
+                    arrTime: flight.arv_time,
                     baggage: flight.baggage,
                     meal: flight.meal
                 })) || [],
@@ -293,7 +293,6 @@ export default function BookingForm() {
             const response = await axiosInstance.post('/bookings', bookingData)
 
             if (response.data.success) {
-                // toast.success(`Booking confirmed! Reference: ${response.data.data.bookingReference}`)
                 navigate('/dashboard/my-bookings', {
                     state: {
                         bookingSuccess: true,
