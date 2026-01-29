@@ -54,8 +54,8 @@ export const printGDSBooking = (booking) => {
             <title>Print Ticket</title>
             <style>
                 @media print {
-                    @page { margin: 0; size: auto; }
-                    body { margin: 10mm; -webkit-print-color-adjust: exact; }
+                    @page { margin: 15mm; size: A4 portrait; }
+                    body { margin: 0; -webkit-print-color-adjust: exact; }
                 }
                 body {
                     font-family: 'Courier New', Courier, monospace;
@@ -74,7 +74,7 @@ export const printGDSBooking = (booking) => {
             </style>
         </head>
         <body>
-            <div style="max-width: 800px; padding: 20px;">
+            <div style="max-width: 700px; padding: 15px; margin: 0 auto;">
                 
                 <!-- Header -->
                 <div class="flex-row" style="margin-bottom: 20px;">
