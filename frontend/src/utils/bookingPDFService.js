@@ -1,52 +1,58 @@
-
 export const printGDSBooking = (booking) => {
     // --- 1. Helper Functions ---
     const formatFullDate = (dateStr) => {
         if (!dateStr) return '';
         return new Date(dateStr).toLocaleDateString('en-GB', {
-            weekday: 'short', day: '2-digit', month: 'long', year: 'numeric'
-        }).toUpperCase();        
+            weekday: 'short', day: '2-digit', month: 'short', year: 'numeric'
+        });
     };
 
-    const formatShortDate = (dateStr) => {
-        if (!dateStr) return '';
-        return new Date(dateStr).toLocaleDateString('en-GB', {
-             day: '2-digit', month: 'short'
-        }).toUpperCase();
-    }
+    // --- 2. Data Preparation (Preserving your logic + adding PDF specific helpers) ---
+    const flight = booking.flights?.[0] || {};
 
-    // --- 2. Data Preparation ---
-    const passenger = booking.passengers && booking.passengers[0];
-    const passengerName = passenger 
-        ? `${passenger.surName}/${passenger.givenName} ${passenger.title || ''}`.toUpperCase() 
-        : 'PASSENGER/NAME';
+    // Airline & Logos
+    const airlineName = (booking.airline?.name || flight.airlineName || 'AIRLINE').toUpperCase();
+    // Note: Ensure this path is accessible from the browser window, or use a Base64 string if possible
+    const agencyLogo = "/src/assets/images/logo.webp";
+    const airlineLogo = booking.airline?.logoUrl || flight.airlineLogo || '';
 
-    const airlineName = booking.airline?.name?.toUpperCase() || 'AIRLINE';
-    const flightNum = booking.flightNumber || 'XX000';
-    const flightDate = formatFullDate(booking.departureDate);
-    
-    const origin = (booking.origin || booking.originCity || booking.flights?.[0]?.origin || '').toUpperCase() || 'ORIGIN';
-    const originCode = booking.originCode || booking.flights?.[0]?.originCode || booking.originIata || 'ORG';
-    const dest = (booking.destination || booking.destinationCity || booking.flights?.[0]?.destination || '').toUpperCase() || 'DESTINATION';
-    const destCode = booking.destinationCode || booking.flights?.[0]?.destinationCode || booking.destinationIata || 'DES';
-    
-    const depTime = booking.flights?.[0]?.depTime || '00:00'; 
-    const arrTime = booking.flights?.[0]?.arrTime || '00:00';
-    const baggage = booking.baggageWeight || booking.flights?.[0]?.baggage || '20KG';
+    // Booking Refs
+    const pnr = booking.pnr || booking.bookingReference || 'N/A';
+    const bookingRef = booking.bookingReference || pnr;
 
-    const groupTypeToCountry = {
-        'KSA Groups': 'SA',
-        'UAE Groups': 'AE',
-        'Bahrain Groups': 'BH',
-        'Mascat Groups': 'OM',
-        'Qatar Groups': 'QA',
-        'UK Groups': 'GB',
-        'Umrah Groups': 'SA'
-    };
-    const originCountry = booking.originCountry || 'PK';
-    const destCountry = booking.destinationCountry || groupTypeToCountry[booking.groupType] || 'XX';
+    // Flight Details
+    const flightNum = booking.flightNumber || flight.flightNo || 'XX000';
 
-    // --- 3. Construct the HTML String (The GDS Design) ---
+    // Location Logic
+    const origin = (booking.origin || booking.originCity || flight.origin || '').toUpperCase();
+    const originCode = booking.originCode || flight.originCode || booking.originIata || 'ORG';
+    const dest = (booking.destination || booking.destinationCity || flight.destination || '').toUpperCase();
+    const destCode = booking.destinationCode || flight.destinationCode || booking.destinationIata || 'DES';
+
+    // Time Logic
+    const depTime = flight.depTime || booking.depTime || '00:00';
+    const arrTime = flight.arrTime || booking.arrTime || '00:00';
+    const depDate = formatFullDate(booking.departureDate);
+    const arrDate = formatFullDate(booking.arrivalDate || booking.departureDate);
+
+    // Baggage & Sector
+    const baggage = booking.baggageWeight || flight.baggage || '20KG';
+    const sector = `${origin} (${originCode}) - ${dest} (${destCode})`;
+
+    // Plane Icon (Base64 from your PDF code)
+    const planeIconBase64 = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzAwMCIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBzdHlsZT0idHJhbnNmb3JtOiByb3RhdGUoOTBkZWcpOyI+PHBhdGggZD0iTTIxIDE2di0ybC04LTVWMy41YzAtLjgzLS42Ny0xLjUtMS41LTEuNVMxMCAyLjY3IDEwIDMuNVY5TDIgMTR2Mmw4LTIuNVYxOWwtMiAxLjVWMjJsMy41LTEgMy41IDF2LTEuNUwxMyAxOXYtNS41bDggMi41eiIvPjwvc3ZnPg==";
+
+    // Passengers (Logic adapted to handle array like the PDF, defaulting to your single passenger extract if needed)
+    const passengers = booking.passengers && booking.passengers.length > 0
+        ? booking.passengers
+        : [{
+            title: booking.passengers?.[0]?.title || '',
+            givenName: booking.passengers?.[0]?.givenName || 'PASSENGER',
+            surName: booking.passengers?.[0]?.surName || 'NAME',
+            passport: 'N/A'
+        }];
+
+    // --- 3. Construct the HTML String (PDF Design -> Black & White) ---
     const ticketHTML = `
         <!DOCTYPE html>
         <html>
@@ -54,137 +60,226 @@ export const printGDSBooking = (booking) => {
             <title>Print Ticket</title>
             <style>
                 @media print {
-                    @page { margin: 15mm; size: A4 portrait; }
-                    body { margin: 0; -webkit-print-color-adjust: exact; }
+                    @page { margin: 10mm; size: A4 portrait; }
+                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                 }
                 body {
-                    font-family: 'Courier New', Courier, monospace;
-                    font-weight: 600;
-                    font-size: 16px;
+                    font-family: 'Helvetica', 'Arial', sans-serif;
+                    font-size: 14px;
                     color: #000;
                     line-height: 1.4;
+                    background: #fff;
+                    margin: 0;
+                    padding: 20px;
                 }
-                .dashed-line {
-                    border-bottom: 1px dashed #000;
-                    margin: 10px 0;
-                    width: 100%;
+                /* Utilities */
+                .flex-row { display: flex; justify-content: space-between; align-items: center; }
+                .text-upper { text-transform: uppercase; }
+                .text-bold { font-weight: bold; }
+                .text-center { text-align: center; }
+                .mb-10 { margin-bottom: 10px; }
+                .mb-20 { margin-bottom: 20px; }
+                
+                /* Layout Components */
+                .header-imgs img { max-height: 120px; object-fit: contain; }
+                
+                .main-title {
+                    font-size: 24px;
+                    font-weight: 400;
+                    margin: 20px 0;
+                    border-bottom: 2px dashed #000;
+                    padding-bottom: 10px;
                 }
-                .flex-row { display: flex; justify-content: space-between; }
-                .flex-start { display: flex; align-items: flex-start; }
+
+                /* Info Box (Was Blue -> Now Black Border) */
+                .info-box {
+                    border: 2px dashed #000;
+                    padding: 15px;
+                    border-radius: 10px;
+                    margin-bottom: 20px;
+                }
+                .info-col { display: flex; flex-direction: column; align-items: flex-start; }
+                .info-col.right { align-items: flex-end; text-align: right; }
+                .info-col.labels .info-label { margin-bottom: 12px; font-size: 16px; font-weight: 600; color: #333; }
+                .info-col.values .info-val.small { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+                .info-col.values .info-val.large { font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+                .info-label { font-size: 12px; color: #333; }
+                .info-val { font-size: 16px; font-weight: bold; margin-top: 2px; }
+
+                /* Strip (Was Orange -> Now Black Background) */
+                .flight-strip {
+                    color: #000;
+                    padding: 10px 15px;
+                    font-weight: bold;
+                    font-size: 16px;
+                    border: 2px dashed #000;
+                    border-radius: 05px;
+                    margin-top: 20px;
+                }
+
+                /* Flight Details */ 
+                .flight-details {
+                    border: 2px dashed #000;
+                    border-top: none;
+                    padding: 20px 10px;
+                    margin-bottom: 30px;
+                    position: relative;
+                }
+                .col-header { font-weight: bold; font-size: 13px; margin-bottom: 10px; text-decoration: underline; }
+                .col-content { font-size: 15px; }
+                .detail-row { display: flex; justify-content: space-between; position: relative; }
+                .col-1 { width: 18%; }
+                .col-2 { width: 20%; }
+                .col-3 { width: 31%; }
+                .col-4 { width: 31%; }
+                
+                /* Plane Icon Position */
+                .plane-icon {
+                    position: absolute;
+                    left: 56%;
+                    top: 15px;
+                    opacity: 0.5;
+                }
+
+                /* Passenger Table */
+                table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                th { 
+                    background-color: #eee; 
+                    color: #000; 
+                    padding: 8px; 
+                    text-align: left; 
+                    font-weight: bold; 
+                    border: 2px dashed #000;
+                }
+                td { 
+                    padding: 8px; 
+                    border: 2px dashed #000; 
+                    font-size: 13px;
+                }
+
+                /* Footer */
+                .terms { font-size: 11px; margin-top: 20px; border-top: 1px dashed #000; padding-top: 10px; }
+                .footer-note { margin-top: 20px; font-size: 10px; text-align: center; color: #555; }
             </style>
         </head>
         <body>
-            <div style="max-width: 700px; padding: 15px; margin: 0 auto;">
+            <div style="max-width: 800px; margin: 0 auto;">
                 
-                <!-- Header -->
-                <div class="flex-row" style="margin-bottom: 20px;">
-                    <div>BOOKING REF: ${booking.pnr || booking.bookingReference}</div>
-                    <div style="text-align: right;">${passengerName}</div>
-                </div>
-
-                <!-- Flight Line -->
-                <div class="flex-row" style="align-items: flex-end; margin-bottom: 5px;">
-                    <div style="display: flex; gap: 40px;">
-                        <span style="width: 60px;">FLIGHT</span>
-                        <span>${flightNum} - ${airlineName}</span>
+                <!-- 1. Header Section -->
+                <div class="flex-row header-imgs">
+                    <!-- Agency Logo -->
+                    <div>
+                         <img src="${agencyLogo}" alt="Agency" />
                     </div>
-                    <div>${flightDate}</div>
-                </div>
-
-                <!-- Dashed Separator -->
-                <div class="dashed-line"></div>
-
-                <!-- Itinerary Grid -->
-                <div class="flex-start" style="margin-bottom: 5px;">
-                    <!-- Labels -->
-                    <div style="width: 100px; display: flex; flex-direction: column; gap: 5px;">
-                        <div>DEPARTURE:</div>
-                        <div>ARRIVAL:</div>
-                    </div>
-
-                    <!-- Middle Details -->
-                    <div style="flex: 1; display: flex; flex-direction: column; gap: 5px;">
-                        <div>${origin}, ${originCountry} (${originCode})</div>
-                        <div>${dest}, ${destCountry} (${destCode})</div>
-                        
-                        <div style="margin-top: 10px;">FLIGHT BOOKING REF: ${booking.airlinePnr || booking.pnr || 'N/A'}</div>
-                        <div>RESERVATION CONFIRMED, ECONOMY (Y)</div>
-                    </div>
-
-                    <!-- Right Side Times -->
-                    <div style="width: 150px; text-align: right; display: flex; flex-direction: column; gap: 5px;">
-                        <div>${formatShortDate(booking.departureDate)} ${depTime}</div>
-                        <div>${formatShortDate(booking.arrivalDate || booking.departureDate)} ${arrTime}</div>
-                        <div style="margin-top: 20px;">DURATION: 04:45</div>
+                    <!-- Airline Logo -->
+                    <div>
+                        <img src="${airlineLogo}" alt="${airlineName}" onerror="this.style.display='none'" />
                     </div>
                 </div>
 
-                <!-- Dashed Separator -->
-                <div class="dashed-line"></div>
+                <div class="main-title">Electronic Ticket Reservation</div>
 
-                <!-- Baggage & Meal -->
-                <div class="flex-start" style="margin-bottom: 5px;">
-                    <div style="width: 100px;"></div>
-                    <div style="flex: 1;">
-                        <div style="display: flex; gap: 20px;">
-                            <span style="width: 150px;">BAGGAGE ALLOWANCE:</span>
-                            <span>${baggage}</span>
+                <!-- 2. Booking Info Box (Monochrome) -->
+                <div class="info-box">
+                    <div class="flex-row">
+                        <div class="info-col labels">
+                            <div class="info-label">Booking Reference Number (PNR)</div>
+                            <div class="info-label">Booking ID</div>
                         </div>
-                    </div>
-                </div>
-                 <div class="flex-start">
-                    <div style="width: 100px;"></div>
-                    <div style="flex: 1;">
-                        <div style="display: flex; gap: 20px;">
-                            <span style="width: 150px;">MEAL:</span>
-                            <span>MEAL</span>
+                        <div class="info-col values right">
+                            <div class="info-val small">${pnr}</div>
+                            <div class="info-val large">${bookingRef}</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Route Info -->
-                <div style="margin-top: 15px; display: flex;">
-                    <div style="width: 100px;">NON STOP</div>
-                    <div style="flex: 1;">
-                        <div>${origin} TO ${dest}</div>
-                        <div style="display: flex; margin-top: 5px;">
-                            <span style="width: 150px;">EQUIPMENT:</span>
-                            <span>BOEING 777-300</span>
+                <!-- 3. Flight Strip (Black Header) -->
+                <div class="flight-strip">
+                    Flight - ${sector}
+                </div>
+
+                <!-- 4. Flight Details Section -->
+                <div class="flight-details">
+                    <div class="detail-row">
+                        <!-- Col 1: Airline -->
+                        <div class="col-1">
+                            <div class="col-header">AIRLINE</div>
+                            <div class="col-content text-upper">${airlineName}</div>
+                        </div>
+
+                        <!-- Col 2: Flight & Baggage -->
+                        <div class="col-2">
+                            <div class="col-header">FLIGHT #</div>
+                            <div class="col-content mb-20">${flightNum}</div>
+                            
+                            <div class="col-header" style="margin-bottom: 2px;">BAGGAGE</div>
+                            <div class="col-content">${baggage}</div>
+                        </div>
+
+                        <!-- Col 3: Departure -->
+                        <div class="col-3">
+                            <div class="col-header">DEPARTURE</div>
+                            <div class="col-content mb-10" style="font-size: 18px;">${depTime}</div>
+                            <div class="col-content text-upper text-bold">${origin}</div>
+                            <div class="col-content">${depDate}</div>
+                        </div>
+
+                        <!-- Icon -->
+                        <div class="plane-icon">
+                            <img src="${planeIconBase64}" width="32" height="32" />
+                        </div>
+
+                        <!-- Col 4: Arrival -->
+                        <div class="col-4">
+                            <div class="col-header">ARRIVAL</div>
+                            <div class="col-content mb-10" style="font-size: 18px;">${arrTime}</div>
+                            <div class="col-content text-upper text-bold">${dest}</div>
+                            <div class="col-content">${arrDate}</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Footer -->
-                <div style="margin-top: 40px; border-top: 1px dashed #000; padding-top: 10px;">
-                     <div>FLIGHT(S) CALCULATED AVERAGE CO2 EMISSIONS IS 210.57 KG/PERSON</div>
-                     <div>SOURCE: ICAO CARBON EMISSIONS CALCULATOR</div>
+                <!-- 5. Passenger Table -->
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">Sr #</th>
+                            <th>Passenger Name</th>
+                            <th>Passport #</th>
+                            <th>Meal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${passengers.map((p, idx) => `
+                            <tr>
+                                <td class="text-center">${idx + 1}</td>
+                                <td class="text-upper text-bold">
+                                    ${p.title || ''} ${p.givenName || ''} ${p.surName || ''}
+                                </td>
+                                <td>${p.passport || 'N/A'}</td>
+                                <td>YES</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <!-- 6. Terms & Footer -->
+                <div class="terms">
+                    <div class="text-bold mb-10" style="font-size: 12px;">TERMS & CONDITIONS</div>
+                    <div>1- PASSENGER SHOULD REPORT AT CHECK-IN COUNTER AT LEAST 04:00 HOURS PRIOR TO FLIGHT.</div>
+                    <div>2- TICKETS ARE NON-REFUNDABLE AND NON-CHANGEABLE ANY TIME.</div>
                 </div>
 
-                <div style="margin-top: 30px;">
-                    FLIGHT TICKET(S)
-                    <div class="dashed-line" style="margin-top: 5px;"></div>
-                </div>
-                
-                <div style="margin-top: 20px; font-size: 11px; text-align: center;">
+                <div class="footer-note">
                     GENERATED BY SYSTEM | ${new Date().toLocaleString()}
                 </div>
-                
-                <!-- Terms and Conditions -->
-                <div style="margin-top: 30px; padding-top: 15px; border-top: 1px dashed #000;">
-                    <div style="font-weight: bold; font-size: 14px; margin-bottom: 10px;">TERMS & CONDITIONS</div>
-                    <div style="font-size: 12px; line-height: 1.6;">
-                        <div style="margin-bottom: 8px;">1- PASSENGER SHOULD REPORT AT CHECK-IN COUNTER AT LEAST 04:00 HOURS PRIOR TO FLIGHT.</div>
-                        <div>2- TICKETS ARE NON-REFUNDABLE AND NON-CHANGEABLE ANY TIME.</div>
-                    </div>  
-                </div>
+
             </div>
         </body>
         </html>
     `;
 
-    // --- 4. The Iframe Trick (Fixes "Dashboard Printing" issue) ---
-    
-    // Create an invisible iframe
+    // --- 4. The Iframe Trick ---
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
     iframe.style.right = '0';
@@ -192,18 +287,14 @@ export const printGDSBooking = (booking) => {
     iframe.style.width = '0';
     iframe.style.height = '0';
     iframe.style.border = '0';
-    
+
     document.body.appendChild(iframe);
 
-    // Get the iframe's document
     const doc = iframe.contentWindow.document;
-
-    // Write the content
     doc.open();
     doc.write(ticketHTML);
     doc.close();
 
-    // Wait for content to load, then print
     iframe.onload = () => {
         try {
             iframe.contentWindow.focus();
@@ -211,7 +302,7 @@ export const printGDSBooking = (booking) => {
         } catch (e) {
             console.error("Print failed", e);
         } finally {
-            // Remove iframe after a short delay to ensure print dialog opened
+            // Remove iframe after delay
             setTimeout(() => {
                 document.body.removeChild(iframe);
             }, 1000);

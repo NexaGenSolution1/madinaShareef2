@@ -19,7 +19,7 @@ export const generateBookingPDF = async (booking) => {
     element.style.color = '#000000';
     element.style.boxSizing = 'border-box';
     element.style.position = 'absolute';
-    element.style.left = '-9999px';  
+    element.style.left = '-9999px';
 
     // Colors
     const colors = {
@@ -38,15 +38,15 @@ export const generateBookingPDF = async (booking) => {
     const flightNo = booking.flightNumber || flight.flightNo || flight.flightNumber || 'XX000';
     const depTime = flight.depTime || booking.depTime || booking.departureTime || '00:00';
     const arrTime = flight.arrTime || booking.arrTime || booking.arrivalTime || '00:00';
-    
+
     // Extract origin and destination cities
     const originCity = (flight.origin || booking.origin || booking.originCity || '').toUpperCase() || 'ISLAMABAD';
     const destinationCity = (flight.destination || booking.destination || booking.destinationCity || '').toUpperCase() || 'UAE';
-    
+
     // Try to extract airport codes from multiple sources
     let originCode = flight.originCode || booking.originCode || booking.originIata || flight.sectorFrom || 'ISB';
     let destinationCode = flight.destinationCode || booking.destinationCode || booking.destinationIata || flight.sectorTo || 'AUH';
-    
+
     // If codes are not available, try to parse from the sector string
     if (booking.sector && (!originCode || originCode === 'ISB') && (!destinationCode || destinationCode === 'AUH')) {
         const sectorMatch = booking.sector.match(/([A-Z]{3})-([A-Z]{3})/);
@@ -55,9 +55,9 @@ export const generateBookingPDF = async (booking) => {
             destinationCode = sectorMatch[2];
         }
     }
-    
+
     console.log('Extracted codes - Origin:', originCode, 'Destination:', destinationCode);
-    
+
     const originCountry = booking.originCountry || flight.originCountry || '';
     const destinationCountry = booking.destinationCountry || flight.destinationCountry || '';
     const baggage = booking.baggageWeight || flight.baggage || '20+07 KG';
@@ -65,7 +65,7 @@ export const generateBookingPDF = async (booking) => {
     const equipment = flight.equipment || booking.equipment || 'UNKNOWN';
     const sector = `${originCity} (${originCode}) - ${destinationCity} (${destinationCode})`;
     const route = `${originCity} TO ${destinationCity}`;
-    
+
 
     element.innerHTML = `
     <div>
@@ -239,7 +239,33 @@ export const generateBookingPDF = async (booking) => {
             heightLeft -= 297;
         }
 
-        pdf.save(`Booking-${booking.bookingReference}.pdf`);
+        // ============================================
+        // UPDATED FILENAME LOGIC STARTS HERE
+        // ============================================
+
+        // 1. Get the first passenger's name
+        let passengerName = "Passenger";
+        if (booking.passengers && booking.passengers.length > 0) {
+            const p = booking.passengers[0];
+            // Combine Title, GivenName, SurName and trim extra spaces
+            passengerName = `${p.title || ''} ${p.givenName || ''} ${p.surName || ''}`.trim();
+        }
+
+        // 2. Get the PNR (Reference)
+        // Checks PNR first, falls back to bookingReference, then 'REF'
+        const reference = booking.pnr || booking.bookingReference || 'REF';
+
+        // 3. Create the filename string
+        // Format: "Ticket Of [PassengerName] | [PNR].pdf"
+        const finalFileName = `Ticket_Of_${passengerName}_${reference}.pdf`;
+
+        // 4. Save the PDF
+        pdf.save(finalFileName);
+
+        // ============================================
+        // UPDATED FILENAME LOGIC ENDS HERE
+        // ============================================
+
     } finally {
         document.body.removeChild(element);
     }

@@ -304,6 +304,7 @@ export default function MyBookings() {
                                 bookings.map((booking) => {
                                     const statusBadge = getStatusBadge(booking.status)
                                     const firstPassenger = booking.passengers?.[0]
+                                    console.log("Booking Data", booking)
                                     return (
                                         <tr key={booking._id} className="border-b border-gray-300 hover:bg-blue-50/20 transition-colors">
                                             {/* Booking Details */}
