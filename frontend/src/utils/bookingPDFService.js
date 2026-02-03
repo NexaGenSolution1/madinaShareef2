@@ -22,7 +22,6 @@ export const printGDSBooking = (booking) => {
 
     // Flight Details
     const flightNum = booking.flightNumber || flight.flightNo || 'XX000';
-
     // Location Logic
     const origin = (booking.origin || booking.originCity || flight.origin || '').toUpperCase();
     const originCode = booking.originCode || flight.originCode || booking.originIata || 'ORG';
@@ -87,13 +86,13 @@ export const printGDSBooking = (booking) => {
                     font-size: 24px;
                     font-weight: 400;
                     margin: 20px 0;
-                    border-bottom: 2px dashed #000;
+                    border-bottom: 2px solid #000;
                     padding-bottom: 10px;
                 }
 
-                /* Info Box (Was Blue -> Now Black Border) */
+                /* Info Box (Was Blue -> Now Black Border) */     
                 .info-box {
-                    border: 2px dashed #000;
+                    border: 2px solid #000;
                     padding: 15px;
                     border-radius: 10px;
                     margin-bottom: 20px;
@@ -108,18 +107,20 @@ export const printGDSBooking = (booking) => {
 
                 /* Strip (Was Orange -> Now Black Background) */
                 .flight-strip {
-                    color: #000;
+                    background-color: #000;
+                    color: #fff;
                     padding: 10px 15px;
                     font-weight: bold;
                     font-size: 16px;
-                    border: 2px dashed #000;
-                    border-radius: 05px;
+                    border: 2px solid #000;
+                    border-top-left-radius: 12px;
+                    border-top-right-radius: 12px;
                     margin-top: 20px;
                 }
 
                 /* Flight Details */ 
                 .flight-details {
-                    border: 2px dashed #000;
+                    border: 2px solid #000;
                     border-top: none;
                     padding: 20px 10px;
                     margin-bottom: 30px;
@@ -149,11 +150,11 @@ export const printGDSBooking = (booking) => {
                     padding: 8px; 
                     text-align: left; 
                     font-weight: bold; 
-                    border: 2px dashed #000;
+                    border: 2px solid #000;
                 }
                 td { 
                     padding: 8px; 
-                    border: 2px dashed #000; 
+                    border: 2px solid #000; 
                     font-size: 13px;
                 }
 
