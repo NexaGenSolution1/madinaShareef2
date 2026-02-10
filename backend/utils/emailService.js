@@ -165,10 +165,10 @@ const getPasswordResetEmailHTML = (resetLink, userName) => {
             </ul>
           </div>
           <p>If you have any questions or concerns, please contact our support team.</p>
-          <p>Best regards,<br><strong>Brother International Team</strong></p>
+          <p>Best regards,<br><strong>Brothers International Team</strong></p>
         </div>
         <div class="footer">
-          <p>&copy; ${new Date().getFullYear()} Brother International. All rights reserved.</p>
+          <p>&copy; ${new Date().getFullYear()} Brothers International. All rights reserved.</p>
           <p>This is an automated message, please do not reply to this email.</p>
         </div>
       </div>
@@ -188,11 +188,11 @@ export const sendPasswordResetEmail = async (email, resetToken, userId, userName
 
     const mailOptions = {
       from: {
-        name: "Brother International",
+        name: "Brothers International",
         address: process.env.EMAIL_USER,
       },
       to: email,
-      subject: "Password Reset Request - Brother International",
+      subject: "Password Reset Request - Brothers International",
       html: getPasswordResetEmailHTML(resetLink, userName),
       text: `Hello ${userName},\n\nWe received a request to reset your password.\n\nPlease click the following link to reset your password:\n${resetLink}\n\nThis link will expire in 1 hour.\n\nIf you didn't request this, please ignore this email.\n\nBest regards,\nBrother International Team`,
     };
@@ -310,11 +310,11 @@ const getCredentialsEmailHTML = (agentCode, email, password, userName, companyNa
     <body>
       <div class="container">
         <div class="header">
-          <h1>🎉 Welcome to Brother International!</h1>
+          <h1>🎉 Welcome to Brothers International!</h1>
         </div>
         <div class="content">
           <p>Hello <strong>${userName}</strong>,</p>
-          <p>Welcome to Brother International! Your agency account has been created successfully.</p>
+          <p>Welcome to Brothers International! Your agency account has been created successfully.</p>
           <p><strong>Company:</strong> ${companyName}</p>
           
           <div class="credentials-box">
@@ -351,10 +351,10 @@ const getCredentialsEmailHTML = (agentCode, email, password, userName, companyNa
           </div>
 
           <p>If you have any questions or need assistance, please don't hesitate to contact our support team.</p>
-          <p>Best regards,<br><strong>Brother International Team</strong></p>
+          <p>Best regards,<br><strong>Brothers International Team</strong></p>
         </div>
         <div class="footer">
-          <p>&copy; ${new Date().getFullYear()} Brother International. All rights reserved.</p>
+          <p>&copy; ${new Date().getFullYear()} Brothers International. All rights reserved.</p>
           <p>This is an automated message, please do not reply to this email.</p>
         </div>
       </div>
@@ -382,13 +382,13 @@ export const sendCredentialsEmail = async (email, agentCode, password, userName,
 
     const mailOptions = {
       from: {
-        name: "Brother International",
+        name: "Brothers International",
         address: process.env.EMAIL_USER,
       },
       to: email,
-      subject: "Your Agent Credentials - Brother International",
+      subject: "Your Agent Credentials - Brothers International",
       html: getCredentialsEmailHTML(agentCode, email, password, userName, companyName),
-      text: `Hello ${userName},\n\nWelcome to Brother International! Your agency account has been created successfully.\n\nCompany: ${companyName}\n\nYour Login Credentials:\nAgent Code: ${agentCode}\nEmail: ${email}\nPassword: ${password}\n\nLogin URL: ${process.env.FRONTEND_URL || 'https://brothersinttvl.com'}/auth/login\n\nSecurity Tips:\n- Keep your credentials safe and secure\n- Do not share your password with anyone\n- We recommend changing your password after first login\n\nBest regards,\nBrother International Team`,
+      text: `Hello ${userName},\n\nWelcome to Brothers International! Your agency account has been created successfully.\n\nCompany: ${companyName}\n\nYour Login Credentials:\nAgent Code: ${agentCode}\nEmail: ${email}\nPassword: ${password}\n\nLogin URL: ${process.env.FRONTEND_URL || 'https://brothersinttvl.com'}/auth/login\n\nSecurity Tips:\n- Keep your credentials safe and secure\n- Do not share your password with anyone\n- We recommend changing your password after first login\n\nBest regards,\nBrothers International Team`,
     };
 
     const info = await transporter.sendMail(mailOptions);

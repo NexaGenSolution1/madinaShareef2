@@ -53,7 +53,7 @@ app.use("/api/export", exportRoutes);
 startBookingExpiryJob();
 
 app.get('/', (req, res) => {
-  res.send('Brother International API is running');
+  res.send('Brothers International API is running');
 });
 
 const PORT = process.env.PORT || 8007;
