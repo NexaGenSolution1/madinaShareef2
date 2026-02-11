@@ -346,6 +346,7 @@ const toggleShowButton = async (userId: string, currentValue?: boolean) => {
   );
 
   try {
+       setShowLoading(userId)
     const token = localStorage.getItem("admin_token");
 
     await axiosInstance.patch(
@@ -359,6 +360,8 @@ const toggleShowButton = async (userId: string, currentValue?: boolean) => {
   } catch (error) {
     console.error("Error updating Booking now:", error);
     window.alert("Failed to update Booking now");
+  }finally{
+       setShowLoading(null)
   }
 };
 
