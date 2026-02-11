@@ -598,7 +598,7 @@ export default function BookingForm() {
                                                 value={passenger.title}
                                                 onChange={(e) => handlePassengerChange(index, 'title', e.target.value)}
                                                 required
-                                                className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                                className="w-full min-w-[90px]  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                                             >
                                                 {passenger.type === 'Adult' && (
                                                     <>
@@ -617,7 +617,7 @@ export default function BookingForm() {
                                                 value={passenger.surName}
                                                 onChange={(e) => handlePassengerChange(index, 'surName', e.target.value)}
                                                 required
-                                                className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                                className="w-full min-w-[120px] px-2 py-1  bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                                                 placeholder="Surname"
                                             />
                                         </td>
@@ -627,7 +627,7 @@ export default function BookingForm() {
                                                 value={passenger.givenName}
                                                 onChange={(e) => handlePassengerChange(index, 'givenName', e.target.value)}
                                                 required
-                                                className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                                className="w-full min-w-[120px]  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                                                 placeholder="Given Name"
                                             />
                                         </td>
@@ -637,11 +637,12 @@ export default function BookingForm() {
                                                 value={passenger.passport}
                                                 onChange={(e) => handlePassengerChange(index, 'passport', e.target.value)}
                                                 required
-                                                className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                                className="w-full min-w-[120px]  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                                                 placeholder="Passport No"
                                             />
                                         </td>
                                         <td className="px-3 py-2">
+                                              <div className="min-w-[130px]">
                                             <MaskedDatePicker
                                                 value={passenger.dateOfBirth}
                                                 onChange={(date) =>
@@ -650,8 +651,10 @@ export default function BookingForm() {
                                                 size="small"
                                                 maxDate={new Date()}
                                             />
+                                            </div>
                                         </td>
                                         <td className="px-3 py-2">
+                                              <div className="min-w-[130px]">
                                             <MaskedDatePicker
                                                 value={passenger.passportExpiry}
                                                 onChange={(date) =>
@@ -660,13 +663,14 @@ export default function BookingForm() {
                                                 size="small"
                                                 minDate={new Date()}
                                             />
+                                            </div>
                                         </td>
                                         <td className="px-3 py-2">
                                             <input
                                                 type="text"
                                                 value={passenger.nationality || ''}
                                                 onChange={(e) => handlePassengerChange(index, 'nationality', e.target.value)}
-                                                className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                                className="w-full min-w-[120px]  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                                                 placeholder="Nationality"
                                             />
                                         </td>
