@@ -118,9 +118,9 @@ export default function AllGroups({ headerType, header, searchParams }) {
                 }
 
                 allGroups = allGroups.filter(group => {
+
                     if (!group.type) return false
                     const normalizedType = group.type.toLowerCase().trim()
-
                     // Check if we have a custom matcher for this group type
                     const matcher = groupTypeMap[normalizedGroupType]
                     if (matcher) {
@@ -131,7 +131,10 @@ export default function AllGroups({ headerType, header, searchParams }) {
                     return normalizedType === normalizedGroupType ||
                         normalizedType.includes(normalizedGroupType) ||
                         normalizedGroupType.includes(normalizedType)
+
+
                 })
+
             }
 
             // Extract unique airlines and sectors for filters
@@ -153,6 +156,7 @@ export default function AllGroups({ headerType, header, searchParams }) {
             setLoading(false)
         }
     }
+    console.log(allGroups, 'allgroups')
 
     const applyFilters = (dataToFilter = allGroups) => {
         let filtered = [...dataToFilter]
@@ -199,10 +203,18 @@ export default function AllGroups({ headerType, header, searchParams }) {
             const dateB = new Date(b.dept_date)
             return dateA - dateB
         })
+        // Sort UAE groups to top
+        filtered.sort((a, b) => {
+            const typeA = a.type?.toLowerCase().trim()
+            const typeB = b.type?.toLowerCase().trim()
 
+            if (typeA === 'uae' && typeB !== 'uae') return -1
+            if (typeA !== 'uae' && typeB === 'uae') return 1
+            return 0
+        })
         setGroups(filtered)
     }
-
+    console.log(groups, 'groups')
     const handleFilterChange = (filterType, value) => {
         if (filterType === 'sector') {
             setFilters(prev => ({
@@ -425,6 +437,7 @@ export default function AllGroups({ headerType, header, searchParams }) {
                                         }
 
                                         return Object.entries(groupedData).map(([key, data]) => (
+
                                             <React.Fragment key={key}>
 
                                                 {/* Airline Header Row - Styled like image (Pink Airline + Black Sector) */}
@@ -515,7 +528,12 @@ export default function AllGroups({ headerType, header, searchParams }) {
                                                         <td className="text-center py-2">
                                                             <button
                                                                 onClick={() => handleBookNow(group)}
-                                                                className="px-1.5! py-1! md:px-3! md:py-1.5! bg-[#f97316] hover:bg-[#ea580c] text-white rounded text-[8px]! md:text-[12.5px]! font-semibold shadow-sm transition-colors"
+                                                                disabled={!user.showHideButton}
+                                                                className={`px-2 py-1 md:px-3 md:py-1.5 rounded text-[10px] md:text-[12.5px] font-semibold shadow-sm transition-all duration-200 ${user.showHideButton
+                                                                        ? "bg-[#f97316] hover:bg-[#ea580c] text-white cursor-pointer"
+                                                                        : "bg-gray-300 text-gray-500 cursor-not-allowed opacity-60"
+                                                                    }
+  `}
                                                             >
                                                                 Book now
                                                             </button>
