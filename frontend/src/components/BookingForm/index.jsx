@@ -510,13 +510,20 @@ export default function BookingForm() {
                                     </div>
                                 </td>
                                 <td className="px-3 py-2 text-xs font-medium text-gray-900 border-r border-gray-200">
-                                    PKR {groupData?.price?.toLocaleString() || 0}
+                                    {/* PKR {groupData?.price?.toLocaleString() || 0} */}
+                                    <span className={`${user.priceOnCall ? 'text-red-500' : 'text-[#3d6a8f]'} inline-block text-xs font-extrabold px-2 py-1 rounded-2xl`}>
+                                        {user.priceOnCall ? "Price on Call" : `PKR ${groupData?.price?.toLocaleString()}`}
+                                    </span>
                                 </td>
                                 <td className="px-3 py-2 text-center text-xs font-bold text-gray-900 border-r border-gray-200">
                                     {formData.adults}
                                 </td>
                                 <td className="px-3 py-2 text-right text-xs font-bold text-gray-900">
-                                    PKR {calculateAdultTotal().toLocaleString()}
+                                    {user.priceOnCall ? (
+                                        <span className="text-red-500 font-semibold">Price on Call</span>
+                                    ) : (
+                                        `PKR ${calculateAdultTotal().toLocaleString()}`
+                                    )}
                                 </td>
                             </tr>
 
@@ -561,8 +568,12 @@ export default function BookingForm() {
                                 <td className="px-3 py-2 text-center text-xs font-bold text-gray-900 border-r border-gray-200">
                                     {totalPassengers}
                                 </td>
-                                <td className="px-3 py-2 text-right text-xs font-bold text-[#3d6a8f]">
-                                    PKR {Math.round(calculateTotalPrice()).toLocaleString()}
+                                <td className="px-3 py-2 text-right text-xs font-bold">
+                                    {user.priceOnCall ? (
+                                        <span className="text-red-500 font-semibold">Price on Call</span>
+                                    ) : (
+                                        `PKR ${Math.round(calculateTotalPrice()).toLocaleString()}`
+                                    )}
                                 </td>
                             </tr>
                         </tbody>
