@@ -7,6 +7,7 @@ import {
    getUserById,
    updateUserStatus,
    updatePriceOnCall,
+   updateShowHideButton,
    updateUserProfile,
    deleteUser,
    changePassword,
@@ -14,6 +15,7 @@ import {
    resetPassword,
    changeUserPassword,
    sendUserCredentials,
+ 
 } from "../controllers/auth.controller.js";
 
 import { protect, adminOnly } from "../middleware/auth.middleware.js";
@@ -41,6 +43,7 @@ router.put("/users/:id", protect, adminOnly, uploadProfileLogo.single('logo'), u
 
 router.patch("/users/:id/status", protect, adminOnly, updateUserStatus);
 router.patch("/users/:id/price-on-call", protect, adminOnly, updatePriceOnCall);
+router.patch("/users/:id/show-booking-now", protect, adminOnly, updateShowHideButton);
 
 
 router.delete("/users/:id", protect, adminOnly, deleteUser);

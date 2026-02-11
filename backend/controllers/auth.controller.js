@@ -182,7 +182,8 @@ export const loginUser = async (req, res) => {
         email: user.email,
         role: user.role,
         status: user.status,
-        priceOnCall: user.priceOnCall || false
+        priceOnCall: user.priceOnCall || false,
+        showHideButton: user.showHideButton || false
       }
     });
 
@@ -399,12 +400,34 @@ export const updateUserStatus = async (req, res) => {
 };
 
 export const updatePriceOnCall = async (req, res) => {
+  console.log(req.body,"req.body")
   try {
     const { priceOnCall } = req.body;
 
     const user = await Register.findByIdAndUpdate(
       req.params.id,
       { priceOnCall: priceOnCall },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.json({ success: true, data: user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const updateShowHideButton = async (req, res) => {
+  console.log(req.body,"req.body")
+  try {
+    const { showHideButton } = req.body;
+
+    const user = await Register.findByIdAndUpdate(
+      req.params.id,
+      { showHideButton: showHideButton },
       { new: true }
     );
 
