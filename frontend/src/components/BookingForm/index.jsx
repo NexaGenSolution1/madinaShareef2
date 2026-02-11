@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 
 export default function BookingForm() {
+    const user = JSON.parse(localStorage.getItem("frontend_user"));
     const navigate = useNavigate()
     const location = useLocation()
     const { id: bookingId } = useParams()
@@ -189,7 +190,7 @@ export default function BookingForm() {
 
 
         if (totalSeatsRequired > availableSeats) {
-                toast.error("No seats available. You cannot exceed available seats.")
+            toast.error("No seats available. You cannot exceed available seats.")
             return
         }
 
@@ -454,10 +455,10 @@ export default function BookingForm() {
                             <div className='flex flex-col'>
                                 <p className="text-xs text-gray-600 font-semibold mb-0.5">Adult Price</p>
                                 <p className="text-sm font-extrabold text-[#3d6a8f] bg-blue-50 px-2 py-1 rounded-2xl">
-                                    PKR 
+                                    PKR
                                     {user.priceOnCall
-                                  ? "Price on Call"
-                                  : `PKR ${group.price?.toLocaleString()}`}
+                                        ? "Price on Call"
+                                        : `PKR ${group.price?.toLocaleString()}`}
                                     {/* 
                                     {groupData?.price?.toLocaleString() || 0} */}
 
@@ -650,27 +651,27 @@ export default function BookingForm() {
                                             />
                                         </td>
                                         <td className="px-3 py-2">
-                                              <div className="min-w-[130px]">
-                                            <MaskedDatePicker
-                                                value={passenger.dateOfBirth}
-                                                onChange={(date) =>
-                                                    handlePassengerChange(index, "dateOfBirth", date)
-                                                }
-                                                size="small"
-                                                maxDate={new Date()}
-                                            />
+                                            <div className="min-w-[130px]">
+                                                <MaskedDatePicker
+                                                    value={passenger.dateOfBirth}
+                                                    onChange={(date) =>
+                                                        handlePassengerChange(index, "dateOfBirth", date)
+                                                    }
+                                                    size="small"
+                                                    maxDate={new Date()}
+                                                />
                                             </div>
                                         </td>
                                         <td className="px-3 py-2">
-                                              <div className="min-w-[130px]">
-                                            <MaskedDatePicker
-                                                value={passenger.passportExpiry}
-                                                onChange={(date) =>
-                                                    handlePassengerChange(index, "passportExpiry", date)
-                                                }
-                                                size="small"
-                                                minDate={new Date()}
-                                            />
+                                            <div className="min-w-[130px]">
+                                                <MaskedDatePicker
+                                                    value={passenger.passportExpiry}
+                                                    onChange={(date) =>
+                                                        handlePassengerChange(index, "passportExpiry", date)
+                                                    }
+                                                    size="small"
+                                                    minDate={new Date()}
+                                                />
                                             </div>
                                         </td>
                                         <td className="px-3 py-2">
