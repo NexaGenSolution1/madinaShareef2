@@ -1,58 +1,84 @@
 export const printGDSBooking = (booking) => {
-    // --- 1. Helper Functions ---
-    const formatFullDate = (dateStr) => {
-        if (!dateStr) return '';
-        return new Date(dateStr).toLocaleDateString('en-GB', {
-            weekday: 'short', day: '2-digit', month: 'short', year: 'numeric'
-        });
-    };
+  // --- 1. Helper Functions ---
+  const formatFullDate = (dateStr) => {
+    if (!dateStr) return "";
+    return new Date(dateStr).toLocaleDateString("en-GB", {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
-    // --- 2. Data Preparation (Preserving your logic + adding PDF specific helpers) ---
-    const flight = booking.flights?.[0] || {};
+  // --- 2. Data Preparation (Preserving your logic + adding PDF specific helpers) ---
+  const flight = booking.flights?.[0] || {};
 
-    // Airline & Logos
-    const airlineName = (booking.airline?.name || flight.airlineName || 'AIRLINE').toUpperCase();
-    // Note: Ensure this path is accessible from the browser window, or use a Base64 string if possible
-    const agencyLogo = "/src/assets/images/logo.webp";
-    const airlineLogo = booking.airline?.logoUrl || flight.airlineLogo || '';
+  // Airline & Logos
+  const airlineName = (
+    booking.airline?.name ||
+    flight.airlineName ||
+    "AIRLINE"
+  ).toUpperCase();
+  // Note: Ensure this path is accessible from the browser window, or use a Base64 string if possible
+  const agencyLogo = "/src/assets/images/logo.webp";
+  const airlineLogo = booking.airline?.logoUrl || flight.airlineLogo || "";
 
-    // Booking Refs
-    const pnr = booking.pnr || booking.bookingReference || 'N/A';
-    const bookingRef = booking.bookingReference || pnr;
+  // Booking Refs
+  const pnr = booking.pnr || booking.bookingReference || "N/A";
+  const bookingRef = booking.bookingReference || pnr;
 
-    // Flight Details
-    const flightNum = booking.flightNumber || flight.flightNo || 'XX000';
-    // Location Logic
-    const origin = (booking.origin || booking.originCity || flight.origin || '').toUpperCase();
-    const originCode = booking.originCode || flight.originCode || booking.originIata || 'ORG';
-    const dest = (booking.destination || booking.destinationCity || flight.destination || '').toUpperCase();
-    const destCode = booking.destinationCode || flight.destinationCode || booking.destinationIata || 'DES';
+  // Flight Details
+  const flightNum = booking.flightNumber || flight.flightNo || "XX000";
+  // Location Logic
+  const origin = (
+    booking.origin ||
+    booking.originCity ||
+    flight.origin ||
+    ""
+  ).toUpperCase();
+  const originCode =
+    booking.originCode || flight.originCode || booking.originIata || "ORG";
+  const dest = (
+    booking.destination ||
+    booking.destinationCity ||
+    flight.destination ||
+    ""
+  ).toUpperCase();
+  const destCode =
+    booking.destinationCode ||
+    flight.destinationCode ||
+    booking.destinationIata ||
+    "DES";
 
-    // Time Logic
-    const depTime = flight.depTime || booking.depTime || '00:00';
-    const arrTime = flight.arrTime || booking.arrTime || '00:00';
-    const depDate = formatFullDate(booking.departureDate);
-    const arrDate = formatFullDate(booking.arrivalDate || booking.departureDate);
+  // Time Logic
+  const depTime = flight.depTime || booking.depTime || "00:00";
+  const arrTime = flight.arrTime || booking.arrTime || "00:00";
+  const depDate = formatFullDate(booking.departureDate);
+  const arrDate = formatFullDate(booking.arrivalDate || booking.departureDate);
 
-    // Baggage & Sector
-    const baggage = booking.baggageWeight || flight.baggage || '20KG';
-    const sector = `${origin} (${originCode}) - ${dest} (${destCode})`;
+  // Baggage & Sector
+  const baggage = booking.baggageWeight || flight.baggage || "20KG";
+  const sector = `${origin} (${originCode}) - ${dest} (${destCode})`;
 
-    // Plane Icon (Base64 from your PDF code)
-    const planeIconBase64 = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzAwMCIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBzdHlsZT0idHJhbnNmb3JtOiByb3RhdGUoOTBkZWcpOyI+PHBhdGggZD0iTTIxIDE2di0ybC04LTVWMy41YzAtLjgzLS42Ny0xLjUtMS41LTEuNVMxMCAyLjY3IDEwIDMuNVY5TDIgMTR2Mmw4LTIuNVYxOWwtMiAxLjVWMjJsMy41LTEgMy41IDF2LTEuNUwxMyAxOXYtNS41bDggMi41eiIvPjwvc3ZnPg==";
+  // Plane Icon (Base64 from your PDF code)
+  const planeIconBase64 =
+    "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzAwMCIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBzdHlsZT0idHJhbnNmb3JtOiByb3RhdGUoOTBkZWcpOyI+PHBhdGggZD0iTTIxIDE2di0ybC04LTVWMy41YzAtLjgzLS42Ny0xLjUtMS41LTEuNVMxMCAyLjY3IDEwIDMuNVY5TDIgMTR2Mmw4LTIuNVYxOWwtMiAxLjVWMjJsMy41LTEgMy41IDF2LTEuNUwxMyAxOXYtNS41bDggMi41eiIvPjwvc3ZnPg==";
 
-    // Passengers (Logic adapted to handle array like the PDF, defaulting to your single passenger extract if needed)
-    const passengers = booking.passengers && booking.passengers.length > 0
-        ? booking.passengers
-        : [{
-            title: booking.passengers?.[0]?.title || '',
-            givenName: booking.passengers?.[0]?.givenName || 'PASSENGER',
-            surName: booking.passengers?.[0]?.surName || 'NAME',
-            passport: 'N/A'
-        }];
+  // Passengers (Logic adapted to handle array like the PDF, defaulting to your single passenger extract if needed)
+  const passengers =
+    booking.passengers && booking.passengers.length > 0
+      ? booking.passengers
+      : [
+          {
+            title: booking.passengers?.[0]?.title || "",
+            givenName: booking.passengers?.[0]?.givenName || "PASSENGER",
+            surName: booking.passengers?.[0]?.surName || "NAME",
+            passport: "N/A",
+          },
+        ];
 
-    // --- 3. Construct the HTML String (PDF Design -> Black & White) ---
-    const ticketHTML = `
+  // --- 3. Construct the HTML String (PDF Design -> Black & White) ---
+  const ticketHTML = `
         <!DOCTYPE html>
         <html>
         <head>
@@ -251,24 +277,31 @@ export const printGDSBooking = (booking) => {
                         </tr>
                     </thead>
                     <tbody>
-                        ${passengers.map((p, idx) => `
+                        ${passengers
+                          .map(
+                            (p, idx) => `
                             <tr>
                                 <td class="text-center">${idx + 1}</td>
                                 <td class="text-upper text-bold">
-                                    ${p.title || ''} ${p.givenName || ''} ${p.surName || ''}
+                                    ${p.title || ""} ${p.givenName || ""} ${p.surName || ""}
                                 </td>
-                                <td>${p.passport || 'N/A'}</td>
+                                <td>${p.passport || "N/A"}</td>
                                 <td>YES</td>
                             </tr>
-                        `).join('')}
+                        `,
+                          )
+                          .join("")}
                     </tbody>
                 </table>
 
                 <!-- 6. Terms & Footer -->
                 <div class="terms">
                     <div class="text-bold mb-10" style="font-size: 12px;">TERMS & CONDITIONS</div>
-                    <div>1- PASSENGER SHOULD REPORT AT CHECK-IN COUNTER AT LEAST 04:00 HOURS PRIOR TO FLIGHT.</div>
-                    <div>2- TICKETS ARE NON-REFUNDABLE AND NON-CHANGEABLE ANY TIME.</div>
+                    <div>1-PLEASE CROSS CHECK NAME AND FLIGHT DETAILS.</div>
+                    <div>2-PLEASE REPORT AIRLINE CHECK-IN COUNTER 4 HOURS BEFORE FLIGHT DEPARTURE.</div>
+                    <div>3-PLEASE RECONFIRM THE TICKET BEFORE 48 HOURS OF FLIGHT DEPARTURE.</div>
+                    <div>4-ALL VISA AND TRAVEL DOCUMENT ARE TRAVELER OWN RESPONSIBILITY.</div>
+                    <div>5-TICKETS ARE NON-REFUNDABLE AND NON-CHANGEABLE ANY TIME.</div>
                 </div>
 
                 <div class="footer-note">
@@ -280,33 +313,33 @@ export const printGDSBooking = (booking) => {
         </html>
     `;
 
-    // --- 4. The Iframe Trick ---
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.right = '0';
-    iframe.style.bottom = '0';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = '0';
+  // --- 4. The Iframe Trick ---
+  const iframe = document.createElement("iframe");
+  iframe.style.position = "fixed";
+  iframe.style.right = "0";
+  iframe.style.bottom = "0";
+  iframe.style.width = "0";
+  iframe.style.height = "0";
+  iframe.style.border = "0";
 
-    document.body.appendChild(iframe);
+  document.body.appendChild(iframe);
 
-    const doc = iframe.contentWindow.document;
-    doc.open();
-    doc.write(ticketHTML);
-    doc.close();
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(ticketHTML);
+  doc.close();
 
-    iframe.onload = () => {
-        try {
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print();
-        } catch (e) {
-            console.error("Print failed", e);
-        } finally {
-            // Remove iframe after delay
-            setTimeout(() => {
-                document.body.removeChild(iframe);
-            }, 1000);
-        }
-    };
+  iframe.onload = () => {
+    try {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    } catch (e) {
+      console.error("Print failed", e);
+    } finally {
+      // Remove iframe after delay
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 1000);
+    }
+  };
 };

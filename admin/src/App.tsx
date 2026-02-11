@@ -37,6 +37,7 @@ import ViewAccounts from "./pages/ViewAccounts";
 import Ledger from "./pages/Ledger";
 import AllBookings from "./pages/AllBookings";
 import BookingDetail from "./pages/BookingDetail";
+import SpecialOffers from "./pages/SpecialOffers/SpecialOffers";
 
 export default function App() {
   return (
@@ -66,6 +67,7 @@ export default function App() {
                 <Route path="/group-ticketing/edit/:id" element={<GroupTicketingForm />} />
                 <Route path="/view-payment-voucher" element={<ViewPaymentVoucher />} />
                 <Route path="/view-payment-voucher/edit/:id" element={<EditPaymentVoucher />} />
+                <Route path="/special-offers" element={<SpecialOffers />} />
                 <Route path="/view-accounts" element={<ViewAccounts />} />
                 <Route path="/ledger/:id" element={<Ledger />} />
 
