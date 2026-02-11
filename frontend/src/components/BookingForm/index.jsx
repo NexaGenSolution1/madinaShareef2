@@ -26,6 +26,7 @@ export default function BookingForm() {
     const [loadingBooking, setLoadingBooking] = useState(isEditMode)
     const [existingBooking, setExistingBooking] = useState(null)
     const [groupData, setGroupData] = useState(location.state?.groupData || null)
+    const [totalSeats, setTotalSeats] = useState(null)
 
     // --- NEW STATE FOR MODAL ---
     const [showReviewModal, setShowReviewModal] = useState(false);
@@ -174,9 +175,28 @@ export default function BookingForm() {
                 return
             }
         }
-        setFormData(prev => ({ ...prev, [name]: value }))
-    }
+        // setFormData(prev => ({ ...prev, [name]: value }))
+        const updated = {
+            ...formData,
+            [name]: value
+        }
 
+        const totalSeatsRequired =
+            parseInt(updated.adults || 0) +
+            parseInt(updated.infants || 0)
+
+        const availableSeats = groupData?.available_no_of_pax || 0
+
+
+        if (totalSeatsRequired > availableSeats) {
+                toast.error("No seats available. You cannot exceed available seats.")
+            return
+        }
+
+        setFormData(updated)
+        setTotalSeats(totalSeatsRequired)
+    }
+    console.log(totalSeats, 'total seats')
     const handlePassengerBlur = (e) => {
         const { name, value } = e.target
         if (!['adults', 'children', 'infants'].includes(name)) return
@@ -223,7 +243,7 @@ export default function BookingForm() {
             return handleUpdate()
         }
 
-        const payingPassengers = (parseInt(formData.adults) || 0) + (parseInt(formData.children) || 0)
+        const payingPassengers = (parseInt(formData.adults) || 0) + (parseInt(formData.infants) || 0)
         if (payingPassengers > (groupData?.available_no_of_pax || 0)) {
             toast.error(`Adults and Children (${payingPassengers}) cannot exceed available seats (${groupData?.available_no_of_pax || 0})`)
             return
@@ -428,6 +448,10 @@ export default function BookingForm() {
                         {/* Pricing Info */}
                         <div className="flex flex-row just items-center gap-32 text-center">
                             <div className='flex flex-col'>
+                                <p className="text-xs text-gray-600 font-semibold mb-0.5">Available Seats</p>
+                                <p className="text-sm font-extrabold text-[#3d6a8f] bg-blue-50 px-2 py-1 rounded-2xl"> {groupData?.available_no_of_pax?.toLocaleString() || 0}</p>
+                            </div>
+                            <div className='flex flex-col'>
                                 <p className="text-xs text-gray-600 font-semibold mb-0.5">Adult Price</p>
                                 <p className="text-sm font-extrabold text-[#3d6a8f] bg-blue-50 px-2 py-1 rounded-2xl">PKR {groupData?.price?.toLocaleString() || 0}</p>
                             </div>
@@ -574,7 +598,7 @@ export default function BookingForm() {
                                                 value={passenger.title}
                                                 onChange={(e) => handlePassengerChange(index, 'title', e.target.value)}
                                                 required
-                                                className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                                className="w-full min-w-[90px]  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                                             >
                                                 {passenger.type === 'Adult' && (
                                                     <>
@@ -593,7 +617,7 @@ export default function BookingForm() {
                                                 value={passenger.surName}
                                                 onChange={(e) => handlePassengerChange(index, 'surName', e.target.value)}
                                                 required
-                                                className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                                className="w-full min-w-[120px] px-2 py-1  bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                                                 placeholder="Surname"
                                             />
                                         </td>
@@ -603,7 +627,7 @@ export default function BookingForm() {
                                                 value={passenger.givenName}
                                                 onChange={(e) => handlePassengerChange(index, 'givenName', e.target.value)}
                                                 required
-                                                className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                                className="w-full min-w-[120px]  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                                                 placeholder="Given Name"
                                             />
                                         </td>
@@ -613,11 +637,12 @@ export default function BookingForm() {
                                                 value={passenger.passport}
                                                 onChange={(e) => handlePassengerChange(index, 'passport', e.target.value)}
                                                 required
-                                                className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                                className="w-full min-w-[120px]  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                                                 placeholder="Passport No"
                                             />
                                         </td>
                                         <td className="px-3 py-2">
+                                              <div className="min-w-[130px]">
                                             <MaskedDatePicker
                                                 value={passenger.dateOfBirth}
                                                 onChange={(date) =>
@@ -626,8 +651,10 @@ export default function BookingForm() {
                                                 size="small"
                                                 maxDate={new Date()}
                                             />
+                                            </div>
                                         </td>
                                         <td className="px-3 py-2">
+                                              <div className="min-w-[130px]">
                                             <MaskedDatePicker
                                                 value={passenger.passportExpiry}
                                                 onChange={(date) =>
@@ -636,13 +663,14 @@ export default function BookingForm() {
                                                 size="small"
                                                 minDate={new Date()}
                                             />
+                                            </div>
                                         </td>
                                         <td className="px-3 py-2">
                                             <input
                                                 type="text"
                                                 value={passenger.nationality || ''}
                                                 onChange={(e) => handlePassengerChange(index, 'nationality', e.target.value)}
-                                                className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                                className="w-full min-w-[120px]  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                                                 placeholder="Nationality"
                                             />
                                         </td>

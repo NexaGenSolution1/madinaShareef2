@@ -94,7 +94,10 @@ const RegisterSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
-
+    showHideButton: {
+      type: Boolean,
+      default: true
+    },
     marginType: {
       type: String,
       enum: ["Percentage", "Amount"],
