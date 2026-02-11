@@ -453,7 +453,15 @@ export default function BookingForm() {
                             </div>
                             <div className='flex flex-col'>
                                 <p className="text-xs text-gray-600 font-semibold mb-0.5">Adult Price</p>
-                                <p className="text-sm font-extrabold text-[#3d6a8f] bg-blue-50 px-2 py-1 rounded-2xl">PKR {groupData?.price?.toLocaleString() || 0}</p>
+                                <p className="text-sm font-extrabold text-[#3d6a8f] bg-blue-50 px-2 py-1 rounded-2xl">
+                                    PKR 
+                                    {user.priceOnCall
+                                  ? "Price on Call"
+                                  : `PKR ${group.price?.toLocaleString()}`}
+                                    {/* 
+                                    {groupData?.price?.toLocaleString() || 0} */}
+
+                                </p>
                             </div>
                             <div className='flex flex-col'>
                                 <p className="text-xs text-gray-600 font-semibold mt-1 mb-0.5">Child</p>
