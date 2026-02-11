@@ -14,6 +14,7 @@ interface User {
   role: string;
   status: "Active" | "Inactive" | "Pending";
   priceOnCall?: boolean;
+  showHideButton?: boolean;
   plainPassword?: string;
   city?: string;
   accountId?: string;
@@ -48,6 +49,7 @@ const RegisteredAgencies = () => {
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [downloadingExcel, setDownloadingExcel] = useState(false);
   const [priceLoading, setPriceLoading] = useState<string | null>(null);
+    const [showLoading, setShowLoading] = useState<string | null>(null);
   const frontendUrl = import.meta.env.VITE_FRONTEND_URL || "https://brothersinttvl.com";
 
   useEffect(() => {
@@ -332,6 +334,35 @@ const RegisteredAgencies = () => {
       setPriceLoading(null);
     }
   };
+const toggleShowButton = async (userId: string, currentValue?: boolean) => {
+  const newValue = !currentValue;
+   console.log(newValue,'newvalue')
+  setUsers(prev =>
+    prev.map(u =>
+      u._id === userId
+        ? { ...u, showHideButton: newValue }
+        : u
+    )
+  );
+
+  try {
+    const token = localStorage.getItem("admin_token");
+
+    await axiosInstance.patch(
+      `/auth/users/${userId}/show-booking-now`,
+      { showHideButton: newValue },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+  } catch (error) {
+    console.error("Error updating Booking now:", error);
+    window.alert("Failed to update Booking now");
+  }
+};
+
+
 
 
   const activeCount = users.filter(u => u.role === "Agency" && u.status === "Active").length;
@@ -493,6 +524,7 @@ const RegisteredAgencies = () => {
                     <th className="px-4 py-4 text-left text-sm font-medium text-white">Status</th>
                     <th className="px-4 py-4 text-left text-sm font-medium text-white">Register Date</th>
                     <th className="px-4 py-4 text-left text-sm font-medium text-white">Price on Call</th>
+                    <th className="px-4 py-4 text-left text-sm font-medium text-white">Booking Now</th>
                     <th className="px-4 py-4 text-left text-sm font-medium text-white">Action</th>
                   </tr>
                 </thead>
@@ -553,7 +585,22 @@ const RegisteredAgencies = () => {
                               : "OFF"}
                         </button>
                       </td>
-
+                            <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">
+                        <button
+                          onClick={() => toggleShowButton(user._id, user.showHideButton)}
+                          disabled={showLoading === user._id}
+                          className={`px-3 py-1 rounded-full text-xs font-semibold transition ${user.showHideButton
+                            ? "bg-green-100 text-green-700 hover:bg-green-200"
+                            : "bg-red-100 text-red-700 hover:bg-red-200"
+                            } disabled:opacity-50`}
+                        >
+                          {showLoading === user._id
+                            ? "Updating..."
+                            : user.showHideButton
+                              ? "ON"
+                              : "OFF"}
+                        </button>
+                      </td>
                       <td className="px-4 py-4">
                         <div className="flex flex-col gap-2">
                           {user.status === "Active" ? (
