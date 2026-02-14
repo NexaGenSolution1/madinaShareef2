@@ -46,6 +46,6 @@ router.patch("/:id/cancel", cancelBooking);
 router.delete("/:id", deleteBooking);
 
 // Bulk toggle (admin only)
-router.post("/bulkTogglePriceOnCall", bulkTogglePriceOnCall);
+router.patch("/bulkTogglePriceOnCall", bulkTogglePriceOnCall);
 
 export default router;

@@ -900,17 +900,8 @@ export const getBookingStatistics = async (req, res) => {
 };
 
 export const bulkTogglePriceOnCall = async (req, res) => {
-  const session = await mongoose.startSession();
-
   try {
-    const { userIds, value } = req.body;
-
-    if (!Array.isArray(userIds) || userIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "User IDs are required",
-      });
-    }
+    const { value } = req.body;
 
     if (typeof value !== "boolean") {
       return res.status(400).json({
@@ -919,35 +910,20 @@ export const bulkTogglePriceOnCall = async (req, res) => {
       });
     }
 
-    session.startTransaction();
-
     const result = await Register.updateMany(
       {
-        _id: { $in: userIds },
-        role: { $in: ["Agency", "SubAgent"] },
+        role: { $in: ["Agency"] },
       },
       {
         $set: { priceOnCall: value },
       },
-      { session },
     );
-
-    // Optional safety: ensure all were updated
-    if (result.matchedCount !== userIds.length) {
-      throw new Error("Some users not found");
-    }
-
-    await session.commitTransaction();
-    session.endSession();
 
     return res.json({
       success: true,
-      message: `Price On Call updated for ${result.modifiedCount} users`,
+      message: `Updated ${result.modifiedCount} agents`,
     });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-
     return res.status(500).json({
       success: false,
       message: error.message || "Failed to Bulk toggle price on call",

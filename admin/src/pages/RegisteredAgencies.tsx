@@ -397,6 +397,39 @@ const RegisteredAgencies = () => {
     }
   };
 
+  const handleBulkPriceOnCallToggle = async () => {
+    try {
+      setBulkLoading(true);
+      const token = localStorage.getItem("admin_token");
+
+      const newValue = !allPriceOnCallOn;
+
+      const response = await axiosInstance.patch(
+        "/bookings/bulkTogglePriceOnCall",
+        { value: newValue },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log(response)
+      // Update UI instantly
+      setUsers(prev =>
+        prev.map(u =>
+          u.role === "Agency"
+            ? { ...u, priceOnCall: newValue }
+            : u
+        )
+      );
+
+      window.alert(`Price on Call turned ${newValue ? "ON" : "OFF"} for all agencies`);
+    } catch (error) {
+      console.error("Bulk Price on Call update failed:", error);
+      window.alert("Failed to update Bulk Price on Call");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
   // Check all agencies booking status
   const agencyUsers = users.filter(u => u.role === "Agency");
 
@@ -408,6 +441,10 @@ const RegisteredAgencies = () => {
     agencyUsers.length > 0 &&
     agencyUsers.every(u => u.showHideButton === false);
 
+  // Check if all agencies have Price on Call ON
+  const allPriceOnCallOn =
+    agencyUsers.length > 0 &&
+    agencyUsers.every(u => u.priceOnCall === true);
 
   const activeCount = users.filter(u => u.role === "Agency" && u.status === "Active").length;
   const pendingCount = users.filter(u => u.role === "Agency" && u.status === "Pending").length;
@@ -515,6 +552,18 @@ const RegisteredAgencies = () => {
               </select>
               <span className="text-sm text-gray-600 dark:text-gray-400">entries</span>
             </div>
+
+            <button
+              onClick={handleBulkPriceOnCallToggle}
+              disabled={bulkLoading || agencyUsers.length === 0}
+              className={`rounded px-4 py-2 text-sm text-white transition-all
+    ${allPriceOnCallOn
+                  ? "bg-orange-600 hover:bg-orange-700"
+                  : "bg-purple-600 hover:bg-purple-700"} 
+    disabled:opacity-50`}
+            >
+              {bulkLoading ? "Updating..." : `Price On Call: ${allPriceOnCallOn ? "ALL OFF" : "ALL ON"}`}
+            </button>
 
             <div className="flex gap-2 items-center">
               {/* <span>Book Now </span> */}
