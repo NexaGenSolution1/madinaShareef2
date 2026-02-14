@@ -1,84 +1,137 @@
 export const printGDSBooking = (booking) => {
-  // --- 1. Helper Functions ---
-  const formatFullDate = (dateStr) => {
-    if (!dateStr) return "";
-    return new Date(dateStr).toLocaleDateString("en-GB", {
-      weekday: "short",
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
+    // --- 1. Helper Functions ---
+    const formatFullDate = (dateStr) => {
+        if (!dateStr) return "";
+        return new Date(dateStr).toLocaleDateString("en-GB", {
+            weekday: "short",
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+        });
+    };
 
-  // --- 2. Data Preparation (Preserving your logic + adding PDF specific helpers) ---
-  const flight = booking.flights?.[0] || {};
+    // --- 2. Data Preparation (Preserving your logic + adding PDF specific helpers) ---
+    const flight = booking.flights?.[0] || {};
 
-  // Airline & Logos
-  const airlineName = (
-    booking.airline?.name ||
-    flight.airlineName ||
-    "AIRLINE"
-  ).toUpperCase();
-  // Note: Ensure this path is accessible from the browser window, or use a Base64 string if possible
-  const agencyLogo = "/src/assets/images/logo.webp";
-  const airlineLogo = booking.airline?.logoUrl || flight.airlineLogo || "";
+    // Airline & Logos
+    const airlineName = (
+        booking.airline?.name ||
+        flight.airlineName ||
+        "AIRLINE"
+    ).toUpperCase();
+    // Note: Ensure this path is accessible from the browser window, or use a Base64 string if possible
+    const agencyLogo = "/src/assets/images/logo.webp";
+    const airlineLogo = booking.airline?.logoUrl || flight.airlineLogo || "";
 
-  // Booking Refs
-  const pnr = booking.pnr || booking.bookingReference || "N/A";
-  const bookingRef = booking.bookingReference || pnr;
+    // Booking Refs
+    const pnr = booking.pnr || booking.bookingReference || "N/A";
+    const bookingRef = booking.bookingReference || pnr;
 
-  // Flight Details
-  const flightNum = booking.flightNumber || flight.flightNo || "XX000";
-  // Location Logic
-  const origin = (
-    booking.origin ||
-    booking.originCity ||
-    flight.origin ||
-    ""
-  ).toUpperCase();
-  const originCode =
-    booking.originCode || flight.originCode || booking.originIata || "ORG";
-  const dest = (
-    booking.destination ||
-    booking.destinationCity ||
-    flight.destination ||
-    ""
-  ).toUpperCase();
-  const destCode =
-    booking.destinationCode ||
-    flight.destinationCode ||
-    booking.destinationIata ||
-    "DES";
+    // Flight Details
+    const flightNum = booking.flightNumber || flight.flightNo || "XX000";
+    // Location Logic
+    const origin = (
+        booking.origin ||
+        booking.originCity ||
+        flight.origin ||
+        ""
+    ).toUpperCase();
 
-  // Time Logic
-  const depTime = flight.depTime || booking.depTime || "00:00";
-  const arrTime = flight.arrTime || booking.arrTime || "00:00";
-  const depDate = formatFullDate(booking.departureDate);
-  const arrDate = formatFullDate(booking.arrivalDate || booking.departureDate);
+    // Try multiple sources for IATA / airport codes (flight, booking, sector fields)
+    let originCode = (
+        booking.originCode ||
+        flight.originCode ||
+        booking.originIata ||
+        flight.sectorFrom ||
+        ""
+    ).toUpperCase();
 
-  // Baggage & Sector
-  const baggage = booking.baggageWeight || flight.baggage || "20KG";
-  const sector = `${origin} (${originCode}) - ${dest} (${destCode})`;
+    const dest = (
+        booking.destination ||
+        booking.destinationCity ||
+        flight.destination ||
+        ""
+    ).toUpperCase();
 
-  // Plane Icon (Base64 from your PDF code)
-  const planeIconBase64 =
-    "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzAwMCIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBzdHlsZT0idHJhbnNmb3JtOiByb3RhdGUoOTBkZWcpOyI+PHBhdGggZD0iTTIxIDE2di0ybC04LTVWMy41YzAtLjgzLS42Ny0xLjUtMS41LTEuNVMxMCAyLjY3IDEwIDMuNVY5TDIgMTR2Mmw4LTIuNVYxOWwtMiAxLjVWMjJsMy41LTEgMy41IDF2LTEuNUwxMyAxOXYtNS41bDggMi41eiIvPjwvc3ZnPg==";
+    let destCode = (
+        booking.destinationCode ||
+        flight.destinationCode ||
+        booking.destinationIata ||
+        flight.sectorTo ||
+        ""
+    ).toUpperCase();
 
-  // Passengers (Logic adapted to handle array like the PDF, defaulting to your single passenger extract if needed)
-  const passengers =
-    booking.passengers && booking.passengers.length > 0
-      ? booking.passengers
-      : [
-          {
-            title: booking.passengers?.[0]?.title || "",
-            givenName: booking.passengers?.[0]?.givenName || "PASSENGER",
-            surName: booking.passengers?.[0]?.surName || "NAME",
-            passport: "N/A",
-          },
-        ];
+    // If still missing, try parsing from booking.sector (e.g. "ISB-AUH")
+    if ((!originCode || !originCode.trim() || originCode === "") && booking.sector) {
+        const sectorMatch = booking.sector.match(/([A-Z]{3})-([A-Z]{3})/);
+        if (sectorMatch) originCode = sectorMatch[1];
+    }
+    if ((!destCode || !destCode.trim() || destCode === "") && booking.sector) {
+        const sectorMatch = booking.sector.match(/([A-Z]{3})-([A-Z]{3})/);
+        if (sectorMatch) destCode = sectorMatch[2];
+    }
 
-  // --- 3. Construct the HTML String (PDF Design -> Black & White) ---
-  const ticketHTML = `
+    // Final fallback to show 'N/A' instead of a static hard-coded IATA
+    originCode = originCode || "N/A";
+    destCode = destCode || "N/A";
+
+    // Time Logic
+    const depTime = flight.depTime || booking.depTime || "00:00";
+    const arrTime = flight.arrTime || booking.arrTime || "00:00";
+    const depDate = formatFullDate(booking.departureDate);
+    const arrDate = formatFullDate(booking.arrivalDate || booking.departureDate);
+
+    // Baggage & Sector
+    const baggage = booking.baggageWeight || flight.baggage || "20KG";
+    const sector = `${origin} (${originCode}) - ${dest} (${destCode})`;
+
+    // Plane Icon (Base64 from your PDF code)
+    const planeIconBase64 =
+        "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzAwMCIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBzdHlsZT0idHJhbnNmb3JtOiByb3RhdGUoOTBkZWcpOyI+PHBhdGggZD0iTTIxIDE2di0ybC04LTVWMy41YzAtLjgzLS42Ny0xLjUtMS41LTEuNVMxMCAyLjY3IDEwIDMuNVY5TDIgMTR2Mmw4LTIuNVYxOWwtMiAxLjVWMjJsMy41LTEgMy41IDF2LTEuNUwxMyAxOXYtNS41bDggMi41eiIvPjwvc3ZnPg==";
+
+    // Passengers (Logic adapted to handle array like the PDF, defaulting to your single passenger extract if needed)
+    const passengers =
+        booking.passengers && booking.passengers.length > 0
+            ? booking.passengers
+            : [
+                {
+                    title: booking.passengers?.[0]?.title || "",
+                    givenName: booking.passengers?.[0]?.givenName || "PASSENGER",
+                    surName: booking.passengers?.[0]?.surName || "NAME",
+                    passport: "N/A",
+                },
+            ];
+
+    // Frontend user fallback (safe parse)
+    const storedFrontendUser = (() => {
+        try {
+            return JSON.parse(localStorage.getItem("frontend_user") || "{}");
+        } catch (e) {
+            return {};
+        }
+    })();
+
+    // Dynamic fields (never static)
+    const issuedBy =
+        booking.issuedBy ||
+        storedFrontendUser.companyName ||
+        storedFrontendUser.name ||
+        "N/A";
+
+    const agencyName =
+        (booking.userId && booking.userId.companyName) ||
+        booking.agencyName ||
+        storedFrontendUser.companyName ||
+        "N/A";
+
+    const phoneNumber =
+        (booking.userId && booking.userId.phone) ||
+        booking.phone ||
+        storedFrontendUser.phone ||
+        "N/A";
+
+    // --- 3. Construct the HTML String (PDF Design -> Black & White) ---
+    const ticketHTML = `
         <!DOCTYPE html>
         <html>
         <head>
@@ -212,10 +265,16 @@ export const printGDSBooking = (booking) => {
                         <div class="info-col labels">
                             <div class="info-label">Booking Reference Number (PNR)</div>
                             <div class="info-label">Booking ID</div>
+                            <div class="info-label">Issued By</div>
+                            <div class="info-label">Agency Name</div>
+                            <div class="info-label">Phone Number</div>
                         </div>
-                        <div class="info-col values right">
+                        <div class="info-col values left">
                             <div class="info-val small">${pnr}</div>
                             <div class="info-val large">${bookingRef}</div>
+                            <div class="info-val small">Brother's International</div>
+                            <div class="info-val small">${agencyName}</div>
+                            <div class="info-val small">+92 347 8885551</div>
                         </div>
                     </div>
                 </div>
@@ -278,8 +337,8 @@ export const printGDSBooking = (booking) => {
                     </thead>
                     <tbody>
                         ${passengers
-                          .map(
-                            (p, idx) => `
+            .map(
+                (p, idx) => `
                             <tr>
                                 <td class="text-center">${idx + 1}</td>
                                 <td class="text-upper text-bold">
@@ -289,21 +348,24 @@ export const printGDSBooking = (booking) => {
                                 <td>YES</td>
                             </tr>
                         `,
-                          )
-                          .join("")}
+            )
+            .join("")}
                     </tbody>
                 </table>
 
                 <!-- 6. Terms & Footer -->
-                <div class="terms">
-                    <div class="text-bold mb-10" style="font-size: 12px;">TERMS & CONDITIONS</div>
-                    <div>1-PLEASE CROSS CHECK NAME AND FLIGHT DETAILS.</div>
-                    <div>2-PLEASE REPORT AIRLINE CHECK-IN COUNTER 4 HOURS BEFORE FLIGHT DEPARTURE.</div>
-                    <div>3-PLEASE RECONFIRM THE TICKET BEFORE 48 HOURS OF FLIGHT DEPARTURE.</div>
-                    <div>4-ALL VISA AND TRAVEL DOCUMENT ARE TRAVELER OWN RESPONSIBILITY.</div>
-                    <div>5-TICKETS ARE NON-REFUNDABLE AND NON-CHANGEABLE ANY TIME.</div>
-                </div>
+                <div style="line-height: 2.5" class="terms">
+  <div class="text-bold mb-10" style="font-size: 12px;">TERMS & CONDITIONS</div>
 
+  <div><span style="margin-right:8px;">1-</span>PLEASE CROSS CHECK NAME AND FLIGHT DETAILS.</div>
+  <div><span style="margin-right:8px;">2-</span>PLEASE REPORT AIRLINE CHECK-IN COUNTER 4 HOURS BEFORE FLIGHT DEPARTURE.</div>
+  <div><span style="margin-right:8px;">3-</span>PLEASE RECONFIRM THE TICKET BEFORE 48 HOURS OF FLIGHT DEPARTURE.</div>
+  <div><span style="margin-right:8px;">4-</span>ALL VISA AND TRAVEL DOCUMENT ARE TRAVELER OWN RESPONSIBILITY.</div>
+  <div><span style="margin-right:8px;">5-</span>TICKETS ARE NON-REFUNDABLE AND NON-CHANGEABLE ANY TIME.</div>
+</div>
+
+
+ 
                 <div class="footer-note">
                     GENERATED BY SYSTEM | ${new Date().toLocaleString()}
                 </div>
@@ -313,33 +375,41 @@ export const printGDSBooking = (booking) => {
         </html>
     `;
 
-  // --- 4. The Iframe Trick ---
-  const iframe = document.createElement("iframe");
-  iframe.style.position = "fixed";
-  iframe.style.right = "0";
-  iframe.style.bottom = "0";
-  iframe.style.width = "0";
-  iframe.style.height = "0";
-  iframe.style.border = "0";
+    // --- 4. The Iframe Trick ---
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
 
-  document.body.appendChild(iframe);
+    document.body.appendChild(iframe);
 
-  const doc = iframe.contentWindow.document;
-  doc.open();
-  doc.write(ticketHTML);
-  doc.close();
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(ticketHTML);
+    doc.close();
 
-  iframe.onload = () => {
-    try {
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
-    } catch (e) {
-      console.error("Print failed", e);
-    } finally {
-      // Remove iframe after delay
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-      }, 1000);
+    iframe.onload = () => {
+        try {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+        } catch (e) {
+            console.error("Print failed", e);
+        } finally {
+            // Remove iframe after delay
+            setTimeout(() => {
+                document.body.removeChild(iframe);
+            }, 1000);
+        }
+    };
+};
+
+
+const getAgencyName = (booking) => {
+    if (typeof booking.userId === "object" && booking.userId?.companyName) {
+        return booking.userId.companyName;
     }
-  };
+    return "SUPRA TRAVEL & TOURS";
 };

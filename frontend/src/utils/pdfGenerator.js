@@ -132,12 +132,12 @@ export const generateBookingPDF = async (booking) => {
             <div style="font-size: 13px; opacity: 0.9;">Phone Number</div>
             </div>
             
-            <div style="flex: 1; text-align: right; padding-right: 20px;">
-            <div style="font-size: 16px; font-weight: bold; margin-bottom: 4px; letter-spacing: 1px;">${booking.pnr || "N/A"}</div>
+            <div style="flex: 1; text-align: left; padding-right: 20px;">
+            <div style="font-size: 16px; font-weight: bold; margin-bottom: 6px; letter-spacing: 1px;">${booking.pnr || "N/A"}</div>
             <div style="font-size: 16px; font-weight: bold; letter-spacing: 1px;">${booking.bookingReference}</div>
-            <div style="font-size: 16px; font-weight: bold; margin-bottom: 4px; letter-spacing: 1px;">Brother's International</div>
-            <div style="font-size: 16px; font-weight: bold; margin-bottom: 4px; letter-spacing: 1px;">${getAgencyName(booking)}</div>
-            <div style="font-size: 16px; font-weight: bold; margin-bottom: 4px;">${JSON.parse(localStorage.getItem("frontend_user")).phone || "+92 347 8885551"}</div>
+            <div style="font-size: 16px; font-weight: bold; margin-bottom: 6px; letter-spacing: 1px;">Brother's International</div>
+            <div style="font-size: 16px; font-weight: bold; margin-bottom: 6px; letter-spacing: 1px;">${getAgencyName(booking)}</div>
+            <div style="font-size: 16px; font-weight: bold; margin-bottom: 6px;">${JSON.parse(localStorage.getItem("frontend_user")).phone || "+92 347 8885551"}</div>
             </div>
         </div>
         </div>
@@ -219,11 +219,10 @@ export const generateBookingPDF = async (booking) => {
                 </tr>
             </thead>
             <tbody>
-                ${
-                  booking.passengers && booking.passengers.length > 0
-                    ? booking.passengers
-                        .map(
-                          (p, idx) => `
+                ${booking.passengers && booking.passengers.length > 0
+      ? booking.passengers
+        .map(
+          (p, idx) => `
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 10px; font-size: 13px;">${idx + 1}</td>
                         <td style="padding: 10px; font-size: 13px; text-transform: uppercase;">
@@ -233,12 +232,12 @@ export const generateBookingPDF = async (booking) => {
                         <td style="padding: 10px; font-size: 13px;">Yes</td>
                     </tr>
                 `,
-                        )
-                        .join("")
-                    : `
+        )
+        .join("")
+      : `
                     <tr><td colspan="4" style="padding: 10px; text-align: center;">No passengers found</td></tr>
                 `
-                }
+    }
             </tbody>
         </table>
 
@@ -247,13 +246,13 @@ export const generateBookingPDF = async (booking) => {
             <div style="color: ${colors.bluePrimary}; font-weight: bold; font-size: 14px; margin-bottom: 8px; text-align: center;">
                 Terms & Conditions
             </div>
-            <div style="font-size: 11px; font-weight: bold; line-height: 1.6; color: #000;">
-                    <div>1-PLEASE CROSS CHECK NAME AND FLIGHT DETAILS.</div>
-                    <div>2-PLEASE REPORT AIRLINE CHECK-IN COUNTER 4 HOURS BEFORE FLIGHT DEPARTURE.</div>
-                    <div>3-PLEASE RECONFIRM THE TICKET BEFORE 48 HOURS OF FLIGHT DEPARTURE.</div>
-                    <div>4-ALL VISA AND TRAVEL DOCUMENT ARE TRAVELER OWN RESPONSIBILITY.</div>
-                    <div>5-TICKETS ARE NON-REFUNDABLE AND NON-CHANGEABLE ANY TIME.</div>
-            </div>
+           <div style="line-height: 2.5" class="terms">
+  <div><span style="margin-right:8px;">1-</span>PLEASE CROSS CHECK NAME AND FLIGHT DETAILS.</div>
+  <div><span style="margin-right:8px;">2-</span>PLEASE REPORT AIRLINE CHECK-IN COUNTER 4 HOURS BEFORE FLIGHT DEPARTURE.</div>
+  <div><span style="margin-right:8px;">3-</span>PLEASE RECONFIRM THE TICKET BEFORE 48 HOURS OF FLIGHT DEPARTURE.</div>
+  <div><span style="margin-right:8px;">4-</span>ALL VISA AND TRAVEL DOCUMENT ARE TRAVELER OWN RESPONSIBILITY.</div>
+  <div><span style="margin-right:8px;">5-</span>TICKETS ARE NON-REFUNDABLE AND NON-CHANGEABLE ANY TIME.</div>
+</div>
         </div>
 
         <div style="margin-top: 25px; border-top: 1px solid #ccc; padding-top: 10px; text-align: center; color: #555; font-size: 10px;">
@@ -296,35 +295,21 @@ export const generateBookingPDF = async (booking) => {
 
     // ============================================
     // UPDATED FILENAME LOGIC STARTS HERE
+    // - Filename format: <PNR>_<ORIG>-<DEST>.pdf (filesystem-safe)
+    // - Delivery: download (user requested)
     // ============================================
 
-    // 1. Get the first passenger's name
-    let passengerName = "Passenger";
-    if (booking.passengers && booking.passengers.length > 0) {
-      const p = booking.passengers[0];
-      // Combine Title, GivenName, SurName and trim extra spaces
-      passengerName =
-        `${p.title || ""} ${p.givenName || ""} ${p.surName || ""}`.trim();
-    }
+    // Ensure we have a safe reference and sector codes
+    const reference = (booking.pnr || booking.bookingReference || "REF").toString().trim();
+    const oCode = (originCode || "UNK").toString().toUpperCase();
+    const dCode = (destinationCode || "UNK").toString().toUpperCase();
+    const sectorCodes = `${oCode}-${dCode}`;
 
-    // 2. Get the PNR (Reference)
-    // Checks PNR first, falls back to bookingReference, then 'REF'
-    const reference = booking.pnr || booking.bookingReference || "REF";
+    // Final filename: <PNR>_<ORIG>-<DEST>.pdf (sanitized)
+    const finalFileName = `${sanitizeFilename(reference)}_${sanitizeFilename(sectorCodes)}.pdf`;
 
-    // 3. Create the filename string
-    // Format: "Ticket Of [PassengerName] | [PNR].pdf"
-    const finalFileName = `Ticket_Of_${passengerName}_${reference}.pdf`;
-
-    // 4. Save the PDF
-    // pdf.save(finalFileName);
-
-    // Open PDF in new tab instead of downloading
-    const pdfBlob = pdf.output("blob");
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    window.open(pdfUrl, "_blank");
-
-    // Optional: Clean up the URL after a delay to free memory
-    setTimeout(() => URL.revokeObjectURL(pdfUrl), 100);
+    // Trigger file download with the chosen filename
+    pdf.save(finalFileName);
 
     // ============================================
     // UPDATED FILENAME LOGIC ENDS HERE
@@ -350,4 +335,10 @@ const getAgencyName = (booking) => {
     return booking.userId.companyName;
   }
   return "SUPRA TRAVEL & TOURS";
+};
+
+// Make filenames filesystem-safe
+const sanitizeFilename = (str) => {
+  if (!str) return "file";
+  return String(str).replace(/[^a-zA-Z0-9-_\.]/g, "_");
 };
