@@ -85,7 +85,12 @@ export const registerUser = async (req, res) => {
 =========================== */
 export const loginUser = async (req, res) => {
   try {
-    const { email, password, agencyCode } = req.body;
+    const {
+       email, 
+      password, 
+      // agencyCode 
+    } 
+      = req.body;
 
     const user = await Register.findOne({ email }).select("+password");
 
@@ -96,18 +101,18 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    if (user.role === "Agency") {
-      const storedCode = user.agencyCode?.toLowerCase().trim();
-      const incomingCode = agencyCode?.toLowerCase().trim();
-      if (!incomingCode || !storedCode || storedCode !== incomingCode) {
-        return res.status(401).json({
-          success: false,
-          message: "Invalid agent code",
-          status: user.status,
-          role: user.role
-        });
-      }
-    }
+    // if (user.role === "Agency") {
+    //   const storedCode = user.agencyCode?.toLowerCase().trim();
+    //   const incomingCode = agencyCode?.toLowerCase().trim();
+    //   if (!incomingCode || !storedCode || storedCode !== incomingCode) {
+    //     return res.status(401).json({
+    //       success: false,
+    //       message: "Invalid agent code",
+    //       status: user.status,
+    //       role: user.role
+    //     });
+    //   }
+    // }
 
     // Check if user is an Agency and verify their status
     if (user.role === "Agency" && user.status !== "Active") {

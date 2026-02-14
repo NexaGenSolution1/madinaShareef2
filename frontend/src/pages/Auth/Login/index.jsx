@@ -6,7 +6,7 @@ import Header from "../../../components/Header";
 
 const Login = ({ onLogin }) => {
     const [formData, setFormData] = useState({
-        agentCode: "",
+        // agentCode: "",
         email: "",
         password: "",
     });
@@ -29,7 +29,7 @@ const Login = ({ onLogin }) => {
 
         try {
             const res = await axiosInstance.post("/auth/login", {
-                agencyCode: payload.agentCode.trim(),
+                // agencyCode: payload.agentCode.trim(),
                 email: payload.email.trim(),
                 password: payload.password,
             });
@@ -78,7 +78,7 @@ const Login = ({ onLogin }) => {
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const prefills = {
-            agentCode: params.get("agentCode") || params.get("agencyCode") || "",
+            // agentCode: params.get("agentCode") || params.get("agencyCode") || "",
             email: params.get("email") || "",
             password: params.get("password") || "",
         };
@@ -93,7 +93,7 @@ const Login = ({ onLogin }) => {
 
         if (
             shouldAuto &&
-            prefills.agentCode &&
+            // prefills.agentCode &&
             prefills.email &&
             prefills.password &&
             !autoLoginTriggered
@@ -159,7 +159,7 @@ const Login = ({ onLogin }) => {
                             autoComplete="off"
                             className="flex flex-col gap-4"
                         >
-                            <input
+                            {/* <input
                                 autoComplete="off"
                                 type="text"
                                 name="agentCode"
@@ -168,7 +168,7 @@ const Login = ({ onLogin }) => {
                                 onChange={handleChange}
                                 required
                                 className="w-full px-4 py-3 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2A166D] focus:border-transparent text-gray-900 placeholder:text-gray-500"
-                            />
+                            /> */}
 
                             <input
                                 autoComplete="email"
