@@ -38,6 +38,8 @@ import Ledger from "./pages/Ledger";
 import AllBookings from "./pages/AllBookings";
 import BookingDetail from "./pages/BookingDetail";
 import SpecialOffers from "./pages/SpecialOffers/SpecialOffers";
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 export default function App() {
   return (
@@ -106,6 +108,19 @@ export default function App() {
           </Routes>
         </Router>
       </AuthProvider>
+       <ToastContainer
+                      position="top-right"
+                      autoClose={3000}
+                      hideProgressBar={false}
+                      newestOnTop={false}
+                      closeOnClick
+                      rtl={false}
+                      pauseOnFocusLoss
+                      draggable
+                      pauseOnHover
+                      theme="light"
+                        style={{ zIndex: 99999 }}
+                  />
     </>
   );
 }

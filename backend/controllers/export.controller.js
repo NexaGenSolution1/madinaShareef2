@@ -200,7 +200,7 @@ export const exportUsersToExcel = async (req, res) => {
 
     // Fetch users
     const users = await Register.find(query)
-      .select('agencyCode name phone companyName city marginType flightMarginPercent flightMarginAmount margin createdAt')
+      .select('agencyCode name email phone companyName city marginType flightMarginPercent flightMarginAmount margin createdAt')
       .sort({ createdAt: -1 });
 
     // Create workbook and worksheet
@@ -212,6 +212,7 @@ export const exportUsersToExcel = async (req, res) => {
       { header: 'Sr #', key: 'srNo', width: 10 },
       { header: 'Agent Code', key: 'agentCode', width: 15 },
       { header: 'User Name', key: 'userName', width: 25 },
+      { header: 'User Email', key: 'email', width: 25 },
       { header: 'Phone #', key: 'phone', width: 15 },
       { header: 'Agency', key: 'agency', width: 30 },
       { header: 'City', key: 'city', width: 15 },
@@ -233,6 +234,7 @@ export const exportUsersToExcel = async (req, res) => {
     users.forEach((user, index) => {
       // Format margin
       let marginText = '0';
+      console.log(user,'user margin')
       if (user.marginType === 'Amount') {
         marginText = `${user.flightMarginAmount || 0} PKR`;
       } else if (user.marginType === 'Percentage') {
@@ -252,6 +254,7 @@ export const exportUsersToExcel = async (req, res) => {
         srNo: index + 1,
         agentCode: user.agencyCode || 'N/A',
         userName: user.name || 'N/A',
+        email: user.email || 'N/A',
         phone: user.phone || 'N/A',
         agency: user.companyName || 'N/A',
         city: user.city || 'N/A',

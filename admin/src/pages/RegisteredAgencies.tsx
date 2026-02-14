@@ -3,6 +3,8 @@ import { useNavigate } from "react-router";
 import axiosInstance from "../Api/axios";
 import PageMeta from "../components/common/PageMeta";
 import PageBreadCrumb from "../components/common/PageBreadCrumb";
+import { toast } from "react-toastify";
+
 
 interface User {
   _id: string;
@@ -259,7 +261,7 @@ const RegisteredAgencies = () => {
         },
         responseType: 'blob',
       });
-
+console.log(response.data,'excel response')
       // Create download link
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
@@ -367,35 +369,41 @@ const RegisteredAgencies = () => {
     }
   };
 
-  const handleBulkBookingNow = async (value: boolean) => {
+  const handleBulkBookingNowToggle = async () => {
     try {
       setBulkLoading(true);
       const token = localStorage.getItem("admin_token");
 
+      const newValue = !allBookingOn;
+
       await axiosInstance.patch(
         "/auth/users/bulk-show-booking-now",
-        { showHideButton: value },
+        { showHideButton: newValue },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      // Update UI instantly
       setUsers(prev =>
         prev.map(u =>
           u.role === "Agency"
-            ? { ...u, showHideButton: value }
+            ? { ...u, showHideButton: newValue }
             : u
         )
       );
 
+      toast.success(
+        `Booking Now turned ${newValue ? "ON" : "OFF"} for all agencies`
+      );
+
     } catch (error) {
-      console.error("Bulk update failed:", error);
-      window.alert("Failed to update all Booking Now");
+      console.error("Bulk Booking update failed:", error);
+      toast.error("Failed to update Booking Now");
     } finally {
       setBulkLoading(false);
     }
   };
+
 
   const handleBulkPriceOnCallToggle = async () => {
     try {
@@ -420,11 +428,14 @@ const RegisteredAgencies = () => {
             : u
         )
       );
+      toast.success(
+        `Price On Call turned ${newValue ? "ON" : "OFF"} for all agencies`
+      );
 
-      window.alert(`Price on Call turned ${newValue ? "ON" : "OFF"} for all agencies`);
     } catch (error) {
       console.error("Bulk Price on Call update failed:", error);
-      window.alert("Failed to update Bulk Price on Call");
+      toast.error("Failed to update Bulk Price On Call");
+
     } finally {
       setBulkLoading(false);
     }
@@ -553,43 +564,37 @@ const RegisteredAgencies = () => {
               <span className="text-sm text-gray-600 dark:text-gray-400">entries</span>
             </div>
 
-            <button
-              onClick={handleBulkPriceOnCallToggle}
-              disabled={bulkLoading || agencyUsers.length === 0}
-              className={`rounded px-4 py-2 text-sm text-white transition-all
-    ${allPriceOnCallOn
-                  ? "bg-orange-600 hover:bg-orange-700"
-                  : "bg-purple-600 hover:bg-purple-700"} 
-    disabled:opacity-50`}
-            >
-              {bulkLoading ? "Updating..." : `Price On Call: ${allPriceOnCallOn ? "ALL OFF" : "ALL ON"}`}
-            </button>
 
             <div className="flex gap-2 items-center">
               {/* <span>Book Now </span> */}
+              {/* Price On Call Toggle */}
               <button
-                onClick={() => handleBulkBookingNow(true)}
-                disabled={bulkLoading || allBookingOn}
-                className={`rounded px-4 py-2 text-sm text-white 
-    ${allBookingOn
-                    ? "bg-blue-600 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700"} 
-    disabled:opacity-50`}
+                onClick={handleBulkPriceOnCallToggle}
+                disabled={bulkLoading || agencyUsers.length === 0}
+                className={`rounded px-4 py-2 text-sm text-white transition-all
+      ${allPriceOnCallOn
+                    ? "bg-orange-600 hover:bg-orange-700"
+                    : "bg-purple-600 hover:bg-purple-700"} 
+      disabled:opacity-50`}
               >
-                {bulkLoading ? "Updating..." : "Book Now ALL ON"}
+                {bulkLoading
+                  ? "Updating..."
+                  : `Price On Call: ${allPriceOnCallOn ? "ALL OFF" : "ALL ON"}`}
               </button>
 
-
+              {/* Booking Now Toggle (Single Button) */}
               <button
-                onClick={() => handleBulkBookingNow(false)}
-                disabled={bulkLoading || allBookingOff}
-                className={`rounded px-4 py-2 text-sm text-white 
-    ${allBookingOff
-                    ? "bg-gray-600 cursor-not-allowed"
+                onClick={handleBulkBookingNowToggle}
+                disabled={bulkLoading || agencyUsers.length === 0}
+                className={`rounded px-4 py-2 text-sm text-white transition-all
+      ${allBookingOn
+                    ? "bg-blue-600 hover:bg-blue-700"
                     : "bg-gray-600 hover:bg-gray-700"} 
-    disabled:opacity-50`}
+      disabled:opacity-50`}
               >
-                {bulkLoading ? "Updating..." : "Book Now ALL OFF"}
+                {bulkLoading
+                  ? "Updating..."
+                  : `Booking Now: ${allBookingOn ? "ALL OFF" : "ALL ON"}`}
               </button>
 
 
@@ -600,7 +605,7 @@ const RegisteredAgencies = () => {
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
+                </svg>DLFFJ
                 {downloadingPDF ? "Downloading..." : "PDF"}
               </button>
               <button
