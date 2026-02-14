@@ -155,12 +155,19 @@ export default function AllGroups({ headerType, header, searchParams }) {
         });
       }
 
-      // Extract unique airlines and sectors for filters
+      // 1. Filter out groups with no available seats
+      allGroups = allGroups.filter((group) => {
+        const availableSeats = parseInt(group.available_no_of_pax);
+        return availableSeats > 0;
+      });
+
+      // 2. Extract unique airlines and sectors for filters
       const uniqueAirlines = [
         ...new Set(
           allGroups.map((g) => g.airline?.airline_name).filter(Boolean),
         ),
       ];
+
       const uniqueSectors = [
         ...new Set(allGroups.map((g) => g.sector).filter(Boolean)),
       ];
