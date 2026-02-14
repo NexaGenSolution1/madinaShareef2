@@ -23,8 +23,12 @@ export default function ManageSectors() {
             setFetchLoading(true);
             const response = await axiosInstance.get("/sector");
             if (response.data.success) {
-                setSectors(response.data.data);
+                const sortedSectors = response.data.data.sort((a: Sector, b: Sector) =>
+                    (a.order ?? 0) - (b.order ?? 0)
+                );
+                setSectors(sortedSectors);
             }
+
         } catch (error: any) {
             console.error("Error fetching sectors:", error);
         } finally {
@@ -45,7 +49,10 @@ export default function ManageSectors() {
             });
 
             if (response.data.success) {
-                setSectors(response.data.data);
+                const sortedSectors = response.data.data.sort((a: Sector, b: Sector) =>
+                    (a.order ?? 0) - (b.order ?? 0)
+                );
+                setSectors(sortedSectors);
             }
         } catch (error: any) {
             console.error("Error updating sector order:", error);
