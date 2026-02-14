@@ -15,6 +15,7 @@ import {
    resetPassword,
    changeUserPassword,
    sendUserCredentials,
+   updateBookNowButtonBulk
  
 } from "../controllers/auth.controller.js";
 
@@ -44,7 +45,7 @@ router.put("/users/:id", protect, adminOnly, uploadProfileLogo.single('logo'), u
 router.patch("/users/:id/status", protect, adminOnly, updateUserStatus);
 router.patch("/users/:id/price-on-call", protect, adminOnly, updatePriceOnCall);
 router.patch("/users/:id/show-booking-now", protect, adminOnly, updateShowHideButton);
-
+router.patch("/users/bulk-show-booking-now", protect, adminOnly, updateBookNowButtonBulk);
 
 router.delete("/users/:id", protect, adminOnly, deleteUser);
 

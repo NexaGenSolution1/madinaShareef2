@@ -421,7 +421,6 @@ export const updatePriceOnCall = async (req, res) => {
 };
 
 export const updateShowHideButton = async (req, res) => {
-  console.log(req.body,"req.body")
   try {
     const { showHideButton } = req.body;
 
@@ -438,6 +437,36 @@ export const updateShowHideButton = async (req, res) => {
     res.json({ success: true, data: user });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+export const updateBookNowButtonBulk = async (req, res) => {
+  try {
+    const { showHideButton } = req.body;
+
+    if (typeof showHideButton !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "showHideButton must be true or false"
+      });
+    }
+
+    const result = await Register.updateMany(
+      { role: "Agency" },
+      { $set: { showHideButton } }
+    );
+
+    res.json({
+      success: true,
+      message: `Booking Now turned ${showHideButton ? "ON" : "OFF"} for all agencies`,
+      modifiedCount: result.modifiedCount
+    });
+
+  } catch (error) {
+    console.error("Bulk Booking Now Error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 

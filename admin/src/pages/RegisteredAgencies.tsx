@@ -49,7 +49,9 @@ const RegisteredAgencies = () => {
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [downloadingExcel, setDownloadingExcel] = useState(false);
   const [priceLoading, setPriceLoading] = useState<string | null>(null);
-    const [showLoading, setShowLoading] = useState<string | null>(null);
+  const [showLoading, setShowLoading] = useState<string | null>(null);
+  const [bulkLoading, setBulkLoading] = useState(false);
+
   const frontendUrl = import.meta.env.VITE_FRONTEND_URL || "https://brothersinttvl.com";
 
   useEffect(() => {
@@ -334,38 +336,77 @@ const RegisteredAgencies = () => {
       setPriceLoading(null);
     }
   };
-const toggleShowButton = async (userId: string, currentValue?: boolean) => {
-  const newValue = !currentValue;
-   console.log(newValue,'newvalue')
-  setUsers(prev =>
-    prev.map(u =>
-      u._id === userId
-        ? { ...u, showHideButton: newValue }
-        : u
-    )
-  );
-
-  try {
-       setShowLoading(userId)
-    const token = localStorage.getItem("admin_token");
-
-    await axiosInstance.patch(
-      `/auth/users/${userId}/show-booking-now`,
-      { showHideButton: newValue },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
+  const toggleShowButton = async (userId: string, currentValue?: boolean) => {
+    const newValue = !currentValue;
+    console.log(newValue, 'newvalue')
+    setUsers(prev =>
+      prev.map(u =>
+        u._id === userId
+          ? { ...u, showHideButton: newValue }
+          : u
+      )
     );
 
-  } catch (error) {
-    console.error("Error updating Booking now:", error);
-    window.alert("Failed to update Booking now");
-  }finally{
-       setShowLoading(null)
-  }
-};
+    try {
+      setShowLoading(userId)
+      const token = localStorage.getItem("admin_token");
 
+      await axiosInstance.patch(
+        `/auth/users/${userId}/show-booking-now`,
+        { showHideButton: newValue },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
+    } catch (error) {
+      console.error("Error updating Booking now:", error);
+      window.alert("Failed to update Booking now");
+    } finally {
+      setShowLoading(null)
+    }
+  };
+
+  const handleBulkBookingNow = async (value: boolean) => {
+    try {
+      setBulkLoading(true);
+      const token = localStorage.getItem("admin_token");
+
+      await axiosInstance.patch(
+        "/auth/users/bulk-show-booking-now",
+        { showHideButton: value },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // Update UI instantly
+      setUsers(prev =>
+        prev.map(u =>
+          u.role === "Agency"
+            ? { ...u, showHideButton: value }
+            : u
+        )
+      );
+
+    } catch (error) {
+      console.error("Bulk update failed:", error);
+      window.alert("Failed to update all Booking Now");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  // Check all agencies booking status
+  const agencyUsers = users.filter(u => u.role === "Agency");
+
+  const allBookingOn =
+    agencyUsers.length > 0 &&
+    agencyUsers.every(u => u.showHideButton === true);
+
+  const allBookingOff =
+    agencyUsers.length > 0 &&
+    agencyUsers.every(u => u.showHideButton === false);
 
 
   const activeCount = users.filter(u => u.role === "Agency" && u.status === "Active").length;
@@ -474,7 +515,35 @@ const toggleShowButton = async (userId: string, currentValue?: boolean) => {
               </select>
               <span className="text-sm text-gray-600 dark:text-gray-400">entries</span>
             </div>
+
             <div className="flex gap-2 items-center">
+              {/* <span>Book Now </span> */}
+              <button
+                onClick={() => handleBulkBookingNow(true)}
+                disabled={bulkLoading || allBookingOn}
+                className={`rounded px-4 py-2 text-sm text-white 
+    ${allBookingOn
+                    ? "bg-blue-600 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"} 
+    disabled:opacity-50`}
+              >
+                {bulkLoading ? "Updating..." : "Book Now ALL ON"}
+              </button>
+
+
+              <button
+                onClick={() => handleBulkBookingNow(false)}
+                disabled={bulkLoading || allBookingOff}
+                className={`rounded px-4 py-2 text-sm text-white 
+    ${allBookingOff
+                    ? "bg-gray-600 cursor-not-allowed"
+                    : "bg-gray-600 hover:bg-gray-700"} 
+    disabled:opacity-50`}
+              >
+                {bulkLoading ? "Updating..." : "Book Now ALL OFF"}
+              </button>
+
+
               <button
                 onClick={handleDownloadPDF}
                 disabled={downloadingPDF}
@@ -588,7 +657,7 @@ const toggleShowButton = async (userId: string, currentValue?: boolean) => {
                               : "OFF"}
                         </button>
                       </td>
-                            <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">
+                      <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">
                         <button
                           onClick={() => toggleShowButton(user._id, user.showHideButton)}
                           disabled={showLoading === user._id}
