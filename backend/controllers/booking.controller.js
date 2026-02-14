@@ -42,7 +42,6 @@
 //     throw new Error("Not enough seats available");
 // };
 
-
 // /* =========================================================
 //    CREATE BOOKING
 // ========================================================= */
@@ -140,7 +139,6 @@
 //     res.status(400).json({ success: false, message: err.message });
 //   }
 // };
-
 
 // /* =========================================================
 //    GET ALL BOOKINGS
@@ -303,7 +301,6 @@
 //   }
 // };
 
-
 // /* =========================================================
 //    UPDATE BOOKING DETAILS
 // ========================================================= */
@@ -379,7 +376,6 @@
 //   }
 // };
 
-
 // /* =========================================================
 //    CANCEL BOOKING
 // ========================================================= */
@@ -432,7 +428,6 @@
 //     res.status(400).json({ success: false, message: err.message });
 //   }
 // };
-
 
 // /* =========================================================
 //    DELETE BOOKING (ADMIN ONLY)
@@ -488,7 +483,6 @@
 //   }
 // };
 
-
 // /* =========================================================
 //    BOOKING STATISTICS (ADMIN DASHBOARD)
 // ========================================================= */
@@ -522,10 +516,10 @@
 //   }
 // };
 
-
 import Booking from "../models/Booking.js";
 import GroupTicketing from "../models/GroupTicketing.js";
 import mongoose from "mongoose";
+import Register from "../models/Register.js";
 
 const HOLD_DURATION = 2 * 60 * 60 * 1000; // 2 hours
 
@@ -536,16 +530,24 @@ const isLocalGroup = (groupId) => mongoose.Types.ObjectId.isValid(groupId);
 const normalizeGroupId = (groupId) => groupId?.toString();
 
 // Adjust seats only for local groups
-const adjustSeatsIfLocalGroup = async (groupId, seatChange, checkAvailability = false) => {
+const adjustSeatsIfLocalGroup = async (
+  groupId,
+  seatChange,
+  checkAvailability = false,
+) => {
   if (!isLocalGroup(groupId)) return; // External group → ignore
 
   const query = { _id: groupId };
-  if (checkAvailability && seatChange < 0) query.totalSeats = { $gte: Math.abs(seatChange) };
+  if (checkAvailability && seatChange < 0)
+    query.totalSeats = { $gte: Math.abs(seatChange) };
 
-  const result = await GroupTicketing.updateOne(query, { $inc: { totalSeats: seatChange } });
+  const result = await GroupTicketing.updateOne(query, {
+    $inc: { totalSeats: seatChange },
+  });
 
   if (result.matchedCount === 0) return; // Not local → ignore
-  if (checkAvailability && result.modifiedCount === 0) throw new Error("Not enough seats available");
+  if (checkAvailability && result.modifiedCount === 0)
+    throw new Error("Not enough seats available");
 };
 
 // -------------------------
@@ -557,15 +559,28 @@ export const createBooking = async (req, res) => {
 
   try {
     const {
-      groupId: incomingGroupId, groupType, airline, sector, pnr, contactPersonName,
-      adultsCount, childrenCount, infantsCount, totalPassengers,
-      pricing, passengers, flights, departureDate, arrivalDate
+      groupId: incomingGroupId,
+      groupType,
+      airline,
+      sector,
+      pnr,
+      contactPersonName,
+      adultsCount,
+      childrenCount,
+      infantsCount,
+      totalPassengers,
+      pricing,
+      passengers,
+      flights,
+      departureDate,
+      arrivalDate,
     } = req.body;
 
     if (passengers.length !== totalPassengers)
       throw new Error("Passenger mismatch");
 
-    const calculatedTotal = pricing.adultTotal + pricing.childTotal + pricing.infantTotal;
+    const calculatedTotal =
+      pricing.adultTotal + pricing.childTotal + pricing.infantTotal;
     if (Math.abs(calculatedTotal - pricing.grandTotal) > 0.01)
       throw new Error("Price mismatch");
 
@@ -578,20 +593,33 @@ export const createBooking = async (req, res) => {
 
     booking = await Booking.create({
       groupId,
-      groupType, airline, sector, pnr, contactPersonName,
-      adultsCount, childrenCount, infantsCount, totalPassengers,
-      pricing, passengers, flights, departureDate, arrivalDate,
+      groupType,
+      airline,
+      sector,
+      pnr,
+      contactPersonName,
+      adultsCount,
+      childrenCount,
+      infantsCount,
+      totalPassengers,
+      pricing,
+      passengers,
+      flights,
+      departureDate,
+      arrivalDate,
       userId: req.user._id,
       status: "on hold",
-      expiresAt
+      expiresAt,
     });
 
     res.status(201).json({ success: true, data: booking });
-
   } catch (err) {
     // Rollback seats if needed
     if (seatCount > 0) {
-      await adjustSeatsIfLocalGroup(normalizeGroupId(req.body.groupId), seatCount).catch(() => {});
+      await adjustSeatsIfLocalGroup(
+        normalizeGroupId(req.body.groupId),
+        seatCount,
+      ).catch(() => {});
     }
     res.status(400).json({ success: false, message: err.message });
   }
@@ -602,7 +630,15 @@ export const createBooking = async (req, res) => {
 // -------------------------
 export const getAllBookings = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status, sector, airline, fromDate, search } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      status,
+      sector,
+      airline,
+      fromDate,
+      search,
+    } = req.query;
     const query = {};
 
     if (status) query.status = status;
@@ -614,7 +650,7 @@ export const getAllBookings = async (req, res) => {
       query.$or = [
         { bookingReference: { $regex: search, $options: "i" } },
         { contactPersonName: { $regex: search, $options: "i" } },
-        { pnr: { $regex: search, $options: "i" } }
+        { pnr: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -636,11 +672,13 @@ export const getAllBookings = async (req, res) => {
       pagination: {
         currentPage: Number(page),
         totalPages: Math.ceil(total / limit),
-        totalBookings: total
-      }
+        totalBookings: total,
+      },
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to fetch bookings" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch bookings" });
   }
 };
 
@@ -649,18 +687,29 @@ export const getAllBookings = async (req, res) => {
 // -------------------------
 export const getBookingById = async (req, res) => {
   try {
-    const booking = await Booking.findById(req.params.id)
-      .populate("userId", "name email agencyCode companyName");
+    const booking = await Booking.findById(req.params.id).populate(
+      "userId",
+      "name email agencyCode companyName",
+    );
 
     if (!booking)
-      return res.status(404).json({ success: false, message: "Booking not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Booking not found" });
 
-    if (req.user.role !== "Admin" && booking.userId._id.toString() !== req.user._id.toString())
-      return res.status(403).json({ success: false, message: "Not authorized" });
+    if (
+      req.user.role !== "Admin" &&
+      booking.userId._id.toString() !== req.user._id.toString()
+    )
+      return res
+        .status(403)
+        .json({ success: false, message: "Not authorized" });
 
     res.json({ success: true, data: booking });
   } catch {
-    res.status(500).json({ success: false, message: "Failed to fetch booking" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch booking" });
   }
 };
 
@@ -669,18 +718,28 @@ export const getBookingById = async (req, res) => {
 // -------------------------
 export const getBookingByReference = async (req, res) => {
   try {
-    const booking = await Booking.findOne({ bookingReference: req.params.reference })
-      .populate("userId", "name email agencyCode companyName");
+    const booking = await Booking.findOne({
+      bookingReference: req.params.reference,
+    }).populate("userId", "name email agencyCode companyName");
 
     if (!booking)
-      return res.status(404).json({ success: false, message: "Booking not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Booking not found" });
 
-    if (req.user.role !== "Admin" && booking.userId._id.toString() !== req.user._id.toString())
-      return res.status(403).json({ success: false, message: "Not authorized" });
+    if (
+      req.user.role !== "Admin" &&
+      booking.userId._id.toString() !== req.user._id.toString()
+    )
+      return res
+        .status(403)
+        .json({ success: false, message: "Not authorized" });
 
     res.json({ success: true, data: booking });
   } catch {
-    res.status(500).json({ success: false, message: "Failed to fetch booking" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch booking" });
   }
 };
 
@@ -701,12 +760,17 @@ export const updateBookingStatus = async (req, res) => {
     }
 
     if (oldStatus === "cancelled" && status !== "cancelled") {
-      await adjustSeatsIfLocalGroup(normalizeGroupId(booking.groupId), -seats, true);
+      await adjustSeatsIfLocalGroup(
+        normalizeGroupId(booking.groupId),
+        -seats,
+        true,
+      );
     }
 
     booking.status = status;
     booking.notes = notes ?? booking.notes;
-    booking.expiresAt = status === "on hold" ? new Date(Date.now() + HOLD_DURATION) : null;
+    booking.expiresAt =
+      status === "on hold" ? new Date(Date.now() + HOLD_DURATION) : null;
 
     await booking.save();
 
@@ -743,9 +807,10 @@ export const updateBooking = async (req, res) => {
       await adjustSeatsIfLocalGroup(booking.groupId, Math.abs(diff));
     }
 
-    booking.expiresAt = booking.status === "on hold"
-      ? new Date(Date.now() + HOLD_DURATION)
-      : null;
+    booking.expiresAt =
+      booking.status === "on hold"
+        ? new Date(Date.now() + HOLD_DURATION)
+        : null;
 
     await booking.save();
 
@@ -805,21 +870,87 @@ export const deleteBooking = async (req, res) => {
 export const getBookingStatistics = async (req, res) => {
   try {
     const stats = await Booking.aggregate([
-      { $group: { _id: "$status", count: { $sum: 1 }, revenue: { $sum: "$pricing.grandTotal" } } }
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+          revenue: { $sum: "$pricing.grandTotal" },
+        },
+      },
     ]);
 
     const totalBookings = await Booking.countDocuments();
-    const totalRevenue = await Booking.aggregate([{ $group: { _id: null, total: { $sum: "$pricing.grandTotal" } } }]);
+    const totalRevenue = await Booking.aggregate([
+      { $group: { _id: null, total: { $sum: "$pricing.grandTotal" } } },
+    ]);
 
     res.json({
       success: true,
       data: {
         byStatus: stats,
         totalBookings,
-        totalRevenue: totalRevenue[0]?.total || 0
-      }
+        totalRevenue: totalRevenue[0]?.total || 0,
+      },
     });
   } catch {
-    res.status(500).json({ success: false, message: "Failed to fetch statistics" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch statistics" });
+  }
+};
+
+export const bulkTogglePriceOnCall = async (req, res) => {
+  const session = await mongoose.startSession();
+
+  try {
+    const { userIds, value } = req.body;
+
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "User IDs are required",
+      });
+    }
+
+    if (typeof value !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "Value must be boolean",
+      });
+    }
+
+    session.startTransaction();
+
+    const result = await Register.updateMany(
+      {
+        _id: { $in: userIds },
+        role: { $in: ["Agency", "SubAgent"] },
+      },
+      {
+        $set: { priceOnCall: value },
+      },
+      { session },
+    );
+
+    // Optional safety: ensure all were updated
+    if (result.matchedCount !== userIds.length) {
+      throw new Error("Some users not found");
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.json({
+      success: true,
+      message: `Price On Call updated for ${result.modifiedCount} users`,
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to Bulk toggle price on call",
+    });
   }
 };
