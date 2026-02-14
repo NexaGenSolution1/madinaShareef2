@@ -38,82 +38,16 @@ export default function AllGroups({ headerType, header, searchParams }) {
       let allGroups = [];
       const groupType = searchParams.get("group_type") || "";
 
-      // Fetch al-haider groups
-      const alHaiderApiResponse = await axiosInstance
-        .get("/al-haider/available-bookings-by-group")
+      // Fetch unified groups from backend (already sorted by sector order)
+      const response = await axiosInstance
+        .get("/sector/getUnifiedGroups")
         .catch((err) => {
-          console.error("Al-Haider API Error:", err);
-          return { data: { success: false, data: { groups: [] } } };
-        });
-
-      if (alHaiderApiResponse.data.success) {
-        allGroups = alHaiderApiResponse.data.data.groups || [];
-      }
-
-      // console.log("Ali haider res",alHaiderApiResponse);
-
-      // Fetch admin groups
-      const adminApiResponse = await axiosInstance
-        .get("/group-ticketing")
-        .catch((err) => {
-          console.error("Admin API Error:", err);
+          console.error("Unified Groups API Error:", err);
           return { data: { success: false, data: [] } };
         });
 
-      const adminAirlineApiResponse = await axiosInstance
-        .get("/airline")
-        .catch((err) => {
-          console.error("Admin API Error:", err);
-          return { data: { success: false, data: [] } };
-        });
-
-      if (adminApiResponse.data.success && adminApiResponse.data.data) {
-        // Transform admin API data to match alHaider structure
-        const transformedAdminGroups = adminApiResponse.data.data.map(
-          (group) => ({
-            id: group._id,
-            available_no_of_pax: group.totalSeats || 0,
-            showSeat: group.showSeat || false,
-            sector: group.sector,
-            type: group.groupType,
-            price: group.price?.sellingAdultPriceB2B || 0,
-            childPrice: group.price?.sellingChildPriceB2B || 0,
-            infantPrice: group.price?.sellingInfantPriceB2B || 0,
-            pnr: group.pnr || "",
-            dept_date: group.flights[0]?.depDate || null,
-            arv_date: group.flights[group.flights.length - 1]?.arrDate || null,
-            details: group.flights.map((flight, index) => ({
-              sr: index + 1,
-              flight_no: flight.flightNo,
-              flight_date: flight.depDate,
-              dep_date: flight.depDate,
-              dept_time: flight.depTime,
-              origin: flight.fromTerminal,
-              destination: flight.toTerminal,
-              arv_date: flight.arrDate,
-              arv_time: flight.arrTime,
-              baggage: flight.baggage,
-              meal: flight.meal,
-            })),
-            airline: {
-              id:
-                adminAirlineApiResponse.data.data.find(
-                  (airline) => airline.airlineName === group.airline,
-                )?._id || null,
-              airline_name: group.airline,
-              short_name:
-                adminAirlineApiResponse.data.data.find(
-                  (airline) => airline.airlineName === group.airline,
-                )?.shortCode || null,
-              logo_url:
-                adminAirlineApiResponse.data.data.find(
-                  (airline) => airline.airlineName === group.airline,
-                )?.logo || null,
-            },
-          }),
-        );
-
-        allGroups = [...allGroups, ...transformedAdminGroups];
+      if (response.data.success) {
+        allGroups = response.data.data || [];
       }
 
       // Apply filtering based on group_type if specified
@@ -228,21 +162,8 @@ export default function AllGroups({ headerType, header, searchParams }) {
       });
     }
 
-    // Sort by departure date (earliest first)
-    filtered.sort((a, b) => {
-      const dateA = new Date(a.dept_date);
-      const dateB = new Date(b.dept_date);
-      return dateA - dateB;
-    });
-    // Sort UAE groups to top
-    filtered.sort((a, b) => {
-      const typeA = a.type?.toLowerCase().trim();
-      const typeB = b.type?.toLowerCase().trim();
-
-      if (typeA === "uae" && typeB !== "uae") return -1;
-      if (typeA !== "uae" && typeB === "uae") return 1;
-      return 0;
-    });
+    // Note: The groups are already sorted by sector order from the backend
+    // We keep the existing sector-based sorting from getUnifiedGroups
     setGroups(filtered);
   };
   console.log(groups, "groups");
