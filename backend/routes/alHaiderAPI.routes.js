@@ -1,7 +1,7 @@
 import express from "express";
 import {
-    getAvailableBookingsByGroup,
-    getAirlines
+  getAvailableBookingsByGroup,
+  getAirlines,
 } from "../controllers/al-haider.controller.js";
 
 const router = express.Router();

@@ -5,24 +5,35 @@ const SectorSchema = new mongoose.Schema(
     groupType: {
       type: String,
       required: [true, "Group type is required"],
-      enum: ["UAE Groups", "KSA Groups", "Bahrain Groups", "Mascat Groups", "Qatar Groups", "UK Groups", "Umrah Groups"],
-      trim: true
+      enum: [
+        "UAE Groups",
+        "KSA Groups",
+        "Bahrain Groups",
+        "Mascat Groups",
+        "Qatar Groups",
+        "UK Groups",
+        "Umrah Groups",
+      ],
+      trim: true,
     },
     sectorTitle: {
       type: String,
       required: [true, "Sector title is required"],
       trim: true,
-      uppercase: true
+      uppercase: true,
     },
     fullSector: {
       type: String,
       required: [true, "Full sector name is required"],
-      trim: true
-    }
+      trim: true,
+    },
+    order: {
+      type: Number,
+    },
   },
-  { 
-    timestamps: true 
-  }
+  {
+    timestamps: true,
+  },
 );
 
 const Sector = mongoose.model("Sector", SectorSchema);

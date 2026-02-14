@@ -40,6 +40,7 @@ import BookingDetail from "./pages/BookingDetail";
 import SpecialOffers from "./pages/SpecialOffers/SpecialOffers";
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import ManageSectors from "./pages/ManageSectors/ManageSectors";
 
 export default function App() {
   return (
@@ -70,6 +71,7 @@ export default function App() {
                 <Route path="/view-payment-voucher" element={<ViewPaymentVoucher />} />
                 <Route path="/view-payment-voucher/edit/:id" element={<EditPaymentVoucher />} />
                 <Route path="/special-offers" element={<SpecialOffers />} />
+                <Route path="/manage-sectors" element={<ManageSectors />} />
                 <Route path="/view-accounts" element={<ViewAccounts />} />
                 <Route path="/ledger/:id" element={<Ledger />} />
 
@@ -108,19 +110,19 @@ export default function App() {
           </Routes>
         </Router>
       </AuthProvider>
-       <ToastContainer
-                      position="top-right"
-                      autoClose={3000}
-                      hideProgressBar={false}
-                      newestOnTop={false}
-                      closeOnClick
-                      rtl={false}
-                      pauseOnFocusLoss
-                      draggable
-                      pauseOnHover
-                      theme="light"
-                        style={{ zIndex: 99999 }}
-                  />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        style={{ zIndex: 99999 }}
+      />
     </>
   );
 }

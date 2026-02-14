@@ -1,16 +1,18 @@
 import PageMeta from "../../components/common/PageMeta";
 import { ArrowRightIcon, UsersIcon, IdentificationIcon } from "@heroicons/react/24/outline";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import AgentStatusChart from "../../components/charts/AgentStatusChart";
 
 export default function Home() {
+  const navigate = useNavigate()
+
   return (
     <>
       <PageMeta
         title="Dashboard | Bother International"
         description="Dashboard overview for Bother International"
       />
-      
+
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-semibold text-black dark:text-white">Dashboard</h1>
@@ -41,7 +43,7 @@ export default function Home() {
           </div>
           <h3 className="text-xl font-semibold mb-2">Index Cards</h3>
           <p className="text-slate-100 mb-4 text-sm">Index Cards</p>
-          <button className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded text-sm transition-colors">
+          <button onClick={() => { navigate("/special-offers") }} className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded text-sm transition-colors">
             Go to list <ArrowRightIcon className="w-3.5 h-3.5" />
           </button>
         </div>

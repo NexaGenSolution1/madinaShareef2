@@ -57,6 +57,11 @@ const navItems: NavItem[] = [
   },
   {
     icon: <TableIcon />,
+    name: "Manage Sectors",
+    path: "/manage-sectors",
+  },
+  {
+    icon: <TableIcon />,
     name: "Group Ticketing",
     subItems: [
       { name: "View Groups", path: "/group-ticketing", pro: false },

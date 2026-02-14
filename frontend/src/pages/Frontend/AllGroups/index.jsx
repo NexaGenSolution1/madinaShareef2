@@ -50,6 +50,8 @@ export default function AllGroups({ headerType, header, searchParams }) {
         allGroups = alHaiderApiResponse.data.data.groups || [];
       }
 
+      // console.log("Ali haider res",alHaiderApiResponse);
+
       // Fetch admin groups
       const adminApiResponse = await axiosInstance
         .get("/group-ticketing")
@@ -155,19 +157,12 @@ export default function AllGroups({ headerType, header, searchParams }) {
         });
       }
 
-      // 1. Filter out groups with no available seats
-      allGroups = allGroups.filter((group) => {
-        const availableSeats = parseInt(group.available_no_of_pax);
-        return availableSeats > 0;
-      });
-
-      // 2. Extract unique airlines and sectors for filters
+      // Extract unique airlines and sectors for filters
       const uniqueAirlines = [
         ...new Set(
           allGroups.map((g) => g.airline?.airline_name).filter(Boolean),
         ),
       ];
-
       const uniqueSectors = [
         ...new Set(allGroups.map((g) => g.sector).filter(Boolean)),
       ];
@@ -186,7 +181,7 @@ export default function AllGroups({ headerType, header, searchParams }) {
       setLoading(false);
     }
   };
-  console.log(allGroups, "allgroups");
+  // console.log(allGroups, "allgroups");
 
   const applyFilters = (dataToFilter = allGroups) => {
     let filtered = [...dataToFilter];
