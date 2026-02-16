@@ -16,7 +16,7 @@ export default function Footer() {
                         <IoMail className='text-6xl sm:text-7xl text-neutral-200' />
                         <div className='space-y-2'>
                             <h2 className='text-2xl sm:text-3xl text-[#d6d30b] font-semibold!'>Your Travel Journey Starts Here</h2>
-                            <p className='text-neutral-200'>Sign up to have best deals with Brothers International</p>
+                            <p className='text-neutral-200'>Sign up to have best deals with Brothers International Travels</p>
                         </div>
                     </div>
 
@@ -35,7 +35,7 @@ export default function Footer() {
             {/* <footer style={{ position: 'relative', color: '#fff', backgroundImage: `url(https://img.freepik.com/free-photo/empty-sea-beach-background_74190-313.jpg)`, backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 }}> */}
             <footer className='bg-white'>
                 <div className='main-container min-h-96 grid grid-cols-1 lg:grid-cols-2 gap-6 py-20'>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-12'>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
                         <div>
                             <img src={logo} alt="logo" className='w-22 object-contain' />
                             <div>
@@ -55,7 +55,7 @@ export default function Footer() {
                         </div>
                     </div>
 
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-12'>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
                         <div>
                             <h2 className='text-2xl sm:text-3xl mb-6'>Service</h2>
                             <div className='flex flex-col items-start gap-3'>
@@ -82,7 +82,7 @@ export default function Footer() {
                                 <a href="/" target='_blank' className='flex items-center gap-3 font-semibold break-all transition-all duration-300 ease-in-out hover:text-[#d6d30b]'>
                                     <IoMail /> aizazbtk@gmail.com
                                 </a>
-                                <a href="https://maps.app.goo.gl/GZ4C6ZMPfg758iV29" target='_blank' className='flex items-start gap-3 font-semibold break-all transition-all duration-300 ease-in-out hover:text-[#d6d30b]'>
+                                <a href="https://maps.app.goo.gl/GZ4C6ZMPfg758iV29" target='_blank' className='flex items-start gap-3 font-semibold transition-all duration-300 ease-in-out hover:text-[#d6d30b]'>
                                     <IoLocationSharp className='mt-1' /> Main Bazaar Batkhela Distt, Malakand.
                                 </a>
                             </div>
@@ -91,7 +91,7 @@ export default function Footer() {
                 </div>
 
                 <div className='main-container flex flex-col md:flex-row justify-between gap-2 py-6 sm:py-10 text-sm sm:text-base border-t border-neutral-600'>
-                    <p>&copy; Brothers International. All Rights Reserved {dayjs().year()}.</p>
+                    <p>&copy; Brothers International Travels. All Rights Reserved {dayjs().year()}.</p>
                     {/* <p><span className='text-neutral-100 font-semibold'>Designed & Developed By</span> <a href="https://nexagensolution.com/" target='_blank'>Nexagen Solution</a></p> */}
                 </div>
 
