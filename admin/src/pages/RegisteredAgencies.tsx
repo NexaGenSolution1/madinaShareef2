@@ -448,9 +448,7 @@ console.log(response.data,'excel response')
     agencyUsers.length > 0 &&
     agencyUsers.every(u => u.showHideButton === true);
 
-  const allBookingOff =
-    agencyUsers.length > 0 &&
-    agencyUsers.every(u => u.showHideButton === false);
+
 
   // Check if all agencies have Price on Call ON
   const allPriceOnCallOn =
