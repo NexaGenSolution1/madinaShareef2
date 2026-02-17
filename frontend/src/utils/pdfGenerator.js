@@ -137,7 +137,7 @@ export const generateBookingPDF = async (booking) => {
             <div style="font-size: 13px; letter-spacing: 1px;">${booking.bookingReference}</div>
             <div style="font-size: 13px;  margin-bottom: 6px; letter-spacing: 1px;">${getAgencyName(booking)}</div>
             <div style="font-size: 13px;  margin-bottom: 6px; letter-spacing: 1px;">${getName(booking)}</div>
-            <div style="font-size: 13px; margin-bottom: 6px;">${JSON.parse(localStorage.getItem("frontend_user")).getPhone || "+92 347 8885551"}</div>
+            <div style="font-size: 13px; margin-bottom: 6px;">${getPhone(booking)}</div>
             </div>
         </div>
         </div>
