@@ -74,14 +74,14 @@ export const generateClientPDF = async (booking) => {
             <div style="display: flex; justify-content: space-between;">
                 <!-- Labels Column -->
                 <div style="flex: 1;">
-                    <div style="font-size: 13px; margin-bottom: 6px; opacity: 0.9;">Booking Reference (PNR)</div>
+                    <div style=" margin-bottom: 6px; opacity: 0.9;">Booking Reference (PNR)</div>
                     <div style="font-size: 13px; opacity: 0.9;">Booking ID</div>
                 </div>
                 
                 <!-- Values Column -->
                 <div style="flex: 1; text-align: left; padding-right: 20px;">
-                    <div style="font-size: 16px; font-weight: bold; margin-bottom: 6px; letter-spacing: 1px;">${booking.pnr || "N/A"}</div>
-                    <div style="font-size: 16px; font-weight: bold; letter-spacing: 1px;">${booking.bookingReference}</div>
+                    <div style="font-size: 13px; margin-bottom: 6px; letter-spacing: 1px;">${booking.pnr || "N/A"}</div>
+                    <div style="font-size: 13px; letter-spacing: 1px;">${booking.bookingReference}</div>
                 </div>
             </div>
         </div>
@@ -163,15 +163,17 @@ export const generateClientPDF = async (booking) => {
 
         <!-- 6. Terms & Footer -->
         <div style="margin-top: 10px;">
-            <div style="color: ${colors.bluePrimary}; font-weight: bold; font-size: 14px; margin-bottom: 8px; text-align: center;">
-                Terms & Conditions
-            </div>
-            <div style="line-height: 2.5" class="terms">
-  <div><span style="margin-right:8px;">1-</span>PLEASE CROSS CHECK NAME AND FLIGHT DETAILS.</div>
-  <div><span style="margin-right:8px;">2-</span>PLEASE REPORT AIRLINE CHECK-IN COUNTER 4 HOURS BEFORE FLIGHT DEPARTURE.</div>
-  <div><span style="margin-right:8px;">3-</span>PLEASE RECONFIRM THE TICKET BEFORE 48 HOURS OF FLIGHT DEPARTURE.</div>
-  <div><span style="margin-right:8px;">4-</span>ALL VISA AND TRAVEL DOCUMENT ARE TRAVELER OWN RESPONSIBILITY.</div>
-  <div><span style="margin-right:8px;">5-</span>TICKETS ARE NON-REFUNDABLE AND NON-CHANGEABLE ANY TIME.</div>
+            <div 
+  style="line-height: 2; font-family: Arial, sans-serif; font-size: 13px;" 
+  class="terms">
+
+  <div style="font-weight:bold;> class="mb-10">TERMS & CONDITIONS</div>
+
+  <div style="font-weight:bold; font-size: 12px;"><span style="margin-right:8px;">1-</span>PLEASE CROSS CHECK NAME AND FLIGHT DETAILS.</div>
+  <div style="font-weight:bold;  font-size: 12px"><span style="margin-right:8px;">2-</span>PLEASE REPORT AIRLINE CHECK-IN COUNTER 4 HOURS BEFORE FLIGHT DEPARTURE.</div>
+  <div style="font-weight:bold;  font-size: 12px"><span style="margin-right:8px;">3-</span>PLEASE RECONFIRM THE TICKET BEFORE 48 HOURS OF FLIGHT DEPARTURE.</div>
+  <div style="font-weight:bold;  font-size: 12px"><span style="margin-right:8px;">4-</span>ALL VISA AND TRAVEL DOCUMENT ARE TRAVELER OWN RESPONSIBILITY.</div>
+  <div style="font-weight:bold;  font-size: 12px"><span style="margin-right:8px;">5-</span>TICKETS ARE NON-REFUNDABLE AND NON-CHANGEABLE ANY TIME.</div>
 </div>
         </div>
 

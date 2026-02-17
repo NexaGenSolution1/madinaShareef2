@@ -672,7 +672,7 @@ export const getAllBookings = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit))
-      .populate("userId", "name email agencyCode companyName");
+      .populate("userId", "name email agencyCode companyName phone");
 
     const total = await Booking.countDocuments(query);
 

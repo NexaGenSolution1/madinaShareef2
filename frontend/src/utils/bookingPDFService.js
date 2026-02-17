@@ -266,14 +266,14 @@ export const printGDSBooking = (booking) => {
                             <div class="info-label">Booking Reference Number (PNR)</div>
                             <div class="info-label">Booking ID</div>
                             <div class="info-label">Issued By</div>
-                            <div class="info-label">Agency Name</div>
+                            <div class="info-label">Agent Name</div>
                             <div class="info-label">Phone Number</div>
                         </div>
                         <div class="info-col values left">
                             <div class="info-val small">${pnr}</div>
                             <div class="info-val large">${bookingRef}</div>
-                            <div class="info-val small">Brother's International</div>
-                            <div class="info-val small">${agencyName}</div>
+                            <div class="info-val small">${getAgencyName(booking)}</div>
+                            <div class="info-val small">${getName(booking)}</div>
                             <div class="info-val small">+92 347 8885551</div>
                         </div>
                     </div>
@@ -354,15 +354,20 @@ export const printGDSBooking = (booking) => {
                 </table>
 
                 <!-- 6. Terms & Footer -->
-                <div style="line-height: 2.5" class="terms">
-  <div class="text-bold mb-10" style="font-size: 12px;">TERMS & CONDITIONS</div>
+                <div 
+  style="line-height: 2; font-family: Arial, sans-serif; font-size: 13px;" 
+  class="terms"
+>
+  <div style="font-weight:bold;> class="mb-10">TERMS & CONDITIONS</div>
 
-  <div><span style="margin-right:8px;">1-</span>PLEASE CROSS CHECK NAME AND FLIGHT DETAILS.</div>
-  <div><span style="margin-right:8px;">2-</span>PLEASE REPORT AIRLINE CHECK-IN COUNTER 4 HOURS BEFORE FLIGHT DEPARTURE.</div>
-  <div><span style="margin-right:8px;">3-</span>PLEASE RECONFIRM THE TICKET BEFORE 48 HOURS OF FLIGHT DEPARTURE.</div>
-  <div><span style="margin-right:8px;">4-</span>ALL VISA AND TRAVEL DOCUMENT ARE TRAVELER OWN RESPONSIBILITY.</div>
-  <div><span style="margin-right:8px;">5-</span>TICKETS ARE NON-REFUNDABLE AND NON-CHANGEABLE ANY TIME.</div>
+  <div style="font-weight:bold; font-size: 12px;"><span style="margin-right:8px;">1-</span>PLEASE CROSS CHECK NAME AND FLIGHT DETAILS.</div>
+  <div style="font-weight:bold;  font-size: 12px"><span style="margin-right:8px;">2-</span>PLEASE REPORT AIRLINE CHECK-IN COUNTER 4 HOURS BEFORE FLIGHT DEPARTURE.</div>
+  <div style="font-weight:bold;  font-size: 12px"><span style="margin-right:8px;">3-</span>PLEASE RECONFIRM THE TICKET BEFORE 48 HOURS OF FLIGHT DEPARTURE.</div>
+  <div style="font-weight:bold;  font-size: 12px"><span style="margin-right:8px;">4-</span>ALL VISA AND TRAVEL DOCUMENT ARE TRAVELER OWN RESPONSIBILITY.</div>
+  <div style="font-weight:bold;  font-size: 12px"><span style="margin-right:8px;">5-</span>TICKETS ARE NON-REFUNDABLE AND NON-CHANGEABLE ANY TIME.</div>
 </div>
+
+
 
 
  
@@ -407,9 +412,19 @@ export const printGDSBooking = (booking) => {
 };
 
 
+
+
 const getAgencyName = (booking) => {
-    if (typeof booking.userId === "object" && booking.userId?.companyName) {
-        return booking.userId.companyName;
-    }
-    return "SUPRA TRAVEL & TOURS";
+  if (typeof booking.userId === "object" && booking.userId?.companyName) {
+    return booking.userId.companyName;
+  }
+  return "SUPRA TRAVEL & TOURS";
+};
+
+
+const getName = (booking) => {
+  if (typeof booking.userId === "object" && booking.userId?.name) {
+    return booking.userId.name;
+  }
+  return "SUPRA TRAVEL & TOURS";
 };
