@@ -395,9 +395,51 @@ export const getUnifiedGroups = async (req, res) => {
     }));
 
     /* ===============================
-       7️⃣ Merge All Groups
-    =============================== */
+   7️⃣ Merge All Groups & Fix Dates
+=============================== */
     let unifiedGroups = [...transformedAliHaider, ...transformedAdmin];
+
+    unifiedGroups = unifiedGroups.map((g) => {
+      const formatDate = (dateValue) => {
+        if (!dateValue) return null;
+        const d = new Date(dateValue);
+        return isNaN(d.getTime()) ? null : d.toISOString().split("T")[0];
+      };
+
+      // Important: Ali Haider data uses 'dept_date' but details use 'flight_date' or 'dep_date'
+      const finalDeptDate = formatDate(g.dept_date || g.dep_date);
+      const finalArvDate = formatDate(g.arv_date);
+
+      return {
+        ...g,
+        id: g.id?.toString?.() || g.id,
+        dept_date: finalDeptDate,
+        arv_date: finalArvDate,
+
+        details: g.details?.map((d) => {
+          // 1. Check for flight_date (Ali Haider) or dep_date (Admin)
+          const detailDepDate = formatDate(
+            d.dep_date || d.flight_date || finalDeptDate,
+          );
+
+          // 2. Fix arrival date logic
+          const detailArvDate = formatDate(d.arv_date);
+
+          return {
+            ...d,
+            // Ensure field names are consistent
+            dep_date: detailDepDate,
+            flight_date: detailDepDate,
+            arv_date: detailArvDate,
+          };
+        }),
+
+        airline: {
+          ...g.airline,
+          id: g.airline?.id?.toString?.() || g.airline?.id,
+        },
+      };
+    });
 
     /* ===============================
        8️⃣ Sector Sorting (ADMIN ORDER)
