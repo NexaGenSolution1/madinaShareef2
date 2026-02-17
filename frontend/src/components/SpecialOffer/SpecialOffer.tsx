@@ -46,7 +46,7 @@ export default function SpecialOffer() {
     };
 
     return (
-        <div className="min-h-screen bg-[#FDFCF8] py-16 px-4">
+        <div className="bg-[#FDFCF8] py-16 px-4">
             <div className="max-w-7xl mx-auto">
                 {/* Heading Section */}
                 <div className='relative w-fit mt-4 mb-12 text-center mx-auto'>

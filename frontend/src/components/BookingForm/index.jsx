@@ -202,7 +202,6 @@ export default function BookingForm() {
     setFormData(updated);
     setTotalSeats(totalSeatsRequired);
   };
-  console.log(totalSeats, "total seats");
   const handlePassengerBlur = (e) => {
     const { name, value } = e.target;
     if (!["adults", "children", "infants"].includes(name)) return;

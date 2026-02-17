@@ -147,18 +147,18 @@ export default function ManageSectors() {
                             <table className="w-full table-auto">
                                 <thead>
                                     <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                                        <th className="min-w-[50px] px-4 py-4 font-medium text-black dark:text-white">
+                                        <th className="min-w-12.5 px-4 py-4 font-medium text-black dark:text-white">
                                             <svg className="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
                                             </svg>
                                         </th>
-                                        <th className="min-w-[50px] px-4 py-4 font-medium text-black dark:text-white">
+                                        <th className="min-w-12.5 px-4 py-4 font-medium text-black dark:text-white">
                                             Sr #
                                         </th>
-                                        <th className="min-w-[150px] px-4 py-4 font-medium text-black dark:text-white">
+                                        <th className="min-w-37.5 px-4 py-4 font-medium text-black dark:text-white">
                                             Group Type
                                         </th>
-                                        <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
+                                        <th className="min-w-30 px-4 py-4 font-medium text-black dark:text-white">
                                             Sector Code
                                         </th>
                                         <th className="px-4 py-4 font-medium text-black dark:text-white">

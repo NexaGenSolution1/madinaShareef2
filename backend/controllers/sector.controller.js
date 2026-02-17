@@ -2,6 +2,8 @@ import axios from "axios";
 import Airline from "../models/Airline.js";
 import GroupTicketing from "../models/GroupTicketing.js";
 import Sector from "../models/Sector.js";
+import UnifiedGroupCache from "../models/UnifiedGroupCache.js";
+import Booking from "../models/Booking.js";
 
 // Add new sector
 export const addSector = async (req, res) => {
@@ -286,8 +288,53 @@ export const getUnifiedGroups = async (req, res) => {
         },
       );
 
-      // console.log(response);
       aliHaiderGroups = response?.data?.groups || [];
+
+      /* ===============================
+         4.1️⃣ Auto-Store Missing Sectors
+      =============================== */
+      const uniqueSectors = [...new Set(aliHaiderGroups.map((g) => g.sector))];
+      const existingSectorTitles = sectors.map((s) => s.sectorTitle);
+
+      const newSectors = uniqueSectors.filter(
+        (sector) => sector && !existingSectorTitles.includes(sector),
+      );
+
+      if (newSectors.length > 0) {
+        const typeMap = {
+          UAE: "UAE Groups",
+          "KSA ONEWAY": "KSA Groups",
+          "KSA RETURN": "KSA Groups",
+          BAHRAIN: "Bahrain Groups",
+          MASCAT: "Mascat Groups",
+          QATAR: "Qatar Groups",
+          UK: "UK Groups",
+          UMRAH: "Umrah Groups",
+        };
+
+        const sectorsToInsert = newSectors.map((sector) => {
+          const group = aliHaiderGroups.find((g) => g.sector === sector);
+          const groupType = typeMap[group?.type] || "KSA Groups";
+
+          return {
+            sectorTitle: sector,
+            fullSector: sector,
+            groupType,
+            order: 999,
+          };
+        });
+
+        await Sector.insertMany(sectorsToInsert, { ordered: false }).catch(
+          () => {},
+        );
+
+        // Refresh sectors and map
+        const updatedSectors = await Sector.find().lean();
+        sectorOrderMap.length = 0;
+        updatedSectors.forEach((s) => {
+          sectorOrderMap[s.sectorTitle] = s.order ?? 999;
+        });
+      }
     } catch (err) {
       console.log("Ali Haider API Failed:", err.message);
     }
@@ -362,12 +409,83 @@ export const getUnifiedGroups = async (req, res) => {
     });
 
     /* ===============================
-       9️⃣ Response
+       9️⃣ Filter — Past Departures Remove
+    =============================== */
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const freshGroups = unifiedGroups.filter((group) => {
+      const rawDate = group.dept_date;
+      if (!rawDate) return true; // no date = keep it
+
+      const depDate = new Date(rawDate);
+      depDate.setHours(0, 0, 0, 0);
+
+      return depDate >= today; // ✅ today or future only
+    });
+
+    /* ===============================
+       🔟 Smart Cache Store / Update
+    =============================== */
+    let cacheDoc = await UnifiedGroupCache.findOne();
+
+    if (!cacheDoc) {
+      // First time — create fresh
+      cacheDoc = await UnifiedGroupCache.create({
+        data: freshGroups,
+        apidata: true,
+      });
+    } else {
+      // Smart merge: preserve cache seat counts for groups
+      // that were recently booked (within last HOLD_DURATION window)
+      const HOLD_DURATION_MS = 15 * 60 * 1000; // match your HOLD_DURATION constant
+      const recentCutoff = new Date(Date.now() - HOLD_DURATION_MS);
+
+      // Find groups that have active/recent bookings
+      const recentlyBookedGroupIds = await Booking.distinct("groupId", {
+        createdAt: { $gte: recentCutoff },
+        status: { $in: ["on hold", "confirmed"] },
+      });
+
+      const recentlyBookedSet = new Set(recentlyBookedGroupIds.map(String));
+
+      // Build map from existing cache for quick lookup
+      const cachedDataMap = new Map(
+        cacheDoc.data.map((g) => [String(g.id), g]),
+      );
+
+      // Merge: protect seat count if group was recently booked
+      const mergedGroups = freshGroups.map((freshGroup) => {
+        const gId = String(freshGroup.id);
+
+        if (recentlyBookedSet.has(gId)) {
+          // 🔒 Keep cached seat count — already deducted by createBooking
+          const cached = cachedDataMap.get(gId);
+          if (cached) {
+            return {
+              ...freshGroup,
+              available_no_of_pax: cached.available_no_of_pax,
+            };
+          }
+        }
+
+        // ✅ No recent booking = use fresh API/DB data
+        return freshGroup;
+      });
+
+      cacheDoc.data = mergedGroups;
+      cacheDoc.apidata = true;
+      cacheDoc.markModified("data"); // required for Mongoose mixed arrays
+      await cacheDoc.save();
+    }
+
+    /* ===============================
+       1️⃣1️⃣ Response
     =============================== */
     res.status(200).json({
       success: true,
-      total: unifiedGroups.length,
-      data: unifiedGroups,
+      total: cacheDoc.data.length,
+      data: cacheDoc.data,
     });
   } catch (error) {
     console.error("Unified API Error:", error);

@@ -520,6 +520,7 @@ import Booking from "../models/Booking.js";
 import GroupTicketing from "../models/GroupTicketing.js";
 import mongoose from "mongoose";
 import Register from "../models/Register.js";
+import { deductSeatsFromCache } from "../utils/cacheHelpers.js";
 
 const HOLD_DURATION = 2 * 60 * 60 * 1000; // 2 hours
 
@@ -588,8 +589,11 @@ export const createBooking = async (req, res) => {
     const expiresAt = new Date(Date.now() + HOLD_DURATION);
     const groupId = normalizeGroupId(incomingGroupId);
 
-    // Deduct seats if local
+    // 1️⃣ Deduct from local DB (existing logic)
     await adjustSeatsIfLocalGroup(groupId, -seatCount, true);
+
+    // 2️⃣ Deduct from unified cache too
+    await deductSeatsFromCache(groupId, seatCount);
 
     booking = await Booking.create({
       groupId,
@@ -614,11 +618,17 @@ export const createBooking = async (req, res) => {
 
     res.status(201).json({ success: true, data: booking });
   } catch (err) {
-    // Rollback seats if needed
+    // Rollback local DB seats
     if (seatCount > 0) {
       await adjustSeatsIfLocalGroup(
         normalizeGroupId(req.body.groupId),
         seatCount,
+      ).catch(() => {});
+
+      // Rollback cache seats too
+      await deductSeatsFromCache(
+        normalizeGroupId(req.body.groupId),
+        -seatCount, // negative = add back
       ).catch(() => {});
     }
     res.status(400).json({ success: false, message: err.message });

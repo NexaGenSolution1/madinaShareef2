@@ -47,7 +47,9 @@ export default function AllGroups({ headerType, header, searchParams }) {
         });
 
       if (response.data.success) {
-        allGroups = response.data.data || [];
+        allGroups = (response.data.data || []).filter(
+          (group) => Number(group.available_no_of_pax) > 0,
+        );
       }
 
       // Apply filtering based on group_type if specified
@@ -166,7 +168,6 @@ export default function AllGroups({ headerType, header, searchParams }) {
     // We keep the existing sector-based sorting from getUnifiedGroups
     setGroups(filtered);
   };
-  console.log(groups, "groups");
   const handleFilterChange = (filterType, value) => {
     if (filterType === "sector") {
       setFilters((prev) => ({

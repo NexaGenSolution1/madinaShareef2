@@ -34,8 +34,8 @@ export default function SignInForm() {
                 });
                 const { token, user } = response.data;
 
-                if (token && user) {
-                    login(user, token); // Call login from AuthContext
+                if (token && user.role === "Admin") {
+                    login(user, token);
                     navigate("/", { replace: true });
                 }
             } catch (error: any) {
@@ -49,7 +49,7 @@ export default function SignInForm() {
     });
 
     return (
-        <div 
+        <div
             className="flex items-center justify-center min-h-screen w-full"
             style={{
                 backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(/admin-portal/images/carousel/bg.jpg)',
