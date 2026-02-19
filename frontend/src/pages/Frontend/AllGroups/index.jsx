@@ -122,19 +122,19 @@ export default function AllGroups({ headerType, header, searchParams }) {
   const applyFilters = (dataToFilter = allGroups) => {
     let filtered = [...dataToFilter];
 
-    // Filter by selected sectors
+    // 1. Filter by selected sectors
     if (filters.sectors.length > 0) {
       filtered = filtered.filter((g) => filters.sectors.includes(g.sector));
     }
 
-    // Filter by selected airlines
+    // 2. Filter by selected airlines
     if (filters.airlines.length > 0) {
       filtered = filtered.filter((g) =>
         filters.airlines.includes(g.airline?.airline_name),
       );
     }
 
-    // Filter by search keyword (searches in flight number, sector, airline)
+    // 3. Filter by search keyword
     if (filters.searchKeyword) {
       const keyword = filters.searchKeyword.toLowerCase();
       filtered = filtered.filter((g) => {
@@ -149,13 +149,11 @@ export default function AllGroups({ headerType, header, searchParams }) {
       });
     }
 
-    // Filter by departure date
+    // 4. Filter by departure date
     if (filters.departDate) {
       filtered = filtered.filter((g) => {
         const deptDate = new Date(g.dept_date);
         const selectedDate = new Date(filters.departDate);
-
-        // Compare year, month, and day directly to avoid timezone issues
         return (
           deptDate.getFullYear() === selectedDate.getFullYear() &&
           deptDate.getMonth() === selectedDate.getMonth() &&
@@ -164,8 +162,10 @@ export default function AllGroups({ headerType, header, searchParams }) {
       });
     }
 
-    // Note: The groups are already sorted by sector order from the backend
-    // We keep the existing sector-based sorting from getUnifiedGroups
+    // 5. SORTING LOGIC (New Addition)
+    // Yeh code dates ko purani se nayi (18 Feb to 24 Feb) arrange karega
+    filtered.sort((a, b) => new Date(a.dept_date) - new Date(b.dept_date));
+
     setGroups(filtered);
   };
   const handleFilterChange = (filterType, value) => {

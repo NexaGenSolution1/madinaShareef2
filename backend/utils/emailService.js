@@ -6,15 +6,15 @@ dotenv.config();
 
 // Create transporter configuration based on email service
 const createTransporter = () => {
-  const emailService = process.env.EMAIL_SERVICE || 'gmail';
-  
+  const emailService = process.env.EMAIL_SERVICE || "gmail";
+
   let transportConfig;
-  
-  if (emailService === 'gmail') {
+
+  if (emailService === "gmail") {
     // Gmail configuration
     transportConfig = {
-      service: 'gmail',
-      host: 'smtp.gmail.com',
+      service: "gmail",
+      host: "smtp.gmail.com",
       port: 587,
       secure: false, // Use STARTTLS
       auth: {
@@ -24,39 +24,39 @@ const createTransporter = () => {
       // Additional Gmail-specific settings
       tls: {
         rejectUnauthorized: false, // For development, set to true in production
-        ciphers: 'SSLv3'
+        ciphers: "SSLv3",
       },
       pool: true, // Use connection pool
       maxConnections: 5,
       maxMessages: 10,
       rateDelta: 1000,
-      rateLimit: 5
+      rateLimit: 5,
     };
   } else {
     // Custom SMTP configuration
     transportConfig = {
       host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+      port: parseInt(process.env.SMTP_PORT || "587"),
+      secure: process.env.SMTP_SECURE === "true", // true for 465, false for other ports
       auth: {
         user: process.env.SMTP_USER || process.env.EMAIL_USER,
         pass: process.env.SMTP_PASSWORD || process.env.EMAIL_PASSWORD,
       },
       tls: {
-        rejectUnauthorized: false // For development
+        rejectUnauthorized: false, // For development
       },
       pool: true,
       maxConnections: 5,
-      maxMessages: 10
+      maxMessages: 10,
     };
   }
 
-  console.log('📧 Email Configuration:', {
+  console.log("📧 Email Configuration:", {
     service: emailService,
     user: process.env.EMAIL_USER,
     host: transportConfig.host,
     port: transportConfig.port,
-    secure: transportConfig.secure
+    secure: transportConfig.secure,
   });
 
   return nodemailer.createTransport(transportConfig);
@@ -68,11 +68,11 @@ const transporter = createTransporter();
 // Verify transporter configuration on startup
 transporter.verify((error, success) => {
   if (error) {
-    console.error('❌ Email transporter verification failed:', error.message);
-    console.error('Please check your email configuration in .env file');
-    console.error('For Gmail, make sure you are using an App Password');
+    console.error("❌ Email transporter verification failed:", error.message);
+    console.error("Please check your email configuration in .env file");
+    console.error("For Gmail, make sure you are using an App Password");
   } else {
-    console.log('✅ Email server is ready to send messages');
+    console.log("✅ Email server is ready to send messages");
   }
 });
 
@@ -168,7 +168,7 @@ const getPasswordResetEmailHTML = (resetLink, userName) => {
           <p>Best regards,<br><strong>Brothers International Team</strong></p>
         </div>
         <div class="footer">
-          <p>&copy; ${new Date().getFullYear()} Brothers International. All rights reserved.</p>
+          <p>&copy; ${new Date().getFullYear()} Brothers International Travels. All rights reserved.</p>
           <p>This is an automated message, please do not reply to this email.</p>
         </div>
       </div>
@@ -178,21 +178,27 @@ const getPasswordResetEmailHTML = (resetLink, userName) => {
 };
 
 // Send password reset email
-export const sendPasswordResetEmail = async (email, resetToken, userId, userName) => {
+export const sendPasswordResetEmail = async (
+  email,
+  resetToken,
+  userId,
+  userName,
+) => {
   try {
     console.log(`📤 Attempting to send password reset email to: ${email}`);
 
     // Construct reset link
-    const frontendURL = process.env.FRONTEND_URL || "https://brothersinttvl.com";
+    const frontendURL =
+      process.env.FRONTEND_URL || "https://brothersinttvl.com";
     const resetLink = `${frontendURL}/auth/forgot-password?token=${resetToken}&userId=${userId}`;
 
     const mailOptions = {
       from: {
-        name: "Brothers International",
+        name: "Brothers International Travels",
         address: process.env.EMAIL_USER,
       },
       to: email,
-      subject: "Password Reset Request - Brothers International",
+      subject: "Password Reset Request - Brothers International Travels",
       html: getPasswordResetEmailHTML(resetLink, userName),
       text: `Hello ${userName},\n\nWe received a request to reset your password.\n\nPlease click the following link to reset your password:\n${resetLink}\n\nThis link will expire in 1 hour.\n\nIf you didn't request this, please ignore this email.\n\nBest regards,\nBrother International Team`,
     };
@@ -202,7 +208,7 @@ export const sendPasswordResetEmail = async (email, resetToken, userId, userName
     console.log("Message ID:", info.messageId);
     console.log("Accepted:", info.accepted);
     console.log("Rejected:", info.rejected);
-    
+
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error("❌ Error sending password reset email:", error.message);
@@ -210,14 +216,20 @@ export const sendPasswordResetEmail = async (email, resetToken, userId, userName
       code: error.code,
       command: error.command,
       response: error.response,
-      responseCode: error.responseCode
+      responseCode: error.responseCode,
     });
     throw new Error(`Failed to send password reset email: ${error.message}`);
   }
 };
 
 // Email template for sending credentials
-const getCredentialsEmailHTML = (agentCode, email, password, userName, companyName) => {
+const getCredentialsEmailHTML = (
+  agentCode,
+  email,
+  password,
+  userName,
+  companyName,
+) => {
   return `
     <!DOCTYPE html>
     <html>
@@ -310,11 +322,11 @@ const getCredentialsEmailHTML = (agentCode, email, password, userName, companyNa
     <body>
       <div class="container">
         <div class="header">
-          <h1>🎉 Welcome to Brothers International!</h1>
+          <h1>🎉 Welcome to Brothers International Travels!</h1>
         </div>
         <div class="content">
           <p>Hello <strong>${userName}</strong>,</p>
-          <p>Welcome to Brothers International! Your agency account has been created successfully.</p>
+          <p>Welcome to Brothers International Travels! Your agency account has been created successfully.</p>
           <p><strong>Company:</strong> ${companyName}</p>
           
           <div class="credentials-box">
@@ -337,7 +349,7 @@ const getCredentialsEmailHTML = (agentCode, email, password, userName, companyNa
           </div>
 
           <div style="text-align: center;">
-            <a href="${process.env.FRONTEND_URL || 'https://brothersinttvl.com'}/auth/login" class="button">Login to Your Account</a>
+            <a href="${process.env.FRONTEND_URL || "https://brothersinttvl.com"}/auth/login" class="button">Login to Your Account</a>
           </div>
 
           <div class="warning">
@@ -351,10 +363,10 @@ const getCredentialsEmailHTML = (agentCode, email, password, userName, companyNa
           </div>
 
           <p>If you have any questions or need assistance, please don't hesitate to contact our support team.</p>
-          <p>Best regards,<br><strong>Brothers International Team</strong></p>
+          <p>Best regards,<br><strong>Brothers International Travels Team</strong></p>
         </div>
         <div class="footer">
-          <p>&copy; ${new Date().getFullYear()} Brothers International. All rights reserved.</p>
+          <p>&copy; ${new Date().getFullYear()} Brothers International Travels. All rights reserved.</p>
           <p>This is an automated message, please do not reply to this email.</p>
         </div>
       </div>
@@ -364,14 +376,24 @@ const getCredentialsEmailHTML = (agentCode, email, password, userName, companyNa
 };
 
 // Send credentials email to agent
-export const sendCredentialsEmail = async (email, agentCode, password, userName, companyName) => {
+export const sendCredentialsEmail = async (
+  email,
+  agentCode,
+  password,
+  userName,
+  companyName,
+) => {
   try {
     console.log(`📤 Attempting to send credentials email to: ${email}`);
-    console.log(`Agent: ${userName}, Code: ${agentCode}, Company: ${companyName}`);
+    console.log(
+      `Agent: ${userName}, Code: ${agentCode}, Company: ${companyName}`,
+    );
 
     // Validate inputs
     if (!email || !agentCode || !password || !userName) {
-      throw new Error('Missing required parameters: email, agentCode, password, or userName');
+      throw new Error(
+        "Missing required parameters: email, agentCode, password, or userName",
+      );
     }
 
     // Validate email format
@@ -386,9 +408,15 @@ export const sendCredentialsEmail = async (email, agentCode, password, userName,
         address: process.env.EMAIL_USER,
       },
       to: email,
-      subject: "Your Agent Credentials - Brothers International",
-      html: getCredentialsEmailHTML(agentCode, email, password, userName, companyName),
-      text: `Hello ${userName},\n\nWelcome to Brothers International! Your agency account has been created successfully.\n\nCompany: ${companyName}\n\nYour Login Credentials:\nAgent Code: ${agentCode}\nEmail: ${email}\nPassword: ${password}\n\nLogin URL: ${process.env.FRONTEND_URL || 'https://brothersinttvl.com'}/auth/login\n\nSecurity Tips:\n- Keep your credentials safe and secure\n- Do not share your password with anyone\n- We recommend changing your password after first login\n\nBest regards,\nBrothers International Team`,
+      subject: "Your Agent Credentials - Brothers International Travels",
+      html: getCredentialsEmailHTML(
+        agentCode,
+        email,
+        password,
+        userName,
+        companyName,
+      ),
+      text: `Hello ${userName},\n\nWelcome to Brothers International Travels! Your agency account has been created successfully.\n\nCompany: ${companyName}\n\nYour Login Credentials:\nAgent Code: ${agentCode}\nEmail: ${email}\nPassword: ${password}\n\nLogin URL: ${process.env.FRONTEND_URL || "https://brothersinttvl.com"}/auth/login\n\nSecurity Tips:\n- Keep your credentials safe and secure\n- Do not share your password with anyone\n- We recommend changing your password after first login\n\nBest regards,\nBrothers International Travels Team`,
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -396,11 +424,13 @@ export const sendCredentialsEmail = async (email, agentCode, password, userName,
     console.log("Message ID:", info.messageId);
     console.log("Accepted:", info.accepted);
     console.log("Rejected:", info.rejected);
-    
+
     if (info.rejected && info.rejected.length > 0) {
-      throw new Error(`Email was rejected by the server for: ${info.rejected.join(', ')}`);
+      throw new Error(
+        `Email was rejected by the server for: ${info.rejected.join(", ")}`,
+      );
     }
-    
+
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error("❌ Error sending credentials email:", error.message);
@@ -408,7 +438,7 @@ export const sendCredentialsEmail = async (email, agentCode, password, userName,
       code: error.code,
       command: error.command,
       response: error.response,
-      responseCode: error.responseCode
+      responseCode: error.responseCode,
     });
     throw new Error(`Failed to send credentials email: ${error.message}`);
   }
@@ -419,7 +449,7 @@ export const testEmailConfiguration = async () => {
   try {
     await transporter.verify();
     console.log("✅ Email configuration is valid");
-    return { success: true, message: 'Email configuration is valid' };
+    return { success: true, message: "Email configuration is valid" };
   } catch (error) {
     console.error("❌ Email configuration error:", error);
     return { success: false, error: error.message };

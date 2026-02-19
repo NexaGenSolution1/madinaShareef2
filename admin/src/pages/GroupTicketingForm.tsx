@@ -52,7 +52,6 @@ const GroupTicketingForm = () => {
   const [airlines, setAirlines] = useState<Airline[]>([]);
   const [cityOptions, setCityOptions] = useState<{ value: string; label: string }[]>([]);
 
-  // Form state
   const [formData, setFormData] = useState({
     user: "",
     evoucherAccount: "",
@@ -108,7 +107,6 @@ const GroupTicketingForm = () => {
       fetchBookingDetails(id);
     }
 
-    // Fetch cities for sector from/to dropdowns
     fetch("/admin-portal/data/cities.json")
       .then((res) => res.json())
       .then((data) => {
@@ -148,9 +146,7 @@ const GroupTicketingForm = () => {
       setLoading(true);
       const token = localStorage.getItem("admin_token");
       const response = await axiosInstance.get(`/group-ticketing/${bookingId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data.success) {
         const booking = response.data.data;
@@ -201,7 +197,6 @@ const GroupTicketingForm = () => {
     }
   };
 
-  // Custom select styles
   const getCustomSelectStyles = (hasError: boolean = false) => ({
     control: (provided: any, state: any) => ({
       ...provided,
@@ -234,7 +229,6 @@ const GroupTicketingForm = () => {
     }),
   });
 
-  // Async loadOptions function to filter cities.json
   const loadCityOptions = (inputValue: string, callback: (options: any[]) => void) => {
     fetch("/admin-portal/data/cities.json")
       .then((res) => res.json())
@@ -267,33 +261,19 @@ const GroupTicketingForm = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("admin_token");
-      
+
       if (editMode && id) {
-        const response = await axiosInstance.put(
-          `/group-ticketing/${id}`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const response = await axiosInstance.put(`/group-ticketing/${id}`, formData, {
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        });
         if (response.data.success) {
           window.alert("✅ Booking updated successfully!");
           navigate("/group-ticketing");
         }
       } else {
-        const response = await axiosInstance.post(
-          "/group-ticketing",
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const response = await axiosInstance.post("/group-ticketing", formData, {
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        });
         if (response.data.success) {
           window.alert("✅ Booking created successfully!");
           navigate("/group-ticketing");
@@ -338,9 +318,10 @@ const GroupTicketingForm = () => {
     });
   };
 
-  const updateFlight = (index: number, field: string, value: string) => {
+  // ✅ UPDATED: ek saath multiple fields update karta hai - stale state problem fix
+  const updateFlight = (index: number, fields: Record<string, string>) => {
     const updatedFlights = [...formData.flights];
-    updatedFlights[index] = { ...updatedFlights[index], [field]: value };
+    updatedFlights[index] = { ...updatedFlights[index], ...fields };
     setFormData({ ...formData, flights: updatedFlights });
   };
 
@@ -368,9 +349,9 @@ const GroupTicketingForm = () => {
           </h3>
           <p className="text-blue-100 text-sm mt-1">Airline Group Details</p>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Top Section: Select Evoucher, Sector */}
+          {/* Top Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -393,8 +374,8 @@ const GroupTicketingForm = () => {
                 value={formData.sector}
                 onChange={(e) => {
                   const selectedSector = sectors.find(s => s.sectorTitle === e.target.value);
-                  setFormData({ 
-                    ...formData, 
+                  setFormData({
+                    ...formData,
                     sector: e.target.value,
                     groupCategory: selectedSector?.groupType || "",
                     groupType: selectedSector?.groupType || ""
@@ -412,7 +393,7 @@ const GroupTicketingForm = () => {
             </div>
           </div>
 
-          {/* Second Row: Airline, Group Category, Group Name */}
+          {/* Airline, Group Category, Group Name, Total Seats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -426,8 +407,8 @@ const GroupTicketingForm = () => {
                     ...flight,
                     airline: e.target.value
                   }));
-                  setFormData({ 
-                    ...formData, 
+                  setFormData({
+                    ...formData,
                     airline: e.target.value,
                     groupName: selectedAirline ? `${selectedAirline.airlineName}-${formData.sector || 'NULL'}` : formData.groupName,
                     flights: updatedFlights
@@ -480,7 +461,7 @@ const GroupTicketingForm = () => {
             </div>
           </div>
 
-          {/* Show Seat Section */}
+          {/* Show Seat */}
           <div className="grid grid-cols-1 gap-4">
             <div className="flex items-center">
               <label className="flex items-center cursor-pointer">
@@ -533,7 +514,7 @@ const GroupTicketingForm = () => {
                         type="text"
                         required
                         value={flight.flightNo}
-                        onChange={(e) => updateFlight(index, "flightNo", e.target.value)}
+                        onChange={(e) => updateFlight(index, { flightNo: e.target.value })}
                         className="w-full min-w-[80px] h-9 rounded border border-gray-300 px-2 text-xs outline-none focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                       />
                     </td>
@@ -542,7 +523,7 @@ const GroupTicketingForm = () => {
                         type="date"
                         required
                         value={flight.depDate}
-                        onChange={(e) => updateFlight(index, "depDate", e.target.value)}
+                        onChange={(e) => updateFlight(index, { depDate: e.target.value })}
                         onClick={(e) => e.currentTarget.showPicker?.()}
                         className="w-full min-w-[140px] h-9 px-2 text-xs border border-gray-300 rounded bg-white text-gray-900"
                       />
@@ -552,11 +533,12 @@ const GroupTicketingForm = () => {
                         type="time"
                         required
                         value={flight.depTime}
-                        onChange={(e) => updateFlight(index, "depTime", e.target.value)}
+                        onChange={(e) => updateFlight(index, { depTime: e.target.value })}
                         onClick={(e) => e.currentTarget.showPicker?.()}
                         className="w-full min-w-[120px] h-9 px-2 text-xs border border-gray-300 rounded bg-white text-gray-900"
                       />
                     </td>
+                    {/* ✅ Sector From - automatically fromTerminal bhi set karta hai */}
                     <td className="px-2 py-2 border border-gray-300 dark:border-gray-600">
                       <AsyncSelect
                         cacheOptions
@@ -564,7 +546,10 @@ const GroupTicketingForm = () => {
                         loadOptions={loadCityOptions}
                         styles={getCustomSelectStyles()}
                         value={cityOptions.find((opt) => opt.value === flight.sectorFrom) || null}
-                        onChange={(option: any) => updateFlight(index, "sectorFrom", option?.value || "")}
+                        onChange={(option: any) => updateFlight(index, {
+                          sectorFrom: option?.value || "",
+                          fromTerminal: option?.label || "",
+                        })}
                         placeholder="Select city"
                         className="min-w-[150px]"
                         menuPortalTarget={document.body}
@@ -575,11 +560,12 @@ const GroupTicketingForm = () => {
                       <input
                         type="text"
                         value={flight.fromTerminal}
-                        onChange={(e) => updateFlight(index, "fromTerminal", e.target.value)}
+                        onChange={(e) => updateFlight(index, { fromTerminal: e.target.value })}
                         placeholder="Terminal"
                         className="w-full min-w-[80px] h-9 rounded border border-gray-300 px-2 text-xs outline-none focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                       />
                     </td>
+                    {/* ✅ Sector To - automatically toTerminal bhi set karta hai */}
                     <td className="px-2 py-2 border border-gray-300 dark:border-gray-600">
                       <AsyncSelect
                         cacheOptions
@@ -587,7 +573,10 @@ const GroupTicketingForm = () => {
                         loadOptions={loadCityOptions}
                         styles={getCustomSelectStyles()}
                         value={cityOptions.find((opt) => opt.value === flight.sectorTo) || null}
-                        onChange={(option: any) => updateFlight(index, "sectorTo", option?.value || "")}
+                        onChange={(option: any) => updateFlight(index, {
+                          sectorTo: option?.value || "",
+                          toTerminal: option?.label || "",
+                        })}
                         placeholder="Select city"
                         className="min-w-[150px]"
                         menuPortalTarget={document.body}
@@ -598,7 +587,7 @@ const GroupTicketingForm = () => {
                       <input
                         type="text"
                         value={flight.toTerminal}
-                        onChange={(e) => updateFlight(index, "toTerminal", e.target.value)}
+                        onChange={(e) => updateFlight(index, { toTerminal: e.target.value })}
                         placeholder="Terminal"
                         className="w-full min-w-[80px] h-9 rounded border border-gray-300 px-2 text-xs outline-none focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                       />
@@ -606,7 +595,7 @@ const GroupTicketingForm = () => {
                     <td className="px-2 py-2 border border-gray-300 dark:border-gray-600">
                       <select
                         value={flight.flightClass}
-                        onChange={(e) => updateFlight(index, "flightClass", e.target.value)}
+                        onChange={(e) => updateFlight(index, { flightClass: e.target.value })}
                         className="w-full min-w-[100px] h-9 rounded border border-gray-300 px-2 text-xs outline-none focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                       >
                         <option value="">Select</option>
@@ -620,7 +609,7 @@ const GroupTicketingForm = () => {
                         type="date"
                         required
                         value={flight.arrDate}
-                        onChange={(e) => updateFlight(index, "arrDate", e.target.value)}
+                        onChange={(e) => updateFlight(index, { arrDate: e.target.value })}
                         onClick={(e) => e.currentTarget.showPicker?.()}
                         className="w-full min-w-[140px] h-9 px-2 text-xs border border-gray-300 rounded bg-white text-gray-900"
                       />
@@ -630,7 +619,7 @@ const GroupTicketingForm = () => {
                         type="time"
                         required
                         value={flight.arrTime}
-                        onChange={(e) => updateFlight(index, "arrTime", e.target.value)}
+                        onChange={(e) => updateFlight(index, { arrTime: e.target.value })}
                         onClick={(e) => e.currentTarget.showPicker?.()}
                         className="w-full min-w-[120px] h-9 px-2 text-xs border border-gray-300 rounded bg-white text-gray-900"
                       />
@@ -639,7 +628,7 @@ const GroupTicketingForm = () => {
                       <input
                         type="text"
                         value={flight.baggage}
-                        onChange={(e) => updateFlight(index, "baggage", e.target.value)}
+                        onChange={(e) => updateFlight(index, { baggage: e.target.value })}
                         placeholder="e.g., 30kg"
                         className="w-full min-w-[80px] h-9 rounded border border-gray-300 px-2 text-xs outline-none focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                       />
@@ -647,7 +636,7 @@ const GroupTicketingForm = () => {
                     <td className="px-2 py-2 border border-gray-300 dark:border-gray-600">
                       <select
                         value={flight.meal}
-                        onChange={(e) => updateFlight(index, "meal", e.target.value)}
+                        onChange={(e) => updateFlight(index, { meal: e.target.value })}
                         className="w-full min-w-[100px] h-9 rounded border border-gray-300 px-2 text-xs outline-none focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                       >
                         <option value="">Select</option>
@@ -680,10 +669,7 @@ const GroupTicketingForm = () => {
               </label>
               <select
                 value={formData.price.buyingCurrency}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  price: { ...formData.price, buyingCurrency: e.target.value }
-                })}
+                onChange={(e) => setFormData({ ...formData, price: { ...formData.price, buyingCurrency: e.target.value } })}
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               >
                 <option value="PKR">PKR</option>
@@ -696,10 +682,7 @@ const GroupTicketingForm = () => {
               <input
                 type="text"
                 value={formData.price.buyingAdultPrice ? formData.price.buyingAdultPrice.toLocaleString() : ''}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  price: { ...formData.price, buyingAdultPrice: Number(e.target.value.replace(/,/g, '')) || 0 }
-                })}
+                onChange={(e) => setFormData({ ...formData, price: { ...formData.price, buyingAdultPrice: Number(e.target.value.replace(/,/g, '')) || 0 } })}
                 placeholder="0"
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               />
@@ -711,10 +694,7 @@ const GroupTicketingForm = () => {
               <input
                 type="text"
                 value={formData.price.buyingChildPrice ? formData.price.buyingChildPrice.toLocaleString() : ''}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  price: { ...formData.price, buyingChildPrice: Number(e.target.value.replace(/,/g, '')) || 0 }
-                })}
+                onChange={(e) => setFormData({ ...formData, price: { ...formData.price, buyingChildPrice: Number(e.target.value.replace(/,/g, '')) || 0 } })}
                 placeholder="0"
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               />
@@ -726,10 +706,7 @@ const GroupTicketingForm = () => {
               <input
                 type="text"
                 value={formData.price.buyingInfantPrice ? formData.price.buyingInfantPrice.toLocaleString() : ''}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  price: { ...formData.price, buyingInfantPrice: Number(e.target.value.replace(/,/g, '')) || 0 }
-                })}
+                onChange={(e) => setFormData({ ...formData, price: { ...formData.price, buyingInfantPrice: Number(e.target.value.replace(/,/g, '')) || 0 } })}
                 placeholder="0"
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               />
@@ -744,10 +721,7 @@ const GroupTicketingForm = () => {
               </label>
               <select
                 value={formData.price.sellingCurrencyB2B}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  price: { ...formData.price, sellingCurrencyB2B: e.target.value }
-                })}
+                onChange={(e) => setFormData({ ...formData, price: { ...formData.price, sellingCurrencyB2B: e.target.value } })}
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               >
                 <option value="PKR">PKR</option>
@@ -760,10 +734,7 @@ const GroupTicketingForm = () => {
               <input
                 type="text"
                 value={formData.price.sellingAdultPriceB2B ? formData.price.sellingAdultPriceB2B.toLocaleString() : ''}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  price: { ...formData.price, sellingAdultPriceB2B: Number(e.target.value.replace(/,/g, '')) || 0 }
-                })}
+                onChange={(e) => setFormData({ ...formData, price: { ...formData.price, sellingAdultPriceB2B: Number(e.target.value.replace(/,/g, '')) || 0 } })}
                 placeholder="0"
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               />
@@ -775,10 +746,7 @@ const GroupTicketingForm = () => {
               <input
                 type="text"
                 value={formData.price.sellingChildPriceB2B ? formData.price.sellingChildPriceB2B.toLocaleString() : ''}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  price: { ...formData.price, sellingChildPriceB2B: Number(e.target.value.replace(/,/g, '')) || 0 }
-                })}
+                onChange={(e) => setFormData({ ...formData, price: { ...formData.price, sellingChildPriceB2B: Number(e.target.value.replace(/,/g, '')) || 0 } })}
                 placeholder="0"
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               />
@@ -790,22 +758,17 @@ const GroupTicketingForm = () => {
               <input
                 type="text"
                 value={formData.price.sellingInfantPriceB2B ? formData.price.sellingInfantPriceB2B.toLocaleString() : ''}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  price: { ...formData.price, sellingInfantPriceB2B: Number(e.target.value.replace(/,/g, '')) || 0 }
-                })}
+                onChange={(e) => setFormData({ ...formData, price: { ...formData.price, sellingInfantPriceB2B: Number(e.target.value.replace(/,/g, '')) || 0 } })}
                 placeholder="0"
                 className="w-full h-11 rounded border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               />
             </div>
           </div>
 
-          {/* PNR, Contact Person Phone, Email, Internal Status */}
+          {/* PNR, Contact, Email, Status */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                PNR
-              </label>
+              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">PNR</label>
               <input
                 type="text"
                 value={formData.pnr}
@@ -815,9 +778,7 @@ const GroupTicketingForm = () => {
               />
             </div>
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Contact Person Phone
-              </label>
+              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Contact Person Phone</label>
               <input
                 type="tel"
                 value={formData.contactPersonPhone}
@@ -827,9 +788,7 @@ const GroupTicketingForm = () => {
               />
             </div>
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Contact Person Email
-              </label>
+              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Contact Person Email</label>
               <input
                 type="email"
                 value={formData.contactPersonEmail}
@@ -839,9 +798,7 @@ const GroupTicketingForm = () => {
               />
             </div>
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Internal Status
-              </label>
+              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Internal Status</label>
               <select
                 value={formData.internalStatus}
                 onChange={(e) => setFormData({ ...formData, internalStatus: e.target.value })}

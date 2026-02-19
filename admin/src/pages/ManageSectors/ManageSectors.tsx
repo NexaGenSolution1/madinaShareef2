@@ -12,11 +12,100 @@ interface Sector {
     createdAt: string;
 }
 
+interface UnifiedGroup {
+    id: string;
+    source: string;
+    sector: string;
+    type: string;
+    available_no_of_pax: number;
+    price: number;
+    dept_date: string;
+    airline: {
+        airline_name: string;
+        short_name: string;
+        logo_url: string | null;
+    };
+    pnr: string;
+}
+
+const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+    'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+function buildCopyText(groups: UnifiedGroup[]): string {
+    const today = new Date();
+    const day = today.getDate();
+    const month = MONTHS[today.getMonth()];
+    const header = `=====  ${day} ${month} UPDATES  =====`;
+
+    const grouped: Record<string, UnifiedGroup[]> = {};
+    groups.forEach(g => {
+        const key = `${g.airline.short_name}__${g.sector}`;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(g);
+    });
+
+    Object.values(grouped).forEach(arr =>
+        arr.sort((a, b) => new Date(a.dept_date).getTime() - new Date(b.dept_date).getTime())
+    );
+
+    const sortedKeys = Object.keys(grouped).sort((a, b) => {
+        const [, secA] = a.split('__');
+        const [, secB] = b.split('__');
+        return secA.localeCompare(secB);
+    });
+
+    const divider = '=====================';
+
+    const sections = sortedKeys.map(key => {
+        const arr = grouped[key];
+        return arr.map(g => {
+            const d = new Date(g.dept_date);
+            const dd = String(d.getDate()).padStart(2, '0');
+            const mon = MONTHS[d.getMonth()];
+            const sec = g.sector.replace('-', ' ');
+            return `${g.airline.short_name} ${dd} ${mon} ${sec}...FARE ${g.price}`;
+        }).join('\n');
+    });
+
+    const footer = `ALL GROUPS ARE NON REFUNDABLE AND NON CHANGEABLE
+=======================
+       Aizaz Ur Rahman
+Mobile. 03478885551-
+Brother's International Travels  
+Address.. Main Bazar Batkhela.  
+        Ptcl. . .0932 412499
+EMAIL. Brothersit369@gmail.com`;
+
+    return [header, sections.join(`\n${divider}\n`), divider, footer].join('\n');
+}
+
 export default function ManageSectors() {
     const [sectors, setSectors] = useState<Sector[]>([]);
+    const [unifiedGroups, setUnifiedGroups] = useState<UnifiedGroup[]>([]);
     const [fetchLoading, setFetchLoading] = useState(true);
     const [updateLoading, setUpdateLoading] = useState(false);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+    const [copied, setCopied] = useState(false);
+
+    const fetchUnifiedGroups = async () => {
+        try {
+            const response = await axiosInstance.get("/sector/getUnifiedGroups");
+
+            console.log("Full Response:", response.data);
+            console.log("Unified Groups Count:", response.data?.data?.length || 0);
+
+            // FIX: Response structure ko JSON ke mutabiq set karein
+            // Aapka JSON kehta hai: response.data.data (ye array hai)
+            if (response.data.success && Array.isArray(response.data.data)) {
+                setUnifiedGroups(response.data.data);
+                console.log("✅ Unified groups set successfully:", response.data.data.length);
+            } else {
+                console.warn("Data format matches but array not found or success is false");
+            }
+        } catch (error: any) {
+            console.error("Error fetching unified groups:", error);
+        }
+    };
 
     const fetchSectors = async () => {
         try {
@@ -28,11 +117,28 @@ export default function ManageSectors() {
                 );
                 setSectors(sortedSectors);
             }
-
         } catch (error: any) {
             console.error("Error fetching sectors:", error);
         } finally {
             setFetchLoading(false);
+        }
+    };
+
+    const handleCopyData = async () => {
+        const text = buildCopyText(unifiedGroups);
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2500);
+        } catch {
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2500);
         }
     };
 
@@ -43,11 +149,9 @@ export default function ManageSectors() {
                 _id: sector._id,
                 order: index,
             }));
-
             const response = await axiosInstance.post("/sector/updateSectorOrder", {
                 sectors: sectorsWithOrder,
             });
-
             if (response.data.success) {
                 const sortedSectors = response.data.data.sort((a: Sector, b: Sector) =>
                     (a.order ?? 0) - (b.order ?? 0)
@@ -56,7 +160,6 @@ export default function ManageSectors() {
             }
         } catch (error: any) {
             console.error("Error updating sector order:", error);
-            // Revert to original order on error
             fetchSectors();
         } finally {
             setUpdateLoading(false);
@@ -81,20 +184,11 @@ export default function ManageSectors() {
 
     const handleDrop = (e: React.DragEvent<HTMLTableRowElement>, dropIndex: number) => {
         e.preventDefault();
-
-        if (draggedIndex === null || draggedIndex === dropIndex) {
-            return;
-        }
-
+        if (draggedIndex === null || draggedIndex === dropIndex) return;
         const newSectors = [...sectors];
         const draggedSector = newSectors[draggedIndex];
-
-        // Remove from old position
         newSectors.splice(draggedIndex, 1);
-
-        // Insert at new position
         newSectors.splice(dropIndex, 0, draggedSector);
-
         setSectors(newSectors);
         updateSectorOrder(newSectors);
     };
@@ -110,12 +204,13 @@ export default function ManageSectors() {
     };
 
     useEffect(() => {
+        fetchUnifiedGroups();
         fetchSectors();
     }, []);
 
     return (
         <>
-            <PageMeta title="All Sectors - Brothers International" description="View all sectors list" />
+            <PageMeta title="All Sectors - Brothers International Travels" description="View all sectors list" />
 
             <div className="mb-6">
                 <PageBreadCrumb pageTitle="All Sectors" />
@@ -126,9 +221,41 @@ export default function ManageSectors() {
                     <h3 className="font-medium text-black dark:text-white">
                         Sectors List ({sectors.length})
                     </h3>
-                    {updateLoading && (
-                        <span className="text-sm text-primary">Updating order...</span>
-                    )}
+
+                    <div className="flex items-center gap-3">
+                        {updateLoading && (
+                            <span className="text-sm text-primary">Updating order...</span>
+                        )}
+
+                        <button
+                            onClick={handleCopyData}
+                            disabled={unifiedGroups.length === 0}
+                            title={unifiedGroups.length === 0 ? "No data available to copy" : "Copy flight data"}
+                            style={{
+                                backgroundColor: unifiedGroups.length === 0 ? '#d1d5db' : copied ? '#22c55e' : '#3b82f6',
+                                color: 'white',
+                                opacity: unifiedGroups.length === 0 ? 0.6 : 1
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 rounded text-sm font-medium transition-all cursor-pointer"
+                        >
+                            {copied ? (
+                                <>
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Copied!
+                                </>
+                            ) : (
+                                <>
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                    Copy Data ({unifiedGroups.length})
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
 
                 <div className="p-6">
@@ -152,18 +279,10 @@ export default function ManageSectors() {
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
                                             </svg>
                                         </th>
-                                        <th className="min-w-12.5 px-4 py-4 font-medium text-black dark:text-white">
-                                            Sr #
-                                        </th>
-                                        <th className="min-w-37.5 px-4 py-4 font-medium text-black dark:text-white">
-                                            Group Type
-                                        </th>
-                                        <th className="min-w-30 px-4 py-4 font-medium text-black dark:text-white">
-                                            Sector Code
-                                        </th>
-                                        <th className="px-4 py-4 font-medium text-black dark:text-white">
-                                            Full Sector Name
-                                        </th>
+                                        <th className="min-w-12.5 px-4 py-4 font-medium text-black dark:text-white">Sr #</th>
+                                        <th className="min-w-37.5 px-4 py-4 font-medium text-black dark:text-white">Group Type</th>
+                                        <th className="min-w-30 px-4 py-4 font-medium text-black dark:text-white">Sector Code</th>
+                                        <th className="px-4 py-4 font-medium text-black dark:text-white">Full Sector Name</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -179,29 +298,21 @@ export default function ManageSectors() {
                                                 onDragEnter={(e) => handleDragEnter(e, index)}
                                                 onDragLeave={handleDragLeave}
                                                 className="border-b border-stroke dark:border-strokedark hover:bg-gray-50 dark:hover:bg-meta-4 cursor-move transition-all"
-                                                style={{
-                                                    transition: 'background-color 0.2s, border 0.2s',
-                                                }}
+                                                style={{ transition: 'background-color 0.2s, border 0.2s' }}
                                             >
                                                 <td className="px-4 py-4 text-gray-400">
                                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
                                                     </svg>
                                                 </td>
-                                                <td className="px-4 py-4 text-black dark:text-white">
-                                                    {index + 1}
-                                                </td>
+                                                <td className="px-4 py-4 text-black dark:text-white">{index + 1}</td>
                                                 <td className="px-4 py-4 text-black dark:text-white">
                                                     <span className="inline-flex rounded-full bg-opacity-10 px-3 py-1 text-sm font-medium bg-primary text-primary">
                                                         {sector.groupType}
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-4 text-black dark:text-white font-bold">
-                                                    {sector.sectorTitle}
-                                                </td>
-                                                <td className="px-4 py-4 text-black dark:text-white">
-                                                    {sector.fullSector}
-                                                </td>
+                                                <td className="px-4 py-4 text-black dark:text-white font-bold">{sector.sectorTitle}</td>
+                                                <td className="px-4 py-4 text-black dark:text-white">{sector.fullSector}</td>
                                             </tr>
                                         ))
                                     ) : (
