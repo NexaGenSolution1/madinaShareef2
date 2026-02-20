@@ -35,7 +35,7 @@ function buildCopyText(groups: UnifiedGroup[]): string {
     const today = new Date();
     const day = today.getDate();
     const month = MONTHS[today.getMonth()];
-    const header = `=====  ${day} ${month} UPDATES  =====`;
+    const header = `=====${day} ${month} UPDATES=====`;
 
     const grouped: Record<string, UnifiedGroup[]> = {};
     groups.forEach(g => {
@@ -90,12 +90,6 @@ export default function ManageSectors() {
     const fetchUnifiedGroups = async () => {
         try {
             const response = await axiosInstance.get("/sector/getUnifiedGroups");
-
-            console.log("Full Response:", response.data);
-            console.log("Unified Groups Count:", response.data?.data?.length || 0);
-
-            // FIX: Response structure ko JSON ke mutabiq set karein
-            // Aapka JSON kehta hai: response.data.data (ye array hai)
             if (response.data.success && Array.isArray(response.data.data)) {
                 setUnifiedGroups(response.data.data);
                 console.log("✅ Unified groups set successfully:", response.data.data.length);

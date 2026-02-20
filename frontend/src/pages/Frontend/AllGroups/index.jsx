@@ -162,9 +162,7 @@ export default function AllGroups({ headerType, header, searchParams }) {
       });
     }
 
-    // 5. SORTING LOGIC (New Addition)
-    // Yeh code dates ko purani se nayi (18 Feb to 24 Feb) arrange karega
-    filtered.sort((a, b) => new Date(a.dept_date) - new Date(b.dept_date));
+    // NOTE: Do not apply global date sorting here to preserve backend sector order.
 
     setGroups(filtered);
   };
@@ -434,125 +432,130 @@ export default function AllGroups({ headerType, header, searchParams }) {
                           {/* */}
 
                           {/* Group Rows - Condensed, single line per cell */}
-                          {data.groups.map((group) => (
-                            <tr
-                              key={group.id}
-                              className="border-b border-dashed border-gray-100 bg-cyan-50/70"
-                            >
-                              {/* Flight Number */}
-                              <td className="text-left px-3 py-2">
-                                {group.details?.map((flight, i) => (
-                                  <div
-                                    key={i}
-                                    className="flex items-center gap-1.5"
-                                  >
-                                    {flight.flight_no}
-                                  </div>
-                                ))}
-                              </td>
-                              {/* Date Column with Cyan Icon */}
-                              <td className="text-center py-2">
-                                {group.details?.map((flight, i) => (
-                                  <div
-                                    key={i}
-                                    className="flex justify-center items-center gap-1.5"
-                                  >
-                                    <svg
-                                      className="w-3.5 h-3.5"
-                                      fill="currentColor"
-                                      viewBox="0 0 20 20"
+                          {[...data.groups]
+                            .sort(
+                              (a, b) =>
+                                new Date(a.dept_date) - new Date(b.dept_date),
+                            )
+                            .map((group) => (
+                              <tr
+                                key={group.id}
+                                className="border-b border-dashed border-gray-100 bg-cyan-50/70"
+                              >
+                                {/* Flight Number */}
+                                <td className="text-left px-3 py-2">
+                                  {group.details?.map((flight, i) => (
+                                    <div
+                                      key={i}
+                                      className="flex items-center gap-1.5"
                                     >
-                                      <path
-                                        fillRule="evenodd"
-                                        d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                                        clipRule="evenodd"
-                                      />
-                                    </svg>
-                                    <span>
-                                      {formatDate(flight.flight_date)}
-                                    </span>
-                                  </div>
-                                ))}
-                              </td>
-                              <td className="text-center py-2">
-                                {group.details?.map((flight, i) => {
-                                  const sectors = group.sector.split("-");
-                                  if (i >= sectors.length - 1) return null;
-                                  return (
+                                      {flight.flight_no}
+                                    </div>
+                                  ))}
+                                </td>
+                                {/* Date Column with Cyan Icon */}
+                                <td className="text-center py-2">
+                                  {group.details?.map((flight, i) => (
                                     <div
                                       key={i}
                                       className="flex justify-center items-center gap-1.5"
                                     >
-                                      {sectors[i].toUpperCase()}-
-                                      {sectors[i + 1].toUpperCase()}
+                                      <svg
+                                        className="w-3.5 h-3.5"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                      >
+                                        <path
+                                          fillRule="evenodd"
+                                          d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                                          clipRule="evenodd"
+                                        />
+                                      </svg>
+                                      <span>
+                                        {formatDate(flight.flight_date)}
+                                      </span>
                                     </div>
-                                  );
-                                })}
-                              </td>
+                                  ))}
+                                </td>
+                                <td className="text-center py-2">
+                                  {group.details?.map((flight, i) => {
+                                    const sectors = group.sector.split("-");
+                                    if (i >= sectors.length - 1) return null;
+                                    return (
+                                      <div
+                                        key={i}
+                                        className="flex justify-center items-center gap-1.5"
+                                      >
+                                        {sectors[i].toUpperCase()}-
+                                        {sectors[i + 1].toUpperCase()}
+                                      </div>
+                                    );
+                                  })}
+                                </td>
 
-                              {/* Time */}
-                              <td className="text-center py-2">
-                                {group.details?.map((flight, i) => (
-                                  <div
-                                    key={i}
-                                    className="flex justify-center items-center gap-1.5"
-                                  >
-                                    {flight.dept_time?.substring(0, 5)}-
-                                    {flight.arv_time?.substring(0, 5)}
-                                  </div>
-                                ))}
-                              </td>
+                                {/* Time */}
+                                <td className="text-center py-2">
+                                  {group.details?.map((flight, i) => (
+                                    <div
+                                      key={i}
+                                      className="flex justify-center items-center gap-1.5"
+                                    >
+                                      {flight.dept_time?.substring(0, 5)}-
+                                      {flight.arv_time?.substring(0, 5)}
+                                    </div>
+                                  ))}
+                                </td>
 
-                              {/* Baggage */}
-                              <td className="text-center py-2">
-                                {group.details?.map((flight, i) => (
-                                  <div
-                                    key={i}
-                                    className="flex justify-center items-center gap-1.5"
-                                  >
-                                    {flight.baggage
-                                      ? `${flight.baggage} KG`
-                                      : "N/A"}
-                                  </div>
-                                ))}
-                              </td>
+                                {/* Baggage */}
+                                <td className="text-center py-2">
+                                  {group.details?.map((flight, i) => (
+                                    <div
+                                      key={i}
+                                      className="flex justify-center items-center gap-1.5"
+                                    >
+                                      {flight.baggage
+                                        ? `${flight.baggage} KG`
+                                        : "N/A"}
+                                    </div>
+                                  ))}
+                                </td>
 
-                              {/* Meal */}
-                              <td className="text-center py-2">
-                                {group.details?.map((flight, i) => (
-                                  <div
-                                    key={i}
-                                    className="flex justify-center items-center gap-1.5"
-                                  >
-                                    {flight.meal || "No"}
-                                  </div>
-                                ))}
-                              </td>
+                                {/* Meal */}
+                                <td className="text-center py-2">
+                                  {group.details?.map((flight, i) => (
+                                    <div
+                                      key={i}
+                                      className="flex justify-center items-center gap-1.5"
+                                    >
+                                      {flight.meal || "No"}
+                                    </div>
+                                  ))}
+                                </td>
 
-                              {/* Price */}
-                              <td className="text-center py-2">
-                                {user.priceOnCall
-                                  ? "Price on Call"
-                                  : `PKR ${group.price?.toLocaleString()}`}
-                              </td>
+                                {/* Price */}
+                                <td className="text-center py-2">
+                                  {user.priceOnCall
+                                    ? "Price on Call"
+                                    : `PKR ${group.price?.toLocaleString()}`}
+                                </td>
 
-                              {/* Action Button - Orange */}
-                              <td className="text-center py-2">
-                                <button
-                                  onClick={() => handleBookNow(group)}
-                                  disabled={!user.showHideButton}
-                                  className={`px-2 py-1 md:px-3 md:py-1.5 rounded text-[10px] md:text-[12.5px] font-semibold shadow-sm transition-all duration-200 ${
-                                    user.showHideButton
-                                      ? "bg-[#f97316] hover:bg-[#ea580c] text-white cursor-pointer"
-                                      : "bg-gray-300 text-gray-500 cursor-not-allowed opacity-60"
-                                  }
+                                {/* Action Button - Orange */}
+                                <td className="text-center py-2">
+                                  <button
+                                    onClick={() => handleBookNow(group)}
+                                    disabled={!user.showHideButton}
+                                    className={`px-2 py-1 md:px-3 md:py-1.5 rounded text-[10px] md:text-[12.5px] font-semibold shadow-sm transition-all duration-200 ${
+                                      user.showHideButton
+                                        ? "bg-[#f97316] hover:bg-[#ea580c] text-white cursor-pointer"
+                                        : "bg-gray-300 text-gray-500 cursor-not-allowed opacity-60"
+                                    }
   `}
-                                >
-                                  Book now
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
+                                  >
+                                    Book now
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
                         </React.Fragment>
                       ));
                     })()}
