@@ -4,6 +4,8 @@ import AsyncSelect from "react-select/async";
 import axiosInstance from "../Api/axios";
 import PageMeta from "../components/common/PageMeta";
 import PageBreadCrumb from "../components/common/PageBreadCrumb";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 interface Flight {
   airline: string;
@@ -311,6 +313,28 @@ const GroupTicketingForm = () => {
     });
   };
 
+  const handleDateMasking = (index: number, field: 'depDate' | 'arrDate', value: string) => {
+    let x = value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,2})(\d{0,4})/);
+    if (!x) return;
+    let maskedValue = !x[2] ? x[1] : x[1] + '-' + x[2] + (x[3] ? '-' + x[3] : '');
+    const updatedFlights = [...formData.flights];
+    (updatedFlights[index] as any)[field] = maskedValue;
+    setFormData({ ...formData, flights: updatedFlights });
+  };
+
+  const parseISODate = (isoDate: string) => {
+    if (!isoDate) return null;
+    const [y, m, d] = isoDate.split('-');
+    return new Date(Number(y), Number(m) - 1, Number(d));
+  };
+
+  const dateToISO = (date: Date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
   const removeFlight = (index: number) => {
     setFormData({
       ...formData,
@@ -519,13 +543,21 @@ const GroupTicketingForm = () => {
                       />
                     </td>
                     <td className="px-2 py-2 border border-gray-300 dark:border-gray-600">
-                      <input
-                        type="date"
-                        required
-                        value={flight.depDate}
-                        onChange={(e) => updateFlight(index, { depDate: e.target.value })}
-                        onClick={(e) => e.currentTarget.showPicker?.()}
-                        className="w-full min-w-[140px] h-9 px-2 text-xs border border-gray-300 rounded bg-white text-gray-900"
+                      <DatePicker
+                        selected={parseISODate(flight.depDate)}
+                        onChange={(date: Date | null) => {
+                          if (date) updateFlight(index, { depDate: dateToISO(date) });
+                        }}
+                        dateFormat="dd-MM-yyyy"
+                        customInput={
+                          <input
+                            type="text"
+                            placeholder="DD-MM-YYYY"
+                            value={flight.depDate}
+                            onChange={(e) => handleDateMasking(index, 'depDate', e.target.value)}
+                            className="w-full min-w-[140px] h-9 px-2 text-xs border border-gray-300 rounded bg-white text-gray-900"
+                          />
+                        }
                       />
                     </td>
                     <td className="px-2 py-2 border border-gray-300 dark:border-gray-600">
@@ -605,13 +637,21 @@ const GroupTicketingForm = () => {
                       </select>
                     </td>
                     <td className="px-2 py-2 border border-gray-300 dark:border-gray-600">
-                      <input
-                        type="date"
-                        required
-                        value={flight.arrDate}
-                        onChange={(e) => updateFlight(index, { arrDate: e.target.value })}
-                        onClick={(e) => e.currentTarget.showPicker?.()}
-                        className="w-full min-w-[140px] h-9 px-2 text-xs border border-gray-300 rounded bg-white text-gray-900"
+                      <DatePicker
+                        selected={parseISODate(flight.arrDate)}
+                        onChange={(date: Date | null) => {
+                          if (date) updateFlight(index, { arrDate: dateToISO(date) });
+                        }}
+                        dateFormat="dd-MM-yyyy"
+                        customInput={
+                          <input
+                            type="text"
+                            placeholder="DD-MM-YYYY"
+                            value={flight.arrDate}
+                            onChange={(e) => handleDateMasking(index, 'arrDate', e.target.value)}
+                            className="w-full min-w-[140px] h-9 px-2 text-xs border border-gray-300 rounded bg-white text-gray-900"
+                          />
+                        }
                       />
                     </td>
                     <td className="px-2 py-2 border border-gray-300 dark:border-gray-600">
