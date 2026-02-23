@@ -315,12 +315,12 @@ const formatDate = (dateStr: string | Date | undefined): string => {
   });
 };
 
-const getAgencyName = (booking: Booking): string => {
-  if (typeof booking.userId === "object" && booking.userId?.companyName) {
-    return booking.userId.companyName;
-  }
-  return "SUPRA TRAVEL & TOURS";
-};
+// const getAgencyName = (booking: Booking): string => {
+//   if (typeof booking.userId === "object" && booking.userId?.companyName) {
+//     return booking.userId.companyName;
+//   }
+//   return "SUPRA TRAVEL & TOURS";
+// };
 
 const sanitizeFilename = (str: string): string => {
   if (!str) return "file";
