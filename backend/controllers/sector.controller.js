@@ -251,7 +251,7 @@ export const getUnifiedGroups = async (req, res) => {
     /* ===============================
        1️⃣ Fetch Admin Groups
     =============================== */
-    const adminGroups = await GroupTicketing.find()
+    const adminGroups = await GroupTicketing.find({ internalStatus: "Public" })
       .sort({ createdAt: -1 })
       .lean();
 

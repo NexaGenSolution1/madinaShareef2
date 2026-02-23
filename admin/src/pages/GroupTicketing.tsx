@@ -75,7 +75,7 @@ const GroupTicketing = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<GroupTicketing[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [groupTypeFilter, setGroupTypeFilter] = useState<string>("All");
@@ -104,6 +104,8 @@ const GroupTicketing = () => {
     }
   };
 
+  console.log(bookings)
+
   const handleEdit = (bookingId: string) => {
     navigate(`/group-ticketing/edit/${bookingId}`);
   };
@@ -112,7 +114,7 @@ const GroupTicketing = () => {
     if (!window.confirm("Are you sure you want to delete this group?")) {
       return;
     }
-    
+
     try {
       const token = localStorage.getItem("admin_token");
       const response = await axiosInstance.delete(`/group-ticketing/${bookingId}`, {
@@ -120,7 +122,7 @@ const GroupTicketing = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      
+
       if (response.data.success) {
         window.alert("✅ Group deleted successfully!");
         fetchBookings();
@@ -132,34 +134,25 @@ const GroupTicketing = () => {
   };
 
   const filteredBookings = bookings.filter(booking => {
-    const matchesSearch = 
+    const matchesSearch =
       booking.voucher_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.groupBookingId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (booking.user && booking.user.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (booking.groupName && booking.groupName.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (booking.airline && booking.airline.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+
     const matchesGroupType = groupTypeFilter === "All" || booking.groupType === groupTypeFilter;
-    
+
     return matchesSearch && matchesGroupType;
   });
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-  };
 
   return (
     <>
       <PageMeta title="Group Ticketing" description="Manage group ticketing groups" />
       <PageBreadCrumb pageTitle="Group Ticketing" />
 
-      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]" style={{zIndex: 999999999999999999999999999999999999999999999999999}}>
+      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/3" style={{ zIndex: 999999999999999999999999999999999999999999999999999 }}>
         <div className="px-4 py-6 md:px-6 xl:px-7.5">
           {/* Header */}
           <div className="mb-6 flex items-center justify-between">
@@ -237,44 +230,90 @@ const GroupTicketing = () => {
               <table className="w-full table-auto">
                 <thead className="bg-gray-800 dark:bg-gray-900">
                   <tr>
-                    <th className="px-4 py-4 text-left text-sm font-medium text-white">#</th>
-                    <th className="px-4 py-4 text-left text-sm font-medium text-white">Voucher ID</th>
-                    <th className="px-4 py-4 text-left text-sm font-medium text-white">Group Type</th>
-                    <th className="px-4 py-4 text-left text-sm font-medium text-white">Available Seats</th>
-                    <th className="px-4 py-4 text-left text-sm font-medium text-white">Created</th>
-                    <th className="px-4 py-4 text-left text-sm font-medium text-white">Actions</th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">#</th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Group & Voucher</th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Sector (Route)</th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Airline & PNR</th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Available Seats</th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">B2B Price (Adult)</th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-gray-50 dark:bg-gray-800/50">
+                <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800/50 dark:divide-gray-700">
                   {filteredBookings.slice(0, entriesPerPage).map((booking, index) => (
-                    <tr key={booking._id} className="border-b border-gray-200 dark:border-gray-700">
-                      <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">{index + 1}</td>
+                    <tr key={booking._id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                      {/* Index */}
+                      <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 font-medium">
+                        {index + 1}
+                      </td>
+
+                      {/* Group & Voucher Info */}
                       <td className="px-4 py-4">
-                        <div className="text-sm font-medium text-gray-800 dark:text-white/90">{booking.voucher_id}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">{booking.groupBookingId}</div>
+                        <div className="text-sm font-bold text-gray-800 dark:text-white">
+                          {booking.groupName || "Unnamed Group"}
+                        </div>
+                        <div className="text-[11px] text-gray-500 font-mono">{booking.voucher_id}</div>
+                        <div className="mt-1">
+                          <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
+                            {booking.groupType}
+                          </span>
+                        </div>
                       </td>
+
+                      {/* Sector / Route */}
                       <td className="px-4 py-4">
-                        <span className="inline-flex rounded-full px-3 py-1 text-xs font-semibold bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400">
-                          {booking.groupType}
-                        </span>
+                        <div className="flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-white">
+                          <span>{booking.flights[0]?.sectorFrom || "N/A"}</span>
+                          <span className="text-blue-500">➔</span>
+                          <span>{booking.flights[booking.flights.length - 1]?.sectorTo || "N/A"}</span>
+                        </div>
+                        <div className="text-[11px] text-gray-500 mt-0.5">
+                          {booking.flights[0]?.depTime} | {new Date(booking.flights[0]?.depDate).toLocaleDateString('en-GB')}
+                        </div>
                       </td>
-                      <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">
-                        <div className="text-xs text-gray-500">Seats: {booking.totalSeats}</div>
+
+                      {/* Airline & PNR */}
+                      <td className="px-4 py-4 text-sm">
+                        <div className="font-medium text-gray-700 dark:text-gray-300">
+                          {booking.airline || "Multiple"}
+                        </div>
+                        {booking.pnr ? (
+                          <div className="mt-1 inline-block px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-800 rounded text-[11px] font-mono font-bold">
+                            {booking.pnr}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-400 italic">No PNR</span>
+                        )}
                       </td>
-                      <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">
-                        {formatDate(booking.createdAt)}
+
+                      {/* Seats */}
+                      <td className="px-4 py-4 text-sm text-center md:text-left">
+                        <div className="text-gray-800 dark:text-white font-bold text-base">
+                          {booking.totalSeats}
+                        </div>
+                        <div className="text-[10px] text-gray-500 uppercase tracking-tighter">Total Capacity</div>
                       </td>
-                      <td className="px-4 py-4">
-                        <div className="flex gap-2">
+
+                      {/* Pricing */}
+                      <td className="px-4 py-4 text-sm">
+                        <div className="text-green-600 dark:text-green-400 font-bold">
+                          PKR {booking.price.sellingAdultPriceB2B?.toLocaleString()}
+                        </div>
+                        <div className="text-[10px] text-gray-500 uppercase tracking-tighter">Per Adult</div>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="px-4 py-4 text-sm">
+                        <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleEdit(booking._id)}
-                            className="rounded bg-blue-500 px-3 py-1 text-xs font-medium text-white hover:bg-blue-600"
+                            className="rounded-md bg-blue-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-600 transition-colors shadow-sm"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleDelete(booking._id)}
-                            className="rounded bg-red-500 px-3 py-1 text-xs font-medium text-white hover:bg-red-600"
+                            className="rounded-md bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-600 transition-colors shadow-sm"
                           >
                             Delete
                           </button>

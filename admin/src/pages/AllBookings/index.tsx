@@ -4,6 +4,9 @@ import { format } from "date-fns"
 import axiosInstance from '../../Api/axios'
 import { generateBookingPDF } from '../../utils'
 import MaskedDatePicker from '../../components/maskedDatePicker'
+import { toast } from 'react-toastify'
+import { printGDSBooking } from '../../utils/bookingPDFService'
+import { generateClientPDF } from '../../utils/genrateclientpdf'
 
 interface Booking {
     _id: string
@@ -12,7 +15,13 @@ interface Booking {
     sector: string
     airline?: { id?: string; name: string; logoUrl?: string }
     passengers: { _id: string, type: string; title: string; givenName: string, surName: string, passportNumber: string, dateOfBirth: string, passportExpiry: string, nationality: string }[]
-    userId?: string | { _id: string; name: string; email: string; companyName?: string; agencyCode?: string }
+    userId?: string | {
+        _id: string;
+        name: string;
+        email: string;
+        companyName: string; // Remove the '?'
+        agencyCode?: string
+    }
     adultsCount: number
     childrenCount: number
     infantsCount: number
@@ -40,12 +49,14 @@ interface BookingsTableProps {
     formatDate: (dateStr: string | undefined) => string
     navigate: (path: string) => void
     timers: { [key: string]: { hours: number; minutes: number; seconds: number; expired: boolean } }
+    setBookings: React.Dispatch<React.SetStateAction<Booking[]>>
 }
 
-const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, timers }: BookingsTableProps) => {
+const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, timers, setBookings }: BookingsTableProps) => {
+    const [deletingId, setDeletingId] = useState<string | null>(null);
     return (
         <table className="min-w-full border-collapse">
-            <thead className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8f]">
+            <thead className="bg-linear-to-r from-[#1e3a5f] to-[#2d5a8f]">
                 <tr>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-white border-r border-[#3d6fa8]">
                         Booking Details
@@ -91,7 +102,7 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                 <td className="px-4 py-4 align-top border-r border-gray-300">
                                     <div className="space-y-1.5">
                                         <div className="flex items-center gap-2">
-                                            <span className="inline-block bg-gradient-to-r from-amber-600 to-amber-700 text-white px-3 py-1.5 rounded-md text-xs font-semibold shadow-md">
+                                            <span className="inline-block bg-linear-to-r from-amber-600 to-amber-700 text-white px-3 py-1.5 rounded-md text-xs font-semibold shadow-md">
                                                 Airline PNR #: {booking.pnr || 'N/A'}
                                             </span>
                                         </div>
@@ -252,39 +263,191 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                 </td>
 
                                 {/* Action */}
-                                <td className="py-4 align-top">
-                                    <div className="flex justify-center items-center gap-2">
-                                        {/* View Details - Available for all bookings */}
-                                        <button
-                                            onClick={() => navigate(`/booking-detail/${booking._id}`)}
-                                            className="p-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 rounded-lg transition-all shadow-sm hover:shadow-md border border-slate-200"
-                                            title="View Details"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
-                                        </button>
-
-                                        {/* On Hold booking actions */}
-                                        {(booking.status === 'on hold' || booking.status === 'pending' || booking.status === 'confirmed') && (
-                                            <>
-                                                <button
-                                                    onClick={() => {
-                                                        // Handle PDF download
-                                                        generateBookingPDF(booking).catch((err: any) => {
-                                                            console.error('Error generating PDF:', err)
-                                                        })
-                                                    }}
-                                                    className="p-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 rounded-lg transition-all shadow-sm hover:shadow-md border border-slate-200"
-                                                    title="Download PDF"
+                                <td className="py-4 align-middle text-center">
+                                    <div className="flex flex-col items-center gap-2">
+                                        {/* First row: 3 buttons */}
+                                        <div className="flex flex-row justify-center items-center gap-2 w-full">
+                                            {/* View Details - Available for all bookings */}
+                                            <button
+                                                onClick={() =>
+                                                    navigate(
+                                                        `/booking-detail/${booking._id}`,
+                                                    )
+                                                }
+                                                className="p-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 rounded-lg transition-all shadow-sm hover:shadow-md border border-slate-200"
+                                                title="View Details"
+                                            >
+                                                <svg
+                                                    className="w-4 h-4"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
                                                 >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                    </svg>
-                                                </button>
-                                            </>
-                                        )}
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                                    />
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                                    />
+                                                </svg>
+                                            </button>
+                                            {/* Edit and Delete only for on hold/pending */}
+                                            {(booking.status === "on hold" ||
+                                                booking.status === "pending") && (
+                                                    <>
+                                                        {/* <button
+                                                            onClick={() =>
+                                                                navigate(
+                                                                    `/dashboard/edit-booking/${booking._id}`,
+                                                                )
+                                                            }
+                                                            className="p-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 rounded-lg transition-all shadow-sm hover:shadow-md border border-slate-200"
+                                                            title="Edit Booking"
+                                                        >
+                                                            <svg
+                                                                className="w-4 h-4"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                    strokeWidth={2}
+                                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                                                />
+                                                            </svg>
+                                                        </button> */}
+                                                        <button
+                                                            // onClick={() => {
+                                                            //     if (window.confirm('Are you sure you want to delete this booking?')) {
+                                                            //         // Handle delete booking
+                                                            //         toast.info('Delete functionality to be implemented')
+                                                            //     }
+                                                            // }}
+
+                                                            onClick={async () => {
+                                                                const confirmDelete = window.confirm(
+                                                                    "Are you sure you want to delete this booking? This action cannot be undone.",
+                                                                );
+                                                                if (!confirmDelete) return;
+
+                                                                try {
+                                                                    setDeletingId(booking._id);
+
+                                                                    await axiosInstance.delete(
+                                                                        `/bookings/${booking._id}`,
+                                                                    );
+
+                                                                    toast.success(
+                                                                        "Booking deleted successfully",
+                                                                    );
+                                                                    setBookings((prev: Booking[]) =>
+                                                                        prev.filter(
+                                                                            (b: Booking) => b._id !== booking._id,
+                                                                        ),
+                                                                    );
+                                                                } catch (err: any) {
+                                                                    toast.error(
+                                                                        err.response?.data?.message ||
+                                                                        "Failed to delete booking",
+                                                                    );
+                                                                } finally {
+                                                                    setDeletingId(null);
+                                                                }
+                                                            }}
+                                                            disabled={deletingId === booking._id}
+                                                            className="p-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 rounded-lg transition-all shadow-sm hover:shadow-md border border-slate-200"
+                                                            title="Delete Booking"
+                                                        >
+                                                            <svg
+                                                                className="w-4 h-4"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                    strokeWidth={2}
+                                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                                                />
+                                                            </svg>
+                                                        </button>
+                                                    </>
+                                                )}
+                                        </div>
+                                        {/* Second row: 2 buttons (Print, Download PDF) */}
+                                        {(booking.status === "on hold" ||
+                                            booking.status === "pending" ||
+                                            booking.status === "confirmed") && (
+                                                <div className="flex flex-row justify-center items-center gap-2 w-full mt-2">
+                                                    {/* 1. ORIGINAL FULL PDF DOWNLOAD */}
+                                                    <button
+                                                        onClick={() => {
+                                                            generateBookingPDF(booking).catch((err) => {
+                                                                console.error("Error generating PDF:", err);
+                                                                toast.error("Failed to generate PDF");
+                                                            });
+                                                        }}
+                                                        className="p-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 rounded-lg transition-all shadow-sm hover:shadow-md border border-slate-200"
+                                                        title="Download Full Ticket"
+                                                    >
+                                                        {/* Download Icon */}
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                        </svg>
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => {
+                                                            generateClientPDF(booking).catch((err) => {
+                                                                console.error("Error generating Client PDF:", err);
+                                                                toast.error("Failed to generate Client PDF");
+                                                            });
+                                                        }}
+                                                        className="flex flex-col items-center justify-center p-2.5 text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-700 rounded-lg transition-all shadow-sm hover:shadow-md border border-red-200"
+                                                        title="Download Client Copy (No Agency Info)"
+                                                    >
+                                                        {/* Icon */}
+                                                        <svg
+                                                            className="w-4 h-4"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                                            />
+                                                        </svg>
+
+                                                        {/* Small text below */}
+                                                        <span className="text-[9px] font-semibold mt-1 leading-none">
+                                                            PDF 2
+                                                        </span>
+                                                    </button>
+                                                    {/* 3. PRINT TICKET */}
+                                                    <button
+                                                        onClick={() => printGDSBooking(booking)}
+                                                        className="p-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 rounded-lg transition-all shadow-sm hover:shadow-md border border-slate-200 cursor-pointer"
+                                                        title="Print Ticket"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            )}
+                                        {/* Cancelled bookings only have View Details (already shown above) */}
                                     </div>
                                 </td>
                             </tr>
@@ -490,7 +653,7 @@ export default function AllBookings() {
             <div className="mb-4 bg-white rounded-lg shadow p-3 sm:p-4">
                 <div className="flex flex-wrap items-center gap-3">
                     {/* Search Input */}
-                    <div className="flex-1 min-w-[200px]">
+                    <div className="flex-1 min-w-50">
                         <input
                             type="text"
                             value={searchQuery}
@@ -501,7 +664,7 @@ export default function AllBookings() {
                     </div>
 
                     {/* Sector Filter */}
-                    <div className="w-full sm:w-auto min-w-[150px]">
+                    <div className="w-full sm:w-auto min-w-37.5">
                         <select
                             value={filters.sector}
                             onChange={(e) => handleFilterChange('sector', e.target.value)}
@@ -517,7 +680,7 @@ export default function AllBookings() {
                     </div>
 
                     {/* Airline Filter */}
-                    <div className="w-full sm:w-auto min-w-[150px]">
+                    <div className="w-full sm:w-auto min-w-37.5">
                         <select
                             value={filters.airline}
                             onChange={(e) => handleFilterChange('airline', e.target.value)}
@@ -533,7 +696,7 @@ export default function AllBookings() {
                     </div>
 
                     {/* From Date */}
-                    <div className="w-full sm:w-auto min-w-[150px]">
+                    <div className="w-full sm:w-auto min-w-37.5">
                         <MaskedDatePicker
                             value={filters.fromDate}
                             onChange={(date) => handleFilterChange('fromDate', date)}
@@ -566,6 +729,7 @@ export default function AllBookings() {
                         formatDate={formatDate}
                         navigate={navigate}
                         timers={timers}
+                        setBookings={setBookings}
                     />
                 </div>
             </div>

@@ -2,9 +2,97 @@ import PageMeta from "../../components/common/PageMeta";
 import { ArrowRightIcon, UsersIcon, IdentificationIcon } from "@heroicons/react/24/outline";
 import { Link, useNavigate } from "react-router";
 import AgentStatusChart from "../../components/charts/AgentStatusChart";
+import { useEffect, useState } from "react";
+import axiosInstance from "../../Api/axios";
+
+
+interface UnifiedGroup {
+  id: string;
+  source: string;
+  sector: string;
+  type: string;
+  available_no_of_pax: number;
+  price: number;
+  dept_date: string;
+  airline: {
+    airline_name: string;
+    short_name: string;
+    logo_url: string | null;
+  };
+  pnr: string;
+}
+
+const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+  'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+function buildCopyText(groups: UnifiedGroup[]): string {
+  const today = new Date();
+  const day = today.getDate();
+  const month = MONTHS[today.getMonth()];
+  const header = `=====${day} ${month} UPDATES=====`;
+
+  const divider = '=====================';
+
+  const lines = groups.map(g => {
+    const d = new Date(g.dept_date);
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mon = MONTHS[d.getMonth()];
+    const sec = g.sector.replace('-', ' ');
+
+    return `${g.airline.short_name} ${dd} ${mon} ${sec}...FARE ${g.price}`;
+  });
+
+  const footer = `ALL GROUPS ARE NON REFUNDABLE AND NON CHANGEABLE
+=======================
+       Aizaz Ur Rahman
+Mobile. 03478885551-
+Brother's International Travels  
+Address.. Main Bazar Batkhela.  
+        Ptcl. . .0932 412499
+EMAIL. Brothersit369@gmail.com`;
+
+  return [header, lines.join(`\n${divider}\n`), divider, footer].join('\n');
+}
 
 export default function Home() {
   const navigate = useNavigate()
+  const [unifiedGroups, setUnifiedGroups] = useState<UnifiedGroup[]>([]);
+  const [copied, setCopied] = useState(false);
+
+  const fetchUnifiedGroups = async () => {
+    try {
+      const response = await axiosInstance.get("/sector/getUnifiedGroups");
+      if (response.data.success && Array.isArray(response.data.data)) {
+        setUnifiedGroups(response.data.data);
+      } else {
+        console.warn("Data format matches but array not found or success is false");
+      }
+    } catch (error: any) {
+      console.error("Error fetching unified groups:", error);
+    }
+  };
+
+  const handleCopyData = async () => {
+    const text = buildCopyText(unifiedGroups);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      const el = document.createElement('textarea');
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+  };
+
+  useEffect(() => {
+    fetchUnifiedGroups();
+  }, []);
 
   return (
     <>
@@ -20,6 +108,37 @@ export default function Home() {
             <span className="text-blue-600">Home</span> / Profile
           </div>
         </div>
+      </div>
+
+      <div className="flex justify-end mb-3">
+        <button
+          onClick={handleCopyData}
+          disabled={unifiedGroups.length === 0}
+          title={unifiedGroups.length === 0 ? "No data available to copy" : "Copy flight data"}
+          style={{
+            backgroundColor: unifiedGroups.length === 0 ? '#d1d5db' : copied ? '#22c55e' : '#3b82f6',
+            color: 'white',
+            opacity: unifiedGroups.length === 0 ? 0.6 : 1
+          }}
+          className="flex items-center gap-2 px-4 py-2 rounded text-sm font-medium transition-all cursor-pointer"
+        >
+          {copied ? (
+            <>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Copied!
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              Copy Sectors Data ({unifiedGroups.length})
+            </>
+          )}
+        </button>
       </div>
 
       {/* Top Cards Section */}

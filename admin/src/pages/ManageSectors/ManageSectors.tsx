@@ -37,34 +37,15 @@ function buildCopyText(groups: UnifiedGroup[]): string {
     const month = MONTHS[today.getMonth()];
     const header = `=====${day} ${month} UPDATES=====`;
 
-    const grouped: Record<string, UnifiedGroup[]> = {};
-    groups.forEach(g => {
-        const key = `${g.airline.short_name}__${g.sector}`;
-        if (!grouped[key]) grouped[key] = [];
-        grouped[key].push(g);
-    });
-
-    Object.values(grouped).forEach(arr =>
-        arr.sort((a, b) => new Date(a.dept_date).getTime() - new Date(b.dept_date).getTime())
-    );
-
-    const sortedKeys = Object.keys(grouped).sort((a, b) => {
-        const [, secA] = a.split('__');
-        const [, secB] = b.split('__');
-        return secA.localeCompare(secB);
-    });
-
     const divider = '=====================';
 
-    const sections = sortedKeys.map(key => {
-        const arr = grouped[key];
-        return arr.map(g => {
-            const d = new Date(g.dept_date);
-            const dd = String(d.getDate()).padStart(2, '0');
-            const mon = MONTHS[d.getMonth()];
-            const sec = g.sector.replace('-', ' ');
-            return `${g.airline.short_name} ${dd} ${mon} ${sec}...FARE ${g.price}`;
-        }).join('\n');
+    const lines = groups.map(g => {
+        const d = new Date(g.dept_date);
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mon = MONTHS[d.getMonth()];
+        const sec = g.sector.replace('-', ' ');
+
+        return `${g.airline.short_name} ${dd} ${mon} ${sec}...FARE ${g.price}`;
     });
 
     const footer = `ALL GROUPS ARE NON REFUNDABLE AND NON CHANGEABLE
@@ -76,7 +57,7 @@ Address.. Main Bazar Batkhela.
         Ptcl. . .0932 412499
 EMAIL. Brothersit369@gmail.com`;
 
-    return [header, sections.join(`\n${divider}\n`), divider, footer].join('\n');
+    return [header, lines.join(`\n${divider}\n`), divider, footer].join('\n');
 }
 
 export default function ManageSectors() {

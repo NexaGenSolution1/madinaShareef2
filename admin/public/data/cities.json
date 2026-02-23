@@ -9874,5 +9874,26 @@
     "regionKey": "Middle East",
     "regionName": "Middle East",
     "isMetro": false
-  }
+  },
+  {
+  "title": "Ras Al Khaimah International Airport",
+  "titleKey": "Ras Al Khaimah International Airport",
+  "cityKey": "Ras Al Khaimah",
+  "cityEn": "Ras Al Khaimah",
+  "country": "United Arab Emirates",
+  "countryKey": "United Arab Emirates",
+  "airportCode": "RKT",
+  "searchTerm": "Ras Al Khaimah Ras Al Khaimah International Airport RKT United Arab Emirates UAE",
+  "groupLabel": "R",
+  "hasDestination": true,
+  "isActive": true,
+  "hasReturn": false,
+  "airportTitle": "Ras Al Khaimah International Airport (RKT)",
+  "latitude": 25.613483,
+  "longitude": 55.938817,
+  "countryISO": "AE",
+  "regionKey": "Middle East",
+  "regionName": "Middle East",
+  "isMetro": false
+}
 ]
