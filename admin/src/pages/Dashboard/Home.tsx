@@ -34,59 +34,74 @@ function buildCopyText(groups: UnifiedGroup[]): string {
 
   const divider = "=====================";
 
-  // 🔥 Step 1: Expand details into flat list
-  const expanded: {
+  type Entry = {
     airline: string;
     sector: string;
     price: number;
     date: Date;
-  }[] = [];
+  };
 
+  const sectorMap = new Map<string, Entry[]>();
+  const sectorOrder: string[] = [];
+
+  // 🔹 Step 1: Expand + group by sector
   groups.forEach((g: any) => {
-    if (g.details && g.details.length > 0) {
-      g.details.forEach((d: any) => {
-        const flightDate = d.flight_date || d.dep_date || g.dept_date;
-
-        expanded.push({
-          airline: g.airline?.short_name || "",
-          sector: g.sector,
-          price: g.price,
-          date: new Date(flightDate),
-        });
-      });
-    } else {
-      expanded.push({
+    const addEntry = (dateStr: string) => {
+      const entry: Entry = {
         airline: g.airline?.short_name || "",
         sector: g.sector,
         price: g.price,
-        date: new Date(g.dept_date),
+        date: new Date(dateStr),
+      };
+
+      if (!sectorMap.has(g.sector)) {
+        sectorMap.set(g.sector, []);
+        sectorOrder.push(g.sector); // maintain API order
+      }
+
+      sectorMap.get(g.sector)!.push(entry);
+    };
+
+    if (g.details && g.details.length > 0) {
+      g.details.forEach((d: any) => {
+        const flightDate = d.flight_date || d.dep_date || g.dept_date;
+        addEntry(flightDate);
       });
+    } else {
+      addEntry(g.dept_date);
     }
   });
 
-  // 🔥 Step 2: Sort by full date
-  expanded.sort((a, b) => a.date.getTime() - b.date.getTime());
+  // 🔹 Step 2: Sort inside each sector by full date
+  sectorMap.forEach((entries) => {
+    entries.sort((a, b) => a.date.getTime() - b.date.getTime());
+  });
 
-  // 🔥 Step 3: Build output (Divider only when MONTH changes)
+  // 🔹 Step 3: Build output
   let outputLines: string[] = [];
   let lastMonth: number | null = null;
 
-  expanded.forEach((item) => {
-    const currentMonth = item.date.getMonth();
+  sectorOrder.forEach((sector) => {
+    const entries = sectorMap.get(sector)!;
 
-    if (lastMonth !== null && lastMonth !== currentMonth) {
-      outputLines.push(divider);
-    }
+    entries.forEach((item) => {
+      const currentMonth = item.date.getMonth();
 
-    const dd = String(item.date.getDate()).padStart(2, "0");
-    const mon = MONTHS[currentMonth];
-    const sectorFormatted = item.sector.replace("-", " ");
+      // Divider only when month changes globally
+      if (lastMonth !== null && lastMonth !== currentMonth) {
+        outputLines.push(divider);
+      }
 
-    outputLines.push(
-      `${item.airline} ${dd} ${mon} ${sectorFormatted}...FARE ${item.price}`
-    );
+      const dd = String(item.date.getDate()).padStart(2, "0");
+      const mon = MONTHS[currentMonth];
+      const sectorFormatted = item.sector.replace("-", " ");
 
-    lastMonth = currentMonth;
+      outputLines.push(
+        `${item.airline} ${dd} ${mon} ${sectorFormatted}...FARE ${item.price}`
+      );
+
+      lastMonth = currentMonth;
+    });
   });
 
   const footer = `ALL GROUPS ARE NON REFUNDABLE AND NON CHANGEABLE
