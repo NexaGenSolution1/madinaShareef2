@@ -26,20 +26,67 @@ const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
   'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
 function buildCopyText(groups: UnifiedGroup[]): string {
+  if (!groups.length) return "";
+
   const today = new Date();
-  const day = today.getDate();
-  const month = MONTHS[today.getMonth()];
-  const header = `=====${day} ${month} UPDATES=====`;
+  const header = `=====${String(today.getDate()).padStart(2, "0")} ${MONTHS[today.getMonth()]
+    } UPDATES=====`;
 
-  const divider = '=====================';
+  const divider = "=====================";
 
-  const lines = groups.map(g => {
-    const d = new Date(g.dept_date);
-    const dd = String(d.getDate()).padStart(2, '0');
-    const mon = MONTHS[d.getMonth()];
-    const sec = g.sector.replace('-', ' ');
+  // 🔥 Step 1: Expand details into flat list
+  const expanded: {
+    airline: string;
+    sector: string;
+    price: number;
+    date: Date;
+  }[] = [];
 
-    return `${g.airline.short_name} ${dd} ${mon} ${sec}...FARE ${g.price}`;
+  groups.forEach((g: any) => {
+    if (g.details && g.details.length > 0) {
+      g.details.forEach((d: any) => {
+        const flightDate = d.flight_date || d.dep_date || g.dept_date;
+
+        expanded.push({
+          airline: g.airline?.short_name || "",
+          sector: g.sector,
+          price: g.price,
+          date: new Date(flightDate),
+        });
+      });
+    } else {
+      expanded.push({
+        airline: g.airline?.short_name || "",
+        sector: g.sector,
+        price: g.price,
+        date: new Date(g.dept_date),
+      });
+    }
+  });
+
+  // 🔥 Step 2: Sort by full date
+  expanded.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+  // 🔥 Step 3: Build output (Divider only when MONTH changes)
+  let outputLines: string[] = [];
+  let lastMonth: number | null = null;
+
+  expanded.forEach((item) => {
+    const currentMonth = item.date.getMonth();
+
+    if (lastMonth !== null && lastMonth !== currentMonth) {
+      outputLines.push(divider);
+    }
+
+    const dd = String(item.date.getDate()).padStart(2, "0");
+    const mon = MONTHS[currentMonth];
+    const sectorFormatted = item.sector.replace("-", " ");
+
+    outputLines.push(
+      `${item.airline} ${dd} ${mon} ${sectorFormatted}...FARE ${item.price}`
+    );
+
+    lastMonth = currentMonth;
   });
 
   const footer = `ALL GROUPS ARE NON REFUNDABLE AND NON CHANGEABLE
@@ -51,7 +98,7 @@ Address.. Main Bazar Batkhela.
         Ptcl. . .0932 412499
 EMAIL. Brothersit369@gmail.com`;
 
-  return [header, lines.join(`\n${divider}\n`), divider, footer].join('\n');
+  return [header, ...outputLines, divider, footer].join("\n");
 }
 
 export default function Home() {
