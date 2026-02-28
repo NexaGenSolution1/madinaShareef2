@@ -74,6 +74,7 @@ function buildCopyText(groups: UnifiedGroup[]): string {
         sector: string;
         price: number;
         date: Date;
+        available_no_of_pax?: number;
     };
 
     const sectorMap = new Map<string, Entry[]>();
@@ -87,6 +88,7 @@ function buildCopyText(groups: UnifiedGroup[]): string {
                 sector: g.sector,
                 price: g.price,
                 date: new Date(dateStr),
+                available_no_of_pax: g.available_no_of_pax,
             };
 
             if (!sectorMap.has(g.sector)) {
@@ -107,9 +109,39 @@ function buildCopyText(groups: UnifiedGroup[]): string {
         }
     });
 
-    // 🔹 Step 2: Sort inside each sector by full date
-    sectorMap.forEach((entries) => {
-        entries.sort((a, b) => a.date.getTime() - b.date.getTime());
+    // 🔹 Step 2: Sort + same date pe sirf cheapest with seats
+    sectorMap.forEach((entries, sector) => {
+
+        // 1️⃣ Pehle sort karo (date → price)
+        entries.sort((a, b) => {
+            const timeA = a.date.getTime();
+            const timeB = b.date.getTime();
+
+            if (timeA === timeB) {
+                return a.price - b.price; // same date → cheapest first
+            }
+
+            return timeA - timeB; // different date → earliest first
+        });
+
+        // 2️⃣ Same date pe sirf pehla valid (seats > 0) entry rakho
+        const seenDates = new Set<string>();
+
+        const filtered = entries.filter((item: any) => {
+            const dateKey = item.date.toDateString();
+
+            // ❗ seats check yahan hoga
+            if (item.available_no_of_pax !== undefined && item.available_no_of_pax <= 0) {
+                return false;
+            }
+
+            if (seenDates.has(dateKey)) return false;
+
+            seenDates.add(dateKey);
+            return true;
+        });
+
+        sectorMap.set(sector, filtered);
     });
 
     // 🔹 Step 3: Build output
