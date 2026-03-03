@@ -109,13 +109,13 @@ export default function Footer() {
                 >
                   <FaPhoneAlt /> 0932 412499
                 </a>
-                <a
+                {/* <a
                   href="/"
                   target="_blank"
                   className="flex items-center gap-3 font-semibold transition-all duration-300 ease-in-out hover:text-[#d6d30b]"
                 >
                   <FaPhoneAlt /> 0932 414499
-                </a>
+                </a> */}
                 <a
                   href="/"
                   target="_blank"

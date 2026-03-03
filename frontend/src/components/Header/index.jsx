@@ -1,220 +1,224 @@
-import { useEffect, useRef, useState } from 'react'
-import logo from '../../assets/images/logo.webp'
+import { useEffect, useRef, useState } from "react";
+import logo from "../../assets/images/header-logo.png"; // Make sure this is your new HD PNG
 import { CiMenuFries } from "react-icons/ci";
 import { AiOutlineClose } from "react-icons/ai";
-import { groupTypes } from '../../data/groupTypes'
-import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { groupTypes } from "../../data/groupTypes";
+import {
+  Link,
+  useNavigate,
+  useLocation,
+  useSearchParams,
+} from "react-router-dom";
 
 export default function Header({ user, handleLogout }) {
-    const [open, setOpen] = useState(false);
-    const [profileOpen, setProfileOpen] = useState(false);
-    const profileRef = useRef(null);
-    const navigate = useNavigate();
-    const location = useLocation();
-    const [searchParams] = useSearchParams();
+  const [open, setOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (!profileOpen || !profileRef.current) return;
-            if (!profileRef.current.contains(event.target)) {
-                setProfileOpen(false);
-            }
-        };
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!profileOpen || !profileRef.current) return;
+      if (!profileRef.current.contains(event.target)) {
+        setProfileOpen(false);
+      }
+    };
 
-        const handleEscape = (event) => {
-            if (event.key === 'Escape') {
-                setProfileOpen(false);
-            }
-        };
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setProfileOpen(false);
+      }
+    };
 
-        document.addEventListener('mousedown', handleClickOutside);
-        document.addEventListener('keydown', handleEscape);
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
 
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-            document.removeEventListener('keydown', handleEscape);
-        };
-    }, [profileOpen]);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [profileOpen]);
 
-    // const handleLogout = () => {
-    //     localStorage.removeItem("frontend_token");
-    //     localStorage.removeItem("frontend_user");
-    //     setUser(null);
-    //     setProfileOpen(false);
-    //     // navigate("/auth/login");
-    //     navigate("/");
-    // };
+  const activeGroupTypes = searchParams
+    .getAll("group_type")
+    .map((g) => g.toLowerCase().trim());
 
-    const activeGroupTypes = searchParams
-        .getAll('group_type')
-        .map(g => g.toLowerCase().trim());
+  return (
+    <header className="fixed w-full top-0 left-0 shadow-md z-[999]">
+      <div className="relative flex items-center justify-between gap-2 px-3 md:px-6 bg-[#009BB2] py-2 min-h-[60px] md:min-h-[80px]">
+        {/* Left Side: Logo + Company Name */}
+        <div className="flex items-center gap-2 sm:gap-4 flex-1">
+          <Link to="/" className="w-10 sm:w-12 md:w-16 block shrink-0">
+            <img
+              src={logo}
+              alt="logo"
+              className="w-full h-auto object-contain"
+            />
+          </Link>
 
-    return (
-        <header className='fixed w-full top-0 left-0 shadow-md z-999'>
-            <div className='relative flex items-center justify-between gap-2 sm:gap-4 md:gap-6 px-2 sm:px-3 md:px-4 bg-white py-2 md:py-2.5 overflow-visible'>
-                {/* Left Part */}
-                <div className='relative flex items-center gap-2 sm:gap-4 md:gap-6 z-1'>
-                    <Link to='/' className='w-10 sm:w-12 md:w-14 lg:w-16 block shrink-0'>
-                        <img src={logo} alt="logo" className='w-full h-full object-contain' />
-                    </Link>
+          <div className="flex flex-col">
+            <h1 className="m-0 font-roboto leading-tight font-bold italic tracking-wider text-[1rem] sm:text-[1.1rem] md:text-[1.25rem] text-white whitespace-nowrap">
+              Brothers International Travels
+            </h1>
+            {/* Tagline visible only on small/medium screens under the title */}
+            <p className="m-0 font-roboto leading-tight italic text-white text-[0.65rem] sm:text-[0.75rem] md:hidden">
+              Excellence in Travel and Recruitment
+            </p>
+          </div>
+        </div>
 
-                    {user &&
-                        <div className="hidden xl:flex flex-wrap gap-x-3 lg:gap-x-5">
-                            {groupTypes.map((group) => {
-                                const isAllGroups = group.path === 'all-groups';
+        {/* Center/Right: Tagline (Hidden on mobile, visible on MD+) */}
+        <div className="hidden md:block flex-1 text-center">
+          <p className="m-0 font-roboto leading-relaxed italic text-white text-sm lg:text-base opacity-90">
+            Excellence in Travel and Recruitment
+          </p>
+        </div>
 
-                                const isPathActive =
-                                    location.pathname === `/${group.path}`;
+        {/* Right Side: Desktop Nav & User Profile */}
+        <div className="flex items-center gap-2 sm:gap-4 justify-end">
+          {user && (
+            <div className="hidden xl:flex items-center gap-x-4">
+              {groupTypes.map((group) => {
+                const isAllGroups = group.path === "all-groups";
+                const isPathActive = location.pathname === `/${group.path}`;
+                const isQueryActive = activeGroupTypes.includes(
+                  group.label.toLowerCase(),
+                );
+                const isActive =
+                  (isAllGroups &&
+                    activeGroupTypes.length === 0 &&
+                    isPathActive) ||
+                  (!isAllGroups && (isPathActive || isQueryActive));
 
-                                const isQueryActive =
-                                    activeGroupTypes.length > 0 &&
-                                    activeGroupTypes.includes(group.label.toLowerCase());
-
-                                const isActive =
-                                    (isAllGroups && activeGroupTypes.length === 0 && isPathActive) ||
-                                    (!isAllGroups && (isPathActive || isQueryActive));
-
-                                return (
-                                    <Link
-                                        key={group.value}
-                                        to={`/${group.path}`}
-                                        className={`text-xs lg:text-sm font-semibold whitespace-nowrap hover:text-[#d6d30b] ${isActive ? 'text-[#d6d30b]' : 'text-neutral-700'
-                                            }`}
-                                    >
-                                        {group.label}
-                                    </Link>
-                                );
-                            })}
-                        </div>
-                    }
-
-                </div>
-
-                <div className='relative flex items-center gap-1.5 sm:gap-2 md:gap-4 z-1'>
-                    {/* Banks Link - Always Visible */}
-
-
-                    {
-                        user && (
-                            <div ref={profileRef} className='relative hidden md:flex items-center gap-2'>
-                                <button
-                                    className='flex items-center gap-1.5 sm:gap-2 rounded-full border border-[#2A166D] px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-[#2A166D] hover:bg-[#2A166D] hover:text-white transition-colors'
-                                    onClick={() => setProfileOpen((p) => !p)}
-                                >
-                                    <span className='flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-[#2A166D] text-white font-semibold text-xs sm:text-base shrink-0'>
-                                        {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                                    </span>
-                                    <span className='font-semibold hidden lg:inline'>{user.name || 'User'}</span>
-                                </button>
-                                {profileOpen && (
-                                    <div className='absolute right-0 top-12 w-48 rounded-lg border border-neutral-200 bg-white shadow-lg py-2 text-sm z-1000'>
-                                        <div className='px-4 py-2 text-neutral-700'>
-                                            Signed in as
-                                            <div className='font-semibold text-[#2A166D] truncate'>{user.email}</div>
-                                        </div>
-                                        {user.role === 'Admin' && (
-                                            <button
-                                                className='w-full text-left px-4 py-2 hover:bg-neutral-100'
-                                                onClick={() => {
-                                                    setProfileOpen(false);
-                                                    window.location.href = '/admin-portal/';
-                                                }}
-                                            >
-                                                Admin Portal
-                                            </button>
-                                        )}
-                                        <button
-                                            className='w-full text-left px-4 py-2 hover:bg-neutral-100 font-semibold'
-                                            onClick={() => {
-                                                setProfileOpen(false);
-                                                navigate('/dashboard');
-                                            }}
-                                        >
-                                            Agent Dashboard
-                                        </button>
-                                        <button
-                                            className='w-full text-left px-4 py-2 text-red-600 hover:bg-neutral-100'
-                                            onClick={() => {
-                                                setProfileOpen(false);
-                                                handleLogout();
-                                            }}
-                                        >
-                                            Logout
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        )
-                    }
-                    <div className='flex items-center gap-2 md:hidden'>
-                        {!user && (
-                            <Link to='/banks' className='text-xs sm:text-sm font-semibold hover:text-[#d6d30b] whitespace-nowrap'>Banks</Link>
-                        )}
-                        {user && (
-                            <button
-                                onClick={() => navigate('/dashboard')}
-                                className='flex items-center justify-center'
-                            >
-                                <span className='flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-[#2A166D] text-white font-semibold text-xs sm:text-sm'>
-                                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                                </span>
-                            </button>
-                        )}
-                    </div>
-                    {user &&
-                        <button
-                            className='flex xl:hidden border border-neutral-300 p-1.5 sm:p-2 rounded-lg hover:bg-gray-50 transition-colors'
-                            onClick={() => setOpen(!open)}
-                            aria-label="Toggle menu"
-                        >
-                            {open ? <AiOutlineClose className='text-neutral-700 text-lg sm:text-xl' /> : <CiMenuFries className='text-lg sm:text-xl' />}
-                        </button>
-                    }
-                </div>
-
-                {/* Mobile Menu */}
-                <div className={`flex xl:hidden fixed w-full h-[calc(100vh-56px)] sm:h-[calc(100vh-64px)] md:h-[calc(100vh-72px)] top-14 sm:top-16 md:top-18 left-0 bg-white overflow-y-auto z-998 transition-all duration-300 ease-in-out shadow-lg
-                ${open ? 'translate-x-0 opacity-100 visible' : 'translate-x-full opacity-0 invisible'}`}
-                >
-                    <div className='flex flex-col items-start gap-4 sm:gap-5 px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 font-semibold w-full'>
-                        {groupTypes.map((group) => (
-                            <Link
-                                key={group.value}
-                                to={group.path}
-                                className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors'
-                                onClick={() => setOpen(false)}
-                            >
-                                {group.label}
-                            </Link>
-                        ))}
-
-                        <hr className='w-full border-t border-gray-200 my-2' />
-
-                        {user && (
-                            <>
-                                <button
-                                    className='text-sm sm:text-base hover:text-[#d6d30b] w-full py-2 border-b border-gray-100 transition-colors text-left font-semibold'
-                                    onClick={() => {
-                                        setOpen(false);
-                                        navigate('/dashboard');
-                                    }}
-                                >
-                                    Agent Dashboard
-                                </button>
-                                <button
-                                    className='text-sm sm:text-base text-red-600 hover:text-red-700 w-full py-2 transition-colors text-left'
-                                    onClick={() => {
-                                        setOpen(false);
-                                        handleLogout();
-                                    }}
-                                >
-                                    Logout
-                                </button>
-                            </>
-                        )}
-                    </div>
-                </div>
+                return (
+                  <Link
+                    key={group.value}
+                    to={`/${group.path}`}
+                    className={`text-xs lg:text-sm font-semibold whitespace-nowrap hover:text-yellow-300 transition-colors ${
+                      isActive ? "text-yellow-300" : "text-white"
+                    }`}
+                  >
+                    {group.label}
+                  </Link>
+                );
+              })}
             </div>
-        </header>
-    )
+          )}
+
+          {/* Profile Dropdown / Login Button */}
+          <div className="flex items-center gap-2">
+            {!user ? (
+              <Link
+                to="/banks"
+                className="text-white text-xs sm:text-sm font-semibold hover:text-yellow-300"
+              ></Link>
+            ) : (
+              <div ref={profileRef} className="relative hidden md:block">
+                <button
+                  className="flex items-center gap-2 rounded-full border border-white/30 p-1 pr-3 hover:bg-white/10 transition-colors"
+                  onClick={() => setProfileOpen((p) => !p)}
+                >
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#009BB2] font-bold">
+                    {user.name?.charAt(0).toUpperCase()}
+                  </span>
+                  <span className="text-white text-sm font-semibold hidden lg:inline">
+                    {user.name}
+                  </span>
+                </button>
+
+                {profileOpen && (
+                  <div className="absolute right-0 top-12 w-48 rounded-lg bg-white shadow-xl py-2 text-sm z-[1000] border border-gray-100">
+                    <div className="px-4 py-2 border-b border-gray-100">
+                      <p className="text-gray-500 text-xs text-nowrap">
+                        Signed in as
+                      </p>
+                      <p className="font-bold text-[#009BB2] truncate">
+                        {user.email}
+                      </p>
+                    </div>
+                    {user.role === "Admin" && (
+                      <button
+                        onClick={() =>
+                          (window.location.href = "/admin-portal/")
+                        }
+                        className="w-full text-left px-4 py-2 hover:bg-gray-50"
+                      >
+                        Admin Portal
+                      </button>
+                    )}
+                    <button
+                      onClick={() => navigate("/dashboard")}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-50"
+                    >
+                      Dashboard
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-50 border-t"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Mobile Menu Toggle */}
+            {user && (
+              <button
+                className="xl:hidden text-white p-1.5"
+                onClick={() => setOpen(!open)}
+              >
+                {open ? (
+                  <AiOutlineClose size={24} />
+                ) : (
+                  <CiMenuFries size={24} />
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Sidebar Menu */}
+      <div
+        className={`fixed inset-0 top-[60px] bg-white z-[998] transition-transform duration-300 xl:hidden ${
+          open ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex flex-col p-6 gap-4 font-semibold">
+          {groupTypes.map((group) => (
+            <Link
+              key={group.value}
+              to={group.path}
+              className="text-lg border-b pb-2 hover:text-[#009BB2]"
+              onClick={() => setOpen(false)}
+            >
+              {group.label}
+            </Link>
+          ))}
+          <button
+            onClick={() => {
+              navigate("/dashboard");
+              setOpen(false);
+            }}
+            className="text-left text-lg border-b pb-2"
+          >
+            Dashboard
+          </button>
+          <button
+            onClick={() => {
+              handleLogout();
+              setOpen(false);
+            }}
+            className="text-left text-lg text-red-600"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </header>
+  );
 }
