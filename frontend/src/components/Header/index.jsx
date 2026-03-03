@@ -9,6 +9,7 @@ import {
   useLocation,
   useSearchParams,
 } from "react-router-dom";
+import OldHeader from "./OldHeader";
 
 export default function Header({ user, handleLogout }) {
   const [open, setOpen] = useState(false);
@@ -17,6 +18,24 @@ export default function Header({ user, handleLogout }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  const [hasToken, setHasToken] = useState(() => {
+    return !!localStorage.getItem("frontend_token");
+  });
+
+  useEffect(() => {
+    const checkToken = () => {
+      const token = localStorage.getItem("frontend_token");
+      setHasToken(!!token);
+    };
+
+    checkToken();
+
+    window.addEventListener("storage", checkToken);
+
+    return () => {
+      window.removeEventListener("storage", checkToken);
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -44,6 +63,14 @@ export default function Header({ user, handleLogout }) {
   const activeGroupTypes = searchParams
     .getAll("group_type")
     .map((g) => g.toLowerCase().trim());
+
+  if (hasToken) {
+    return (
+      <>
+        <OldHeader user={user} handleLogout={handleLogout} />
+      </>
+    );
+  }
 
   return (
     <header className="fixed w-full top-0 left-0 shadow-md z-[999]">

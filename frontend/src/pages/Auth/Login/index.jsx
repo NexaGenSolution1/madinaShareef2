@@ -32,6 +32,7 @@ const Login = ({ onLogin }) => {
         localStorage.setItem("frontend_token", token);
         localStorage.setItem("frontend_user", JSON.stringify(user));
         toast.success("Login successful!");
+        window.location.href = "/";
         if (user.role === "Admin") {
           window.location.href = "/admin-portal/";
         } else {
@@ -171,7 +172,7 @@ const Login = ({ onLogin }) => {
                 </svg>
                 Address
               </h4>
-              <p>1st Floor, City Center Plaza, Downtown Dubai, UAE</p>
+              <p>Main Bazaar Batkhela Distt, Malakand.</p>
             </div>
 
             <div className={styles.directorCard}>

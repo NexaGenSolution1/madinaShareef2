@@ -5,12 +5,16 @@ import Sector from "../models/Sector.js";
 import UnifiedGroupCache from "../models/UnifiedGroupCache.js";
 import Booking from "../models/Booking.js";
 
+const normalizeSector = (sector) => {
+  if (!sector) return null;
+  return sector.toUpperCase().replace(/\s+/g, "").replace(/–/g, "-").trim();
+};
+
 // Add new sector
 export const addSector = async (req, res) => {
   try {
     const { groupType, sectorTitle, fullSector } = req.body;
 
-    // Validate required fields
     if (!groupType || !sectorTitle || !fullSector) {
       return res.status(400).json({
         success: false,
@@ -18,10 +22,13 @@ export const addSector = async (req, res) => {
       });
     }
 
-    // Check if sector already exists
+    // ✅ Normalize karo save se pehle
+    const normalizedTitle = normalizeSector(sectorTitle);
+
+    // ✅ Check bhi normalized value se
     const existingSector = await Sector.findOne({
       groupType,
-      sectorTitle: sectorTitle.toUpperCase(),
+      sectorTitle: normalizedTitle,
     });
 
     if (existingSector) {
@@ -31,10 +38,10 @@ export const addSector = async (req, res) => {
       });
     }
 
-    // Create new sector
+    // ✅ Save bhi normalized value se
     const newSector = await Sector.create({
       groupType,
-      sectorTitle: sectorTitle.toUpperCase(),
+      sectorTitle: normalizedTitle,
       fullSector,
     });
 
@@ -52,7 +59,6 @@ export const addSector = async (req, res) => {
     });
   }
 };
-
 // Get all sectors
 export const getSectors = async (req, res) => {
   try {
@@ -246,6 +252,26 @@ export const updateSectorOrder = async (req, res) => {
   }
 };
 
+const makeGroupKey = (g) => {
+  return [
+    g.source,
+    g.sector,
+    g.airline?.short_name || g.airline?.airline_name,
+    g.dept_date,
+    g.price,
+  ].join("|");
+};
+
+// const normalizeSector = (sector) => {
+//   if (!sector) return null;
+
+//   return sector
+//     .toUpperCase()
+//     .replace(/\s+/g, "") // remove spaces
+//     .replace(/–/g, "-")
+//     .trim();
+// };
+
 export const getUnifiedGroups = async (req, res) => {
   try {
     /* ===============================
@@ -268,9 +294,8 @@ export const getUnifiedGroups = async (req, res) => {
     // Make sector order map
     const sectorOrderMap = {};
     sectors.forEach((s) => {
-      sectorOrderMap[s.sectorTitle] = s.order ?? 999;
+      sectorOrderMap[normalizeSector(s.sectorTitle)] = s.order ?? 999;
     });
-
     /* ===============================
        4️⃣ Fetch Ali Haider Groups
     =============================== */
@@ -332,7 +357,7 @@ export const getUnifiedGroups = async (req, res) => {
         const updatedSectors = await Sector.find().lean();
         sectorOrderMap.length = 0;
         updatedSectors.forEach((s) => {
-          sectorOrderMap[s.sectorTitle] = s.order ?? 999;
+          sectorOrderMap[normalizeSector(s.sectorTitle)] = s.order ?? 999;
         });
       }
     } catch (err) {
@@ -349,7 +374,8 @@ export const getUnifiedGroups = async (req, res) => {
         id: g._id,
         source: "admin",
 
-        sector: g.sector,
+        sector: normalizeSector(g.sector),
+        sectorKey: normalizeSector(g.sector), // for sorting only
         type: g.groupType,
 
         available_no_of_pax: g.totalSeats,
@@ -391,6 +417,7 @@ export const getUnifiedGroups = async (req, res) => {
     =============================== */
     const transformedAliHaider = aliHaiderGroups.map((g) => ({
       ...g,
+      sector: normalizeSector(g.sector),
       source: "ali-haider",
     }));
 
@@ -445,8 +472,8 @@ export const getUnifiedGroups = async (req, res) => {
        8️⃣ Sector Sorting (ADMIN ORDER)
     =============================== */
     unifiedGroups.sort((a, b) => {
-      const orderA = sectorOrderMap[a.sector] ?? 999;
-      const orderB = sectorOrderMap[b.sector] ?? 999;
+      const orderA = sectorOrderMap[normalizeSector(a.sector)] ?? 999;
+      const orderB = sectorOrderMap[normalizeSector(b.sector)] ?? 999;
       return orderA - orderB;
     });
 
@@ -492,17 +519,25 @@ export const getUnifiedGroups = async (req, res) => {
       const recentlyBookedSet = new Set(recentlyBookedGroupIds.map(String));
 
       // Build map from existing cache for quick lookup
+      // const cachedDataMap = new Map(
+      //   cacheDoc.data.map((g) => [String(g.id), g]),
+      // );
+
       const cachedDataMap = new Map(
-        cacheDoc.data.map((g) => [String(g.id), g]),
+        cacheDoc.data.map((g) => [makeGroupKey(g), g]),
       );
 
       // Merge: protect seat count if group was recently booked
       const mergedGroups = freshGroups.map((freshGroup) => {
-        const gId = String(freshGroup.id);
+        // const gId = String(freshGroup.id);
+        const gKey = makeGroupKey(freshGroup);
 
-        if (recentlyBookedSet.has(gId)) {
-          // 🔒 Keep cached seat count — already deducted by createBooking
-          const cached = cachedDataMap.get(gId);
+        // if (recentlyBookedSet.has(gId)) {
+        //   // 🔒 Keep cached seat count — already deducted by createBooking
+        //   const cached = cachedDataMap.get(gId);
+
+        if (recentlyBookedSet.has(String(freshGroup.id))) {
+          const cached = cachedDataMap.get(gKey);
           if (cached) {
             return {
               ...freshGroup,

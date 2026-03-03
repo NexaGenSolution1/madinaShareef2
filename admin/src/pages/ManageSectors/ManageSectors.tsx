@@ -147,6 +147,7 @@ function buildCopyText(groups: UnifiedGroup[]): string {
     // 🔹 Step 3: Build output
     let outputLines: string[] = [];
     let lastMonth: number | null = null;
+    let lastSector: string | null = null;
 
     sectorOrder.forEach((sector) => {
         const entries = sectorMap.get(sector)!;
@@ -154,8 +155,8 @@ function buildCopyText(groups: UnifiedGroup[]): string {
         entries.forEach((item) => {
             const currentMonth = item.date.getMonth();
 
-            // Divider only when month changes globally
-            if (lastMonth !== null && lastMonth !== currentMonth) {
+            // Divider when month changes OR new sector starts
+            if (lastMonth !== null && (lastMonth !== currentMonth || lastSector !== sector)) {
                 outputLines.push(divider);
             }
 
@@ -168,6 +169,7 @@ function buildCopyText(groups: UnifiedGroup[]): string {
             );
 
             lastMonth = currentMonth;
+            lastSector = sector;
         });
     });
 
