@@ -889,7 +889,7 @@ export default function BookingForm() {
                             )
                           }
                           required
-                          className="w-full min-w-[120px] px-2 py-1  bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full min-w-30 px-2 py-1  bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                           placeholder="Surname"
                         />
                       </td>
@@ -905,7 +905,7 @@ export default function BookingForm() {
                             )
                           }
                           required
-                          className="w-full min-w-[120px]  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full min-w-30  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                           placeholder="Given Name"
                         />
                       </td>
@@ -921,12 +921,12 @@ export default function BookingForm() {
                             )
                           }
                           required
-                          className="w-full min-w-[120px]  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full min-w-30 px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                           placeholder="Passport No"
                         />
                       </td>
                       <td className="px-3 py-2">
-                        <div className="min-w-[130px]">
+                        <div className="min-w-32.5">
                           <MaskedDatePicker
                             value={passenger.dateOfBirth}
                             onChange={(date) =>
@@ -938,7 +938,7 @@ export default function BookingForm() {
                         </div>
                       </td>
                       <td className="px-3 py-2">
-                        <div className="min-w-[130px]">
+                        <div className="min-w-32.5">
                           <MaskedDatePicker
                             value={passenger.passportExpiry}
                             onChange={(date) =>
@@ -964,7 +964,7 @@ export default function BookingForm() {
                               e.target.value,
                             )
                           }
-                          className="w-full min-w-[120px]  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full min-w-30  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                           placeholder="Nationality"
                         />
                       </td>
@@ -1195,7 +1195,7 @@ export default function BookingForm() {
               </div>
               <button
                 onClick={() => setShowReviewModal(false)}
-                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors flex-shrink-0"
+                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors shrink-0"
               >
                 <X size={20} className="sm:w-6 sm:h-6" />
               </button>
@@ -1204,7 +1204,7 @@ export default function BookingForm() {
             {/* Modal Body (Scrollable) */}
             <div className="overflow-y-auto p-4 sm:p-6 flex-1">
               <div className="rounded-xl border border-gray-200 overflow-x-auto shadow-sm">
-                <div className="min-w-[800px]">
+                <div className="min-w-200">
                   <table className="w-full text-sm text-left border-collapse">
                     <thead>
                       <tr className="bg-[#3d6a8f] text-white">
@@ -1274,7 +1274,7 @@ export default function BookingForm() {
             <div className="bg-gray-50 border-t border-gray-200 px-4 sm:px-6 py-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               {/* Confirmation Checkbox */}
               <label className="flex items-start sm:items-center gap-3 cursor-pointer group bg-white border border-gray-200 px-4 py-3 rounded-lg hover:border-[#3d6a8f] transition-all shadow-sm w-full sm:w-auto">
-                <div className="relative flex items-center flex-shrink-0 mt-0.5 sm:mt-0">
+                <div className="relative flex items-center shrink-0 mt-0.5 sm:mt-0">
                   <input
                     type="checkbox"
                     checked={isReviewed}

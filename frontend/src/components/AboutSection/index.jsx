@@ -33,10 +33,10 @@ export default function AboutSection() {
 
       <div className="main-container relative z-10 flex flex-col lg:flex-row gap-14 py-20">
         {/* LEFT IMAGE */}
-        <div className="group relative w-full lg:w-5/12 h-[400px] lg:h-[480px] rounded-[28px] overflow-hidden">
+        <div className="group relative w-full lg:w-5/12 h-100 lg:h-120 rounded-[28px] overflow-hidden">
           {/* Glow Border */}
           <div
-            className="absolute inset-0 rounded-[28px] p-[1px]"
+            className="absolute inset-0 rounded-[28px] p-px"
             style={{
               background: `linear-gradient(135deg, ${theme.colors.primaryLight}, ${theme.colors.accentLight})`,
             }}
@@ -52,7 +52,7 @@ export default function AboutSection() {
             />
 
             {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
 
             <h2 className="absolute bottom-6 left-6 text-3xl font-bold text-white">
               About Us

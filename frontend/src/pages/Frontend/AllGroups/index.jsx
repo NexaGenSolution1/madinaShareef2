@@ -456,7 +456,7 @@ export default function AllGroups({ headerType, header, searchParams }) {
                                     </div>
                                   </div>
 
-                                  <div className="flex items-center flex-1 relative min-w-[60px] max-w-[200px]">
+                                  <div className="flex items-center flex-1 relative min-w-15 max-w-50">
                                     <div
                                       className="h-0.5 w-full"
                                       style={{
@@ -513,7 +513,7 @@ export default function AllGroups({ headerType, header, searchParams }) {
                                   </div>
 
                                   {/* Pricing */}
-                                  <div className="text-center sm:text-right min-w-[100px]">
+                                  <div className="text-center sm:text-right min-w-25">
                                     <div className="text-[10px] text-gray-500 uppercase">
                                       Adult
                                     </div>

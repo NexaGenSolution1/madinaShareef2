@@ -32,7 +32,6 @@ export default function Profile() {
       const response = await getUserProfile();
       if (response.success) {
         const userData = response.data;
-        console.log("ff", userData);
         setUser(userData);
         setFormData({
           name: userData.name || "",

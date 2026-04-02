@@ -96,7 +96,7 @@ const Bank = () => {
     <div className="min-h-screen font-sans">
       {/* Header */}
       <TopBar title={"Bank Details"} />
-      <div className="mx-auto px-6 -mt-10 relative z-10 mt-10">
+      <div className="mx-auto px-6 relative z-10 mt-10">
         {banks.length === 0 ? (
           <div className="bg-white p-12 rounded-3xl shadow-sm text-center border border-gray-100">
             <Building2 className="mx-auto w-16 h-16 text-gray-200 mb-4" />

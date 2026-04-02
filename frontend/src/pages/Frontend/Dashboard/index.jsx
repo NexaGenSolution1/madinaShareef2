@@ -96,21 +96,21 @@ const Dashboard = () => {
             key={index}
             className={`group relative overflow-hidden p-6 rounded-2xl border bg-white hover:shadow-2xl ${card.colors.shadow} border-slate-100`}
           >
-            {/* 🔥 TOP RIGHT CORNER - Lighter */}
+            {/*  TOP RIGHT CORNER - Lighter */}
             <div
               className={`absolute top-0 right-0 w-[20%] h-[20%] ${card.colors.corner1} 
                          rounded-bl-[100%] transition-all duration-500 
                          group-hover:w-full group-hover:h-full group-hover:rounded-2xl`}
             ></div>
 
-            {/* 🔥 BOTTOM LEFT CORNER - Even Lighter */}
+            {/*  BOTTOM LEFT CORNER - Even Lighter */}
             <div
               className={`absolute bottom-0 left-0 w-[20%] h-[20%] ${card.colors.corner2} 
                          rounded-tr-[100%] transition-all duration-500 
                          group-hover:w-full group-hover:h-full group-hover:rounded-2xl`}
             ></div>
 
-            {/* 🔥 CONTENT */}
+            {/* CONTENT */}
             <div className="relative z-10">
               {/* Icon */}
               <div
@@ -130,7 +130,7 @@ const Dashboard = () => {
 
               {/* CTA */}
               <div
-                className={`flex items-center ${card.colors.cta} font-semibold text-sm opacity-0 group-hover:opacity-100 translate-x-[-10px] group-hover:translate-x-0 transition-all duration-300`}
+                className={`flex items-center ${card.colors.cta} font-semibold text-sm opacity-0 group-hover:opacity-100 -translate-x-2.5 group-hover:translate-x-0 transition-all duration-300`}
               >
                 Manage Now <FaArrowRight className="ml-2 text-xs" />
               </div>
