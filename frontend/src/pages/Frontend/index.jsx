@@ -23,6 +23,7 @@ import Profile from "../../components/Profile/Profile";
 import MyBookings from "../MyBookings";
 import BookingDetail from "../BookingDetail";
 import { groupTypes } from "../../data/groupTypes";
+import { getUserProfile } from "../../api/profileApi";
 
 export default function Frontend() {
   const [user, setUser] = useState(null);
@@ -30,16 +31,25 @@ export default function Frontend() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("frontend_user");
-    console.log("Retrieved user from localStorage:", storedUser);
-    if (storedUser) {
+    const fetchUserProfile = async () => {
       try {
-        setUser(JSON.parse(storedUser));
-      } catch (_) {
+        const response = await getUserProfile();
+        const userData = response.data; // ← Make sure this is correct
+
+        if (userData) {
+          setUser(userData);
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user profile:", error);
         setUser(null);
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+
+    fetchUserProfile();
   }, []);
 
   const handleLogin = (userData) => {

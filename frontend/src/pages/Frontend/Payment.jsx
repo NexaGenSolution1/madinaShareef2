@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../api/axios";
 import MaskedDatePicker from "../../components/MaskedDatePicker";
+import TopBar from "../../components/TopBar/TopBar";
 
 const Payment = () => {
   // Get current year for default date filter
@@ -51,18 +52,18 @@ const Payment = () => {
   // Fetch user's bookings
   const fetchBookings = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem('frontend_user'));
+      const user = JSON.parse(localStorage.getItem("frontend_user"));
       const userId = user?._id || user?.id;
 
       if (!userId) {
-        console.error('User not authenticated');
+        console.error("User not authenticated");
         return;
       }
 
       const response = await axiosInstance.get("/bookings", {
         params: {
-          userId: userId
-        }
+          userId: userId,
+        },
       });
 
       if (response.data.success) {
@@ -80,7 +81,7 @@ const Payment = () => {
       setError(null);
 
       // Get user ID from localStorage
-      const user = JSON.parse(localStorage.getItem('frontend_user'));
+      const user = JSON.parse(localStorage.getItem("frontend_user"));
       const userId = user?._id || user?.id;
 
       if (!userId) {
@@ -159,7 +160,12 @@ const Payment = () => {
     e.preventDefault();
 
     // Validation
-    if (!formData.date || !formData.description || !formData.bankAccount || !formData.amount) {
+    if (
+      !formData.date ||
+      !formData.description ||
+      !formData.bankAccount ||
+      !formData.amount
+    ) {
       alert("Please fill in all required fields");
       return;
     }
@@ -262,10 +268,7 @@ const Payment = () => {
   return (
     <div className="w-full min-h-screen mx-auto px-2 sm:px-4 md:px-0">
       {/* Header */}
-      <div className="mb-4 sm:mb-6 md:mb-8">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">Add Payments</h1>
-        <p className="text-sm sm:text-base text-gray-600">Submit and manage your payment records</p>
-      </div>
+      <TopBar title={"Add Payments"} />
 
       {/* Add Payment Form */}
       <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 md:p-6 mb-4 sm:mb-6">
@@ -290,7 +293,6 @@ const Payment = () => {
                 onChange={(date) => setFormData({ ...formData, date })}
                 minDate={new Date()}
               />
-
             </div>
 
             {/* Description */}
@@ -344,7 +346,7 @@ const Payment = () => {
                 <option value="">Select Booking</option>
                 {bookings.map((booking) => (
                   <option key={booking._id} value={booking._id}>
-                    {booking.bookingReference} - {booking.sector || 'N/A'}
+                    {booking.bookingReference} - {booking.sector || "N/A"}
                   </option>
                 ))}
               </select>
@@ -358,7 +360,14 @@ const Payment = () => {
               <input
                 type="text"
                 name="amount"
-                value={formData.amount ? parseFloat(formData.amount).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : ""}
+                value={
+                  formData.amount
+                    ? parseFloat(formData.amount).toLocaleString("en-US", {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 2,
+                      })
+                    : ""
+                }
                 onChange={handleInputChange}
                 placeholder="Enter amount"
                 className="w-full px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -396,7 +405,9 @@ const Payment = () => {
       {/* Filters Section */}
       <div className="bg-white rounded-lg shadow p-3 sm:p-4 mb-4 sm:mb-6">
         <div className="flex justify-between items-center mb-3 sm:mb-4">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900">Filters</h3>
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+            Filters
+          </h3>
           <button
             onClick={() => {
               setFilters({
@@ -549,7 +560,10 @@ const Payment = () => {
                       {formatDate(payment.date)}
                     </td>
                     <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-xs sm:text-sm text-gray-900">
-                      <div className="max-w-xs truncate" title={payment.description}>
+                      <div
+                        className="max-w-xs truncate"
+                        title={payment.description}
+                      >
                         {payment.description}
                       </div>
                     </td>
@@ -558,18 +572,22 @@ const Payment = () => {
                     </td>
                     <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 whitespace-nowrap">
                       <span
-                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${payment.status === "Posted"
-                          ? "bg-green-100 text-green-800"
-                          : payment.status === "Pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
-                          }`}
+                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          payment.status === "Posted"
+                            ? "bg-green-100 text-green-800"
+                            : payment.status === "Pending"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
+                        }`}
                       >
                         {payment.status}
                       </span>
                     </td>
                     <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-xs sm:text-sm text-gray-900">
-                      <div className="max-w-xs truncate" title={payment.remarks || "-"}>
+                      <div
+                        className="max-w-xs truncate"
+                        title={payment.remarks || "-"}
+                      >
                         {payment.remarks || "-"}
                       </div>
                     </td>

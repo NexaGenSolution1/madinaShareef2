@@ -1,50 +1,151 @@
-import React from 'react'
-import aboutImg from '../../assets/images/hero1.webp'
-import hangingLights from '../../assets/images/hanging-lights.png'
-import moon from '../../assets/images/moon.png'
-import dots from '../../assets/images/dots.svg'
-import { BsArrowRight } from 'react-icons/bs'
+import React from "react";
+import aboutImg from "../../assets/images/hero1.webp";
+import hangingLights from "../../assets/images/hanging-lights.png";
+import moon from "../../assets/images/moon.png";
+import dots from "../../assets/images/dots.svg";
+import { BsArrowRight } from "react-icons/bs";
+import { theme } from "../../theme/theme";
 
 export default function AboutSection() {
-    return (
-        <section className='relative overflow-hidden'>
-            <div className='relative main-container flex flex-col lg:flex-row justify-between gap-12 sm:gap-18 min-h-[50vh] py-18 sm:py-24 z-1'>
-                <div className='group relative w-full md:max-w-126 h-80 sm:h-120 rounded-tl-[5%] rounded-br-[5%] rounded-tr-[20%] rounded-bl-[20%] overflow-hidden shadow-lg sm:shadow-xl'>
-                    <img src={aboutImg} alt="about-img" loading='lazy' className='w-full h-full object-cover object-center transition-all duration-500 ease-in-out group-hover:scale-110 group-hover:-translate-y-3' />
+  return (
+    <section
+      className="relative overflow-hidden"
+      style={{
+        background: `linear-gradient(135deg, ${theme.colors.background}, ${theme.colors.backgroundDark})`,
+      }}
+    >
+      {/* Decorations */}
+      <img
+        src={hangingLights}
+        alt=""
+        className="hidden sm:block absolute top-0 -right-10 w-80 opacity-60"
+      />
+      <img
+        src={moon}
+        alt=""
+        className="absolute bottom-0 -left-6 opacity-60 max-w-60"
+      />
+      <img
+        src={dots}
+        alt=""
+        className="absolute top-10 left-5 w-52 opacity-30"
+      />
 
-                    <div className='absolute inset-0 flex items-end justify-end bg-linear-to-t from-black/50 to-transparent'>
-                        <h2 className='text-3xl text-white p-6 font-semibold!'>About Us</h2>
-                    </div>
-                </div>
+      <div className="main-container relative z-10 flex flex-col lg:flex-row gap-14 py-20">
+        {/* LEFT IMAGE */}
+        <div className="group relative w-full lg:w-5/12 h-[400px] lg:h-[480px] rounded-[28px] overflow-hidden">
+          {/* Glow Border */}
+          <div
+            className="absolute inset-0 rounded-[28px] p-[1px]"
+            style={{
+              background: `linear-gradient(135deg, ${theme.colors.primaryLight}, ${theme.colors.accentLight})`,
+            }}
+          />
 
-                <div className='w-full'>
-                    <h2 className='text-lg text-[#2A166D] font-semibold!'>About Brothers International Travels</h2>
-                    <div className='relative w-fit mt-4 mb-6'>
-                        <h2 className='relative text-[#2A166D] text-3xl sm:text-4xl z-1'>Trusted Travel Services</h2>
-                        <div className='absolute bottom-0 left-0 w-full h-[35%] bg-[#d6d30b]/50 rounded-md z-0'></div>
-                    </div>
-                    {/* <h2 className='text-3xl sm:text-4xl text-neutral-900 mt-4 mb-6'>Trusted Travel Services</h2> */}
-                    <p className='text-neutral-700 text-base sm:text-lg mb-4'>
-                        If you are looking for a dependable and professional travel partner, Brothers International Travels is your premier choice. With years of industry expertise, we have built a reputation for excellence and integrity in every journey we plan. We specialize in providing comprehensive travel management, dedicated customer care, and a commitment to making your travel dreams a reality.
-                    </p>
-                    <p className='text-neutral-700 text-base sm:text-lg mb-4'>
-                        <strong className='text-neutral-900'>Expert Travel Solutions</strong><br />
-                        Our experienced team ensures smooth bookings, route planning, and exclusive deals for all travelers.
-                    </p>
-                    <p className='text-neutral-700 text-base sm:text-lg'>
-                        <strong className='text-neutral-900'>Personalized Support</strong><br />
-                        We focus on individual customer needs, providing one-on-one assistance to make every journey stress-free.
-                    </p>
+          {/* Inner */}
+          <div className="relative w-full h-full rounded-[28px] overflow-hidden">
+            <img
+              style={{ height: "100%" }}
+              src={aboutImg}
+              alt="about"
+              className="w-full h-full object-cover transition duration-700 group-hover:scale-110 floating-img"
+            />
 
-                    <button className='flex items-center gap-2 bg-[#2A166D] text-white border border-[#2A166D] mt-10 px-6 sm:px-8 py-2 sm:py-3 rounded-xl hover:bg-[#d6d30b] hover:text-[#2A166D]'>
-                        Discover More <BsArrowRight />
-                    </button>
-                </div>
-            </div>
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-            <img src={hangingLights} alt="hanging-lights" className='hidden sm:block absolute top-0 -right-14 w-100 sm:w-fit opacity-70' />
-            <img src={moon} alt="moon" className='absolute bottom-0 -left-4 sm:left-0 opacity-70 max-w-60 sm:max-w-88' />
-            <img src={dots} alt="dots" className='absolute top-5 sm:top-16 left-0 lg:left-40 w-40 sm:w-60 opacity-50 bg-no-repeat -z-1' />
-        </section>
-    )
+            <h2 className="absolute bottom-6 left-6 text-3xl font-bold text-white">
+              About Us
+            </h2>
+          </div>
+        </div>
+
+        {/* RIGHT CONTENT */}
+        <div className="w-full lg:w-7/12 flex flex-col justify-center">
+          <p
+            className="text-sm font-semibold tracking-widest uppercase mb-2"
+            style={{ color: theme.colors.accent }}
+          >
+            About Company
+          </p>
+
+          <h2
+            className="text-3xl sm:text-4xl font-bold mb-5 leading-tight"
+            style={{ color: theme.colors.textPrimary }}
+          >
+            Trusted Travel Services with Professional Excellence
+          </h2>
+
+          <div
+            className="w-20 h-1 rounded-full mb-6"
+            style={{
+              background: `linear-gradient(to right, ${theme.colors.primary}, ${theme.colors.accent})`,
+            }}
+          />
+
+          <p
+            className="text-[16px] leading-relaxed mb-5"
+            style={{ color: theme.colors.textSecondary }}
+          >
+            If you are looking for a dependable and professional travel partner,
+            World Fly Tickets Travels is your premier choice. With years of
+            industry expertise, we have built a reputation for excellence and
+            integrity in every journey we plan.
+          </p>
+
+          <p
+            className="text-[16px] leading-relaxed mb-5"
+            style={{ color: theme.colors.textSecondary }}
+          >
+            <span style={{ color: theme.colors.textPrimary, fontWeight: 600 }}>
+              Expert Travel Solutions
+            </span>
+            <br />
+            Our experienced team ensures smooth bookings, route planning, and
+            exclusive deals for all travelers.
+          </p>
+
+          <p
+            className="text-[16px] leading-relaxed"
+            style={{ color: theme.colors.textSecondary }}
+          >
+            <span style={{ color: theme.colors.textPrimary, fontWeight: 600 }}>
+              Personalized Support
+            </span>
+            <br />
+            We focus on individual customer needs, providing one-on-one
+            assistance to make every journey stress-free.
+          </p>
+
+          {/* BUTTON */}
+          <button
+            className="mt-10 w-fit flex items-center gap-3 px-7 py-3 rounded-xl font-semibold transition-all duration-300 group"
+            style={{
+              background: theme.colors.primary,
+              color: "#fff",
+            }}
+          >
+            Discover More
+            <BsArrowRight className="text-lg transition-transform duration-300 group-hover:translate-x-2" />
+          </button>
+        </div>
+      </div>
+
+      {/* ANIMATIONS */}
+      <style>{`
+      
+      /* Floating subtle image animation */
+      .floating-img {
+        animation: float 6s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+      }
+
+      `}</style>
+    </section>
+  );
 }

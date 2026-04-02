@@ -57,7 +57,7 @@ app.use("/api/specialOffer", specialOffer);
 startBookingExpiryJob();
 
 app.get("/", (req, res) => {
-  res.send("Brothers International API is running");
+  res.send("World Fly Tickets Travels API is running");
 });
 
 const PORT = process.env.PORT || 8007;

@@ -1,65 +1,193 @@
-import React from 'react'
+import React from "react";
 import { BiSolidPlane } from "react-icons/bi";
 import { FaGlobe } from "react-icons/fa";
 import { GiFalconMoon } from "react-icons/gi";
 import { LuHotel } from "react-icons/lu";
+import { theme } from "../../theme/theme";
+
+const features = [
+  {
+    title: "Airline Tickets",
+    desc: "Get instant access to worldwide destinations with competitive pricing and 24/7 booking support.",
+    icon: <BiSolidPlane className="text-4xl rotate-90" />,
+  },
+  {
+    title: "Visa Services",
+    desc: "Simplify your travel with our high-success visa processing and expert documentation handling.",
+    icon: <FaGlobe className="text-4xl" />,
+  },
+  {
+    title: "Umrah Packages",
+    desc: "All-inclusive, spiritually-focused packages with premium locations and seamless logistics.",
+    icon: <GiFalconMoon className="text-4xl" />,
+  },
+  {
+    title: "Hotel Booking",
+    desc: "From luxury resorts to budget stays, we offer trusted accommodations at exclusive rates.",
+    icon: <LuHotel className="text-4xl" />,
+  },
+];
 
 export default function ChooseUsSection() {
-    return (
-        <section className='main-container py-18 sm:py-24'>
-            <div className='flex flex-col items-center'>
-                <h3 className='text-center text-[#2A166D] font-semibold!'>WHY CHOOSE US?</h3>
-                <div className='flex justify-center mt-2 mb-6'>
-                    <div className='relative w-fit'>
-                        <h2 className='relative text-center text-[#2A166D] text-3xl sm:text-4xl md:text-5xl z-1'>Why Choose Brothers International Travels</h2>
-                        <div className='absolute bottom-0 left-0 w-full h-[35%] bg-[#d6d30b]/50 rounded-md z-0'></div>
-                    </div>
+  return (
+    <section
+      className="py-20"
+      style={{
+        background: `linear-gradient(135deg, ${theme.colors.background}, ${theme.colors.backgroundDark})`,
+      }}
+    >
+      <div className="main-container">
+        {/* Heading */}
+        <div className="text-center max-w-3xl mx-auto">
+          <p
+            className="text-sm font-semibold tracking-widest uppercase"
+            style={{ color: theme.colors.accent }}
+          >
+            Why Choose Us
+          </p>
+
+          <h2
+            className="text-3xl sm:text-4xl md:text-5xl font-bold mt-3"
+            style={{ color: theme.colors.textPrimary }}
+          >
+            Why Choose World Fly Tickets Travels
+          </h2>
+
+          <div
+            className="w-24 h-1 mx-auto mt-4 rounded-full"
+            style={{
+              background: `linear-gradient(to right, ${theme.colors.primary}, ${theme.colors.accent})`,
+            }}
+          />
+
+          <p
+            className="mt-6 text-base sm:text-lg"
+            style={{ color: theme.colors.textSecondary }}
+          >
+            We provide complete travel solutions including airline tickets,
+            visas, Umrah packages, and hotel bookings with unmatched service
+            quality.
+          </p>
+        </div>
+
+        {/* Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-14">
+          {features.map((item, i) => (
+            <div key={i} className="card group">
+              {/* Glow Border */}
+              <div className="border-glow"></div>
+
+              {/* Blob */}
+              <div className="blob"></div>
+
+              {/* Content */}
+              <div className="card-inner flex flex-col items-center text-center p-6">
+                {/* Icon */}
+                <div
+                  className="icon-wrapper"
+                  style={{
+                    background: theme.colors.primary,
+                    color: "#fff",
+                  }}
+                >
+                  {item.icon}
                 </div>
-                <p className='w-full max-w-5xl sm:text-lg text-center text-neutral-600'>We are a trusted travel agency providing comprehensive services including airline group tickets, visa assistance, Umrah packages, and hotel bookings. Here’s why travelers prefer us:</p>
+
+                <h3
+                  className="text-xl font-semibold mt-4 mb-3"
+                  style={{ color: theme.colors.primary }}
+                >
+                  {item.title}
+                </h3>
+
+                <p
+                  className="text-sm leading-relaxed"
+                  style={{ color: theme.colors.textSecondary }}
+                >
+                  {item.desc}
+                </p>
+              </div>
             </div>
+          ))}
+        </div>
+      </div>
 
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-12'>
-                <div className='relative group p-4 sm:p-6 flex flex-col items-center bg-[#2A166D]/5 border border-[#2A166D] rounded-3xl overflow-hidden'>
-                    <div className='bg-[#2A166D] p-3 rounded-full transition-all duration-500 ease-in-out group-hover:rotate-y-360'>
-                        <BiSolidPlane className='text-5xl text-[#d6d30b] rotate-90' />
-                    </div>
+      {/* STYLES */}
+      <style>{`
 
-                    <h2 className='text-2xl text-[#2A166D] mt-3 mb-4'>Airline Tickets</h2>
-                    <p className='text-center text-neutral-600'>Get instant access to worldwide destinations with competitive pricing and 24/7 booking support for a hassle-free journey.</p>
+      .card {
+        position: relative;
+        border-radius: 18px;
+        overflow: hidden;
+        transition: 0.3s;
+      }
 
-                    <div className='absolute -top-10 -right-10 w-30 h-30 bg-[#d6d30b]/30 rounded-full transition-all duration-500 ease-in-out group-hover:scale-120'></div>
-                </div>
-                <div className='relative group p-4 sm:p-6 flex flex-col items-center bg-[#2A166D]/5 border border-[#2A166D] rounded-3xl overflow-hidden'>
-                    <div className='bg-[#2A166D] p-3 rounded-full transition-all duration-500 ease-in-out group-hover:rotate-y-360'>
-                        <FaGlobe className='text-5xl text-[#d6d30b]' />
-                    </div>
+      .card:hover {
+        transform: translateY(-8px) scale(1.03);
+      }
 
-                    <h2 className='text-2xl text-[#2A166D] mt-3 mb-4'>Visa Services</h2>
-                    <p className='text-center text-neutral-600'>Simplify your travel with our high-success visa processing. We handle the paperwork so you can focus on your trip.</p>
+      /* Glow border */
+      .border-glow {
+        position: absolute;
+        inset: 0;
+        border-radius: 18px;
+        padding: 1px;
+        background: linear-gradient(135deg, ${theme.colors.primaryLight}, ${theme.colors.accentLight});
+        z-index: 1;
+      }
 
-                    <div className='absolute -top-10 -right-10 w-30 h-30 bg-[#d6d30b]/30 rounded-full transition-all duration-500 ease-in-out group-hover:scale-120'></div>
-                </div>
-                <div className='relative group p-4 sm:p-6 flex flex-col items-center bg-[#2A166D]/5 border border-[#2A166D] rounded-3xl overflow-hidden'>
-                    <div className='bg-[#2A166D] p-3 rounded-full transition-all duration-500 ease-in-out group-hover:rotate-y-360'>
-                        <GiFalconMoon className='text-5xl text-[#d6d30b]' />
-                    </div>
+      .card-inner {
+        position: relative;
+        z-index: 2;
+        background: rgba(255,255,255,0.9);
+        backdrop-filter: blur(14px);
+        border-radius: 18px;
+        height: 100%;
+      }
 
-                    <h2 className='text-2xl text-[#2A166D] mt-3 mb-4'>Umrah Packages</h2>
-                    <p className='text-center text-neutral-600'>All-inclusive, spiritually-focused packages featuring premium locations and seamless logistics for a peaceful pilgrimage.</p>
+      /* ICON */
+      .icon-wrapper {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.5s;
+      }
 
-                    <div className='absolute -top-10 -right-10 w-30 h-30 bg-[#d6d30b]/30 rounded-full transition-all duration-500 ease-in-out group-hover:scale-120'></div>
-                </div>
-                <div className='relative group p-4 sm:p-6 flex flex-col items-center bg-[#2A166D]/5 border border-[#2A166D] rounded-3xl overflow-hidden'>
-                    <div className='bg-[#2A166D] p-3 rounded-full transition-all duration-500 ease-in-out group-hover:rotate-y-360'>
-                        <LuHotel className='text-5xl text-[#d6d30b]' />
-                    </div>
+      .card:hover .icon-wrapper {
+        transform: rotate(10deg) scale(1.15);
+        background: ${theme.colors.accent};
+      }
 
-                    <h2 className='text-2xl text-[#2A166D] mt-3 mb-4'>Hotel Booking</h2>
-                    <p className='text-center text-neutral-600'>From luxury resorts to budget-friendly rooms, we offer vetted accommodations at exclusive rates across the globe.</p>
+      /* BLOB */
+      .blob {
+        position: absolute;
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, ${theme.colors.primaryLight}, ${theme.colors.accentLight});
+        filter: blur(40px);
+        opacity: 0.3;
+        z-index: 0;
+        animation: blobMove 7s infinite ease-in-out;
+      }
 
-                    <div className='absolute -top-10 -right-10 w-30 h-30 bg-[#d6d30b]/30 rounded-full transition-all duration-500 ease-in-out group-hover:scale-120'></div>
-                </div>
-            </div>
-        </section>
-    )
+      .card:hover .blob {
+        opacity: 0.5;
+        animation-duration: 3s;
+      }
+
+      @keyframes blobMove {
+        0% { top: -40px; left: -40px; }
+        25% { top: -40px; left: 70%; }
+        50% { top: 60%; left: 70%; }
+        75% { top: 60%; left: -40px; }
+        100% { top: -40px; left: -40px; }
+      }
+
+      `}</style>
+    </section>
+  );
 }

@@ -5,6 +5,8 @@ import { toast } from "react-toastify";
 import { buildPassengers } from "../../utils/passengerBuilder";
 import MaskedDatePicker from "../MaskedDatePicker";
 import { X, CheckCircle } from "lucide-react";
+import TopBar from "../TopBar/TopBar";
+import { parseMRZ } from "../../utils/parseMRZ";
 
 export default function BookingForm() {
   const user = JSON.parse(localStorage.getItem("frontend_user"));
@@ -25,7 +27,12 @@ export default function BookingForm() {
   const [loadingBooking, setLoadingBooking] = useState(isEditMode);
   const [existingBooking, setExistingBooking] = useState(null);
   const [groupData, setGroupData] = useState(location.state?.groupData || null);
+  console.log(groupData);
   const [totalSeats, setTotalSeats] = useState(null);
+
+  const [mrzModal, setMrzModal] = useState({ open: false, index: null });
+  const [mrzInput, setMrzInput] = useState("");
+  const [mrzError, setMrzError] = useState("");
 
   // --- NEW STATE FOR MODAL ---
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -138,7 +145,7 @@ export default function BookingForm() {
         children: +prev.children || 0,
         infants: +prev.infants || 0,
         existing: prev.passengers,
-        allowChildren: isEditMode || isChildPriceAvailable(),
+        allowChildren: true,
         allowInfants: true,
       }),
     }));
@@ -190,7 +197,9 @@ export default function BookingForm() {
     };
 
     const totalSeatsRequired =
-      parseInt(updated.adults || 0) + parseInt(updated.infants || 0);
+      parseInt(updated.adults || 0) +
+      parseInt(updated.children || 0) +
+      parseInt(updated.infants || 0);
 
     const availableSeats = groupData?.available_no_of_pax || 0;
 
@@ -246,6 +255,43 @@ export default function BookingForm() {
     });
   };
 
+  const handleMrzScan = (index) => {
+    setMrzModal({ open: true, index });
+    setMrzInput("");
+    setMrzError("");
+  };
+
+  const handleMrzParse = () => {
+    const result = parseMRZ(mrzInput);
+    if (!result) {
+      setMrzError(
+        "Invalid MRZ code. Please paste the complete 2-line MRZ from the passport.",
+      );
+      return;
+    }
+
+    const idx = mrzModal.index;
+    setFormData((prev) => {
+      const newPassengers = [...prev.passengers];
+      newPassengers[idx] = {
+        ...newPassengers[idx],
+        surName: result.surName || newPassengers[idx].surName,
+        givenName: result.givenName || newPassengers[idx].givenName,
+        passport: result.passport || newPassengers[idx].passport,
+        nationality: result.nationality || newPassengers[idx].nationality,
+        dateOfBirth: result.dateOfBirth || newPassengers[idx].dateOfBirth,
+        passportExpiry:
+          result.passportExpiry || newPassengers[idx].passportExpiry,
+        title: result.title || newPassengers[idx].title,
+      };
+      return { ...prev, passengers: newPassengers };
+    });
+
+    toast.success("Passport details filled successfully!");
+    setMrzModal({ open: false, index: null });
+    setMrzInput("");
+  };
+
   const calculateAdultTotal = () =>
     (parseInt(formData.adults) || 0) * (groupData?.price || 0);
   const calculateChildTotal = () =>
@@ -264,10 +310,12 @@ export default function BookingForm() {
     }
 
     const payingPassengers =
-      (parseInt(formData.adults) || 0) + (parseInt(formData.infants) || 0);
+      (parseInt(formData.adults) || 0) +
+      (parseInt(formData.children) || 0) +
+      (parseInt(formData.infants) || 0);
     if (payingPassengers > (groupData?.available_no_of_pax || 0)) {
       toast.error(
-        `Adults and Children (${payingPassengers}) cannot exceed available seats (${groupData?.available_no_of_pax || 0})`,
+        `Total passengers (${payingPassengers}) cannot exceed available seats (${groupData?.available_no_of_pax || 0})`,
       );
       return;
     }
@@ -431,26 +479,20 @@ export default function BookingForm() {
 
   return (
     <div className="w-full min-h-screen mx-auto flex flex-col gap-2">
+      <TopBar title={isEditMode ? "Edit Booking" : "Add New Booking"} />
       <div className="mb-4 sm:mb-6 md:mb-8">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-          {isEditMode ? "Edit" : "Add New"} Booking
-        </h1>
-        <p className="text-sm sm:text-base text-gray-600">
-          {isEditMode
-            ? "Update passenger details and booking information"
-            : "Fill in the passenger details to complete your booking"}
-        </p>
+        {/* <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2"></h1> */}
       </div>
       <div className="bg-white border border-gray-300 shadow-sm rounded-2xl">
         {groupData && (
-          <div className="px-4 py-2 flex flex-row justify-between gap-3 items-center border-b border-gray-200 text-xs">
+          <div className="px-4 py-2 flex flex-col lg:flex-row justify-between gap-3 items-start lg:items-center border-b border-gray-200 text-xs">
             {/* Airline Logo */}
             <>
               {groupData.airline?.logo_url && (
                 <img
                   src={groupData.airline.logo_url}
                   alt={groupData.airline.airline_name}
-                  className="w-20 h-auto"
+                  className="w-16 sm:w-20 h-auto"
                 />
               )}
             </>
@@ -500,46 +542,48 @@ export default function BookingForm() {
             </div>
 
             {/* Pricing Info */}
-            <div className="flex flex-row just items-center gap-32 text-center">
-              <div className="flex flex-col">
-                <p className="text-xs text-gray-600 font-semibold mb-0.5">
-                  Available Seats
-                </p>
-                <p className="text-sm font-extrabold text-[#3d6a8f] bg-blue-50 px-2 py-1 rounded-2xl">
-                  {" "}
-                  {groupData?.available_no_of_pax?.toLocaleString() || 0}
-                </p>
-              </div>
-              <div className="flex flex-col">
-                <p className="text-xs text-gray-600 font-semibold mb-0.5">
-                  Adult Price
-                </p>
-                <p
-                  className={`${user.priceOnCall ? "text-white bg-red-600" : "text-[#3d6a8f] bg-blue-50"} text-sm font-extrabold px-2 py-1 rounded-2xl`}
-                >
-                  {user.priceOnCall
-                    ? "Price on Call"
-                    : `PKR ${groupData?.price?.toLocaleString()}`}
-                  {/* 
-                                    {groupData?.price?.toLocaleString() || 0} */}
-                </p>
-              </div>
-              <div className="flex flex-col">
-                <p className="text-xs text-gray-600 font-semibold mt-1 mb-0.5">
-                  Child
-                </p>
-                <p className="text-sm font-semibold text-white bg-red-600 px-2 py-1 rounded-2xl">
-                  N/A
-                </p>
-              </div>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 lg:gap-32 w-full lg:w-auto">
+              <div className="flex flex-row gap-4 sm:gap-8 lg:gap-32 w-full sm:w-auto flex-wrap">
+                <div className="flex flex-col">
+                  <p className="text-xs text-gray-600 font-semibold mb-0.5">
+                    Available Seats
+                  </p>
+                  <p className="text-sm font-extrabold text-[#3d6a8f] bg-blue-50 px-2 py-1 rounded-2xl">
+                    {" "}
+                    {groupData?.available_no_of_pax?.toLocaleString() || 0}
+                  </p>
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-xs text-gray-600 font-semibold mb-0.5">
+                    Adult Price
+                  </p>
+                  <p
+                    className={`${user.priceOnCall ? "text-white bg-red-600" : "text-[#3d6a8f] bg-blue-50"} text-sm font-extrabold px-2 py-1 rounded-2xl whitespace-nowrap`}
+                  >
+                    {user.priceOnCall
+                      ? "Price on Call"
+                      : `PKR ${groupData?.price?.toLocaleString()}`}
+                    {/* 
+                                      {groupData?.price?.toLocaleString() || 0} */}
+                  </p>
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-xs text-gray-600 font-semibold mt-1 mb-0.5">
+                    Child
+                  </p>
+                  <p className="text-sm font-extrabold text-[#3d6a8f] bg-blue-50 px-2 py-1 rounded-2xl">
+                    {groupData?.childPrice || "N/A"}
+                  </p>
+                </div>
 
-              <div className="flex flex-col">
-                <p className="text-xs text-gray-600 font-semibold mt-1 mb-0.5">
-                  Infant
-                </p>
-                <p
-                  className={`text-sm font-extrabold px-2 py-1 rounded-2xl ${isInfantPriceAvailable() ? "text-[#3d6a8f] bg-blue-50" : "text-white bg-red-600"}`}
-                >{`${isInfantPriceAvailable() ? `PKR ${groupData.infantPrice.toLocaleString()}` : "Price On Call"}`}</p>
+                <div className="flex flex-col">
+                  <p className="text-xs text-gray-600 font-semibold mt-1 mb-0.5">
+                    Infant
+                  </p>
+                  <p
+                    className={`text-sm font-extrabold px-2 py-1 rounded-2xl whitespace-nowrap ${isInfantPriceAvailable() ? "text-[#3d6a8f] bg-blue-50" : "text-white bg-red-600"}`}
+                  >{`${isInfantPriceAvailable() ? `PKR ${groupData.infantPrice.toLocaleString()}` : "Price On Call"}`}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -549,317 +593,394 @@ export default function BookingForm() {
       {/* Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         {/* Passengers and Pricing Table */}
-        <div className="bg-white border border-gray-300 shadow-sm">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-[#3d6a8f] text-white">
-                <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20 w-2/6">
-                  Passengers
-                </th>
-                <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20 w-2/6">
-                  Price
-                </th>
-                <th className="px-3 py-2 text-center text-xs font-bold border-r border-white/20 w-1/6">
-                  Seats
-                </th>
-                <th className="px-3 py-2 text-right text-xs font-bold w-1/6">
-                  Total
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* Adult Row */}
-              <tr className="border-b border-gray-200">
-                <td className="px-3 py-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs w-1/4 font-medium text-gray-900">
-                      Adult
-                    </span>
-                    <div className="w-3/4">
-                      <input
-                        type="number"
-                        name="adults"
-                        value={formData.adults}
-                        onChange={handleChange}
-                        onBlur={handlePassengerBlur}
-                        min="1"
-                        className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-center text-xs font-semibold focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                      />
+        <div className="bg-white border border-gray-300 shadow-sm overflow-x-auto">
+          <div className="min-w-150">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-[#3d6a8f] text-white">
+                  <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20 w-2/6">
+                    Passengers
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20 w-2/6">
+                    Price
+                  </th>
+                  <th className="px-3 py-2 text-center text-xs font-bold border-r border-white/20 w-1/6">
+                    Seats
+                  </th>
+                  <th className="px-3 py-2 text-right text-xs font-bold w-1/6">
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {/* Adult Row */}
+                <tr className="border-b border-gray-200">
+                  <td className="px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs w-1/4 font-medium text-gray-900">
+                        Adult
+                      </span>
+                      <div className="w-3/4">
+                        <input
+                          type="number"
+                          name="adults"
+                          value={formData.adults}
+                          onChange={handleChange}
+                          onBlur={handlePassengerBlur}
+                          min="1"
+                          className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-center text-xs font-semibold focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td className="px-3 py-2 text-xs font-medium text-gray-900 border-r border-gray-200">
-                  {/* PKR {groupData?.price?.toLocaleString() || 0} */}
-                  <span
-                    className={`${user.priceOnCall ? "text-red-500" : "text-[#3d6a8f]"} inline-block text-xs font-extrabold px-2 py-1 rounded-2xl`}
+                  </td>
+                  <td className="px-3 py-2 text-xs font-medium text-gray-900 border-r border-gray-200">
+                    {/* PKR {groupData?.price?.toLocaleString() || 0} */}
+                    <span
+                      className={`${user.priceOnCall ? "text-red-500" : "text-[#3d6a8f]"} inline-block text-xs font-extrabold px-2 py-1 rounded-2xl`}
+                    >
+                      {user.priceOnCall
+                        ? "Price on Call"
+                        : `PKR ${groupData?.price?.toLocaleString()}`}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2 text-center text-xs font-bold text-gray-900 border-r border-gray-200">
+                    {formData.adults}
+                  </td>
+                  <td className="px-3 py-2 text-right text-xs font-bold text-gray-900">
+                    {user.priceOnCall ? (
+                      <span className="text-red-500 font-semibold">
+                        Price on Call
+                      </span>
+                    ) : (
+                      `PKR ${calculateAdultTotal().toLocaleString()}`
+                    )}
+                  </td>
+                </tr>
+
+                {/* Children Row */}
+                <tr className="border-b border-gray-200">
+                  <td className="px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs w-1/4 font-medium text-gray-900">
+                        Children
+                      </span>
+                      <div className="w-3/4">
+                        <input
+                          type="number"
+                          name="children"
+                          value={formData.children}
+                          onChange={handleChange}
+                          onBlur={handlePassengerBlur}
+                          min="0"
+                          className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-center text-xs font-semibold focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 text-xs font-medium border-r border-gray-200">
+                    {isChildPriceAvailable() ? (
+                      <span className="text-[#3d6a8f] inline-block text-xs font-extrabold px-2 py-1 rounded-2xl">
+                        PKR {groupData?.childPrice?.toLocaleString() || 0}
+                      </span>
+                    ) : (
+                      <span className="text-gray-500 font-semibold">N/A</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2 text-center text-xs font-bold text-gray-900 border-r border-gray-200">
+                    {formData.children}
+                  </td>
+                  <td className="px-3 py-2 text-right text-xs font-bold text-gray-900">
+                    {isChildPriceAvailable()
+                      ? `PKR ${calculateChildTotal().toLocaleString()}`
+                      : "-"}
+                  </td>
+                </tr>
+
+                {/* Infants Row */}
+                <tr className="border-b border-gray-200">
+                  <td className="px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs w-1/4 font-medium text-gray-900">
+                        Infants
+                      </span>
+                      <div className="w-3/4">
+                        <input
+                          type="number"
+                          name="infants"
+                          value={formData.infants}
+                          onChange={handleChange}
+                          onBlur={handlePassengerBlur}
+                          min="0"
+                          className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-center text-xs font-semibold focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 text-xs font-medium border-r border-gray-200">
+                    {isInfantPriceAvailable() ? (
+                      <span className="text-gray-900">
+                        PKR {groupData?.infantPrice?.toLocaleString()}
+                      </span>
+                    ) : (
+                      <span className="text-red-500 font-semibold">
+                        Price On Call
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2 text-center text-xs font-bold text-gray-900 border-r border-gray-200">
+                    {formData.infants}
+                  </td>
+                  <td className="px-3 py-2 text-right text-xs font-bold text-gray-900">
+                    {isInfantPriceAvailable()
+                      ? `PKR ${Math.round(calculateInfantTotal()).toLocaleString()}`
+                      : "-"}
+                  </td>
+                </tr>
+
+                {/* Total Row */}
+                <tr className="bg-gray-100">
+                  <td
+                    colSpan="2"
+                    className="px-3 py-2 text-xs font-bold text-gray-900"
                   >
-                    {user.priceOnCall
-                      ? "Price on Call"
-                      : `PKR ${groupData?.price?.toLocaleString()}`}
-                  </span>
-                </td>
-                <td className="px-3 py-2 text-center text-xs font-bold text-gray-900 border-r border-gray-200">
-                  {formData.adults}
-                </td>
-                <td className="px-3 py-2 text-right text-xs font-bold text-gray-900">
-                  {user.priceOnCall ? (
-                    <span className="text-red-500 font-semibold">
-                      Price on Call
-                    </span>
-                  ) : (
-                    `PKR ${calculateAdultTotal().toLocaleString()}`
-                  )}
-                </td>
-              </tr>
-
-              {/* Infants Row */}
-              <tr className="border-b border-gray-200">
-                <td className="px-3 py-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs w-1/4 font-medium text-gray-900">
-                      Infants
-                    </span>
-                    <div className="w-3/4">
-                      <input
-                        type="number"
-                        name="infants"
-                        value={formData.infants}
-                        onChange={handleChange}
-                        onBlur={handlePassengerBlur}
-                        min="0"
-                        className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-center text-xs font-semibold focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-                </td>
-                <td className="px-3 py-2 text-xs font-medium border-r border-gray-200">
-                  {isInfantPriceAvailable() ? (
-                    <span className="text-gray-900">
-                      PKR {groupData?.infantPrice?.toLocaleString()}
-                    </span>
-                  ) : (
-                    <span className="text-red-500 font-semibold">
-                      Price On Call
-                    </span>
-                  )}
-                </td>
-                <td className="px-3 py-2 text-center text-xs font-bold text-gray-900 border-r border-gray-200">
-                  {formData.infants}
-                </td>
-                <td className="px-3 py-2 text-right text-xs font-bold text-gray-900">
-                  {isInfantPriceAvailable()
-                    ? `PKR ${Math.round(calculateInfantTotal()).toLocaleString()}`
-                    : "-"}
-                </td>
-              </tr>
-
-              {/* Total Row */}
-              <tr className="bg-gray-100">
-                <td
-                  colSpan="2"
-                  className="px-3 py-2 text-xs font-bold text-gray-900"
-                >
-                  Total
-                </td>
-                <td className="px-3 py-2 text-center text-xs font-bold text-gray-900 border-r border-gray-200">
-                  {totalPassengers}
-                </td>
-                <td className="px-3 py-2 text-right text-xs font-bold">
-                  {user.priceOnCall ? (
-                    <span className="text-red-500 font-semibold">
-                      Price on Call
-                    </span>
-                  ) : (
-                    `PKR ${Math.round(calculateTotalPrice()).toLocaleString()}`
-                  )}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                    Total
+                  </td>
+                  <td className="px-3 py-2 text-center text-xs font-bold text-gray-900 border-r border-gray-200">
+                    {totalPassengers}
+                  </td>
+                  <td className="px-3 py-2 text-right text-xs font-bold">
+                    {user.priceOnCall ? (
+                      <span className="text-red-500 font-semibold">
+                        Price on Call
+                      </span>
+                    ) : (
+                      `PKR ${Math.round(calculateTotalPrice()).toLocaleString()}`
+                    )}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Passenger Details Table */}
         <div className="bg-white border border-gray-300 shadow-sm overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-[#3d6a8f] text-white">
-                <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20">
-                  SR#
-                </th>
-                <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20">
-                  Title
-                </th>
-                <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20">
-                  Surname
-                </th>
-                <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20">
-                  Given Name
-                </th>
-                <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20">
-                  Passport No
-                </th>
-                <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20">
-                  Date Of Birth
-                </th>
-                <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20">
-                  Passport Expiry
-                </th>
-                <th className="px-3 py-2 text-left text-xs font-bold">
-                  Nationality
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {formData.passengers.map((passenger, index) => {
-                let passengerLabel = "";
-                if (passenger.type === "Adult") {
-                  const adultNum = formData.passengers
-                    .slice(0, index + 1)
-                    .filter((p) => p.type === "Adult").length;
-                  passengerLabel = `Adult ${adultNum}`;
-                } else if (passenger.type === "Child") {
-                  const childNum = formData.passengers
-                    .slice(0, index + 1)
-                    .filter((p) => p.type === "Child").length;
-                  passengerLabel = `Child ${childNum}`;
-                } else if (passenger.type === "Infant") {
-                  const infantNum = formData.passengers
-                    .slice(0, index + 1)
-                    .filter((p) => p.type === "Infant").length;
-                  passengerLabel = `Infant ${infantNum}`;
-                }
+          <div className="min-w-200">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-[#3d6a8f] text-white">
+                  <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20">
+                    SR#
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20">
+                    Title
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20">
+                    Surname
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20">
+                    Given Name
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20">
+                    Passport No
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20">
+                    Date Of Birth
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20">
+                    Passport Expiry
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-bold">
+                    Nationality
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {formData.passengers.map((passenger, index) => {
+                  let passengerLabel = "";
+                  if (passenger.type === "Adult") {
+                    const adultNum = formData.passengers
+                      .slice(0, index + 1)
+                      .filter((p) => p.type === "Adult").length;
+                    passengerLabel = `Adult ${adultNum}`;
+                  } else if (passenger.type === "Child") {
+                    const childNum = formData.passengers
+                      .slice(0, index + 1)
+                      .filter((p) => p.type === "Child").length;
+                    passengerLabel = `Child ${childNum}`;
+                  } else if (passenger.type === "Infant") {
+                    const infantNum = formData.passengers
+                      .slice(0, index + 1)
+                      .filter((p) => p.type === "Infant").length;
+                    passengerLabel = `Infant ${infantNum}`;
+                  }
 
-                return (
-                  <tr
-                    key={index}
-                    className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100"
-                  >
-                    <td className="px-3 py-2 text-xs font-medium text-gray-900">
-                      {passengerLabel}
-                    </td>
-                    <td className="px-3 py-2">
-                      <select
-                        value={passenger.title}
-                        onChange={(e) =>
-                          handlePassengerChange(index, "title", e.target.value)
-                        }
-                        required
-                        className="w-full min-w-[90px]  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        {passenger.type === "Adult" && (
-                          <>
-                            <option value="Mr">Mr</option>
-                            <option value="Mrs">Mrs</option>
-                            <option value="Ms">Ms</option>
-                          </>
-                        )}
-                        {passenger.type === "Child" && (
-                          <option value="CHLD">CHLD</option>
-                        )}
-                        {passenger.type === "Infant" && (
-                          <option value="INF">INF</option>
-                        )}
-                      </select>
-                    </td>
-                    <td className="px-3 py-2">
-                      <input
-                        type="text"
-                        value={passenger.surName}
-                        onChange={(e) =>
-                          handlePassengerChange(
-                            index,
-                            "surName",
-                            e.target.value,
-                          )
-                        }
-                        required
-                        className="w-full min-w-[120px] px-2 py-1  bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Surname"
-                      />
-                    </td>
-                    <td className="px-3 py-2">
-                      <input
-                        type="text"
-                        value={passenger.givenName}
-                        onChange={(e) =>
-                          handlePassengerChange(
-                            index,
-                            "givenName",
-                            e.target.value,
-                          )
-                        }
-                        required
-                        className="w-full min-w-[120px]  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Given Name"
-                      />
-                    </td>
-                    <td className="px-3 py-2">
-                      <input
-                        type="text"
-                        value={passenger.passport}
-                        onChange={(e) =>
-                          handlePassengerChange(
-                            index,
-                            "passport",
-                            e.target.value,
-                          )
-                        }
-                        required
-                        className="w-full min-w-[120px]  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Passport No"
-                      />
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="min-w-[130px]">
-                        <MaskedDatePicker
-                          value={passenger.dateOfBirth}
-                          onChange={(date) =>
-                            handlePassengerChange(index, "dateOfBirth", date)
+                  return (
+                    <tr
+                      key={index}
+                      className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100"
+                    >
+                      <td className="px-3 py-2 text-xs font-medium text-gray-900">
+                        <div className="flex items-center gap-2">
+                          {passengerLabel}
+                          <button
+                            type="button"
+                            onClick={() => handleMrzScan(index)}
+                            title="Scan Passport MRZ"
+                            className="flex items-center gap-1 px-2 py-0.5 bg-[#3d6a8f]/10 hover:bg-[#3d6a8f] text-[#3d6a8f] hover:text-white border border-[#3d6a8f]/30 rounded text-[10px] font-bold transition-all duration-200 group"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="11"
+                              height="11"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <rect x="2" y="4" width="20" height="16" rx="2" />
+                              <line x1="2" y1="14" x2="22" y2="14" />
+                              <line x1="6" y1="18" x2="6.01" y2="18" />
+                              <line x1="10" y1="18" x2="14" y2="18" />
+                            </svg>
+                            Scan
+                          </button>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2">
+                        <select
+                          value={passenger.title}
+                          onChange={(e) =>
+                            handlePassengerChange(
+                              index,
+                              "title",
+                              e.target.value,
+                            )
                           }
-                          size="small"
-                          maxDate={new Date()}
-                        />
-                      </div>
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="min-w-[130px]">
-                        <MaskedDatePicker
-                          value={passenger.passportExpiry}
-                          onChange={(date) =>
-                            handlePassengerChange(index, "passportExpiry", date)
+                          required
+                          className="w-full min-w-22.5  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          {passenger.type === "Adult" && (
+                            <>
+                              <option value="Mr">Mr</option>
+                              <option value="Mrs">Mrs</option>
+                              <option value="Ms">Ms</option>
+                            </>
+                          )}
+                          {passenger.type === "Child" && (
+                            <option value="CHLD">CHLD</option>
+                          )}
+                          {passenger.type === "Infant" && (
+                            <option value="INF">INF</option>
+                          )}
+                        </select>
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          type="text"
+                          value={passenger.surName}
+                          onChange={(e) =>
+                            handlePassengerChange(
+                              index,
+                              "surName",
+                              e.target.value,
+                            )
                           }
-                          size="small"
-                          minDate={new Date()}
+                          required
+                          className="w-full min-w-[120px] px-2 py-1  bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Surname"
                         />
-                      </div>
-                    </td>
-                    <td className="px-3 py-2">
-                      <input
-                        type="text"
-                        value={passenger.nationality || ""}
-                        onChange={(e) =>
-                          handlePassengerChange(
-                            index,
-                            "nationality",
-                            e.target.value,
-                          )
-                        }
-                        className="w-full min-w-[120px]  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Nationality"
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          type="text"
+                          value={passenger.givenName}
+                          onChange={(e) =>
+                            handlePassengerChange(
+                              index,
+                              "givenName",
+                              e.target.value,
+                            )
+                          }
+                          required
+                          className="w-full min-w-[120px]  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Given Name"
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          type="text"
+                          value={passenger.passport}
+                          onChange={(e) =>
+                            handlePassengerChange(
+                              index,
+                              "passport",
+                              e.target.value,
+                            )
+                          }
+                          required
+                          className="w-full min-w-[120px]  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Passport No"
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="min-w-[130px]">
+                          <MaskedDatePicker
+                            value={passenger.dateOfBirth}
+                            onChange={(date) =>
+                              handlePassengerChange(index, "dateOfBirth", date)
+                            }
+                            size="small"
+                            maxDate={new Date()}
+                          />
+                        </div>
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="min-w-[130px]">
+                          <MaskedDatePicker
+                            value={passenger.passportExpiry}
+                            onChange={(date) =>
+                              handlePassengerChange(
+                                index,
+                                "passportExpiry",
+                                date,
+                              )
+                            }
+                            size="small"
+                            minDate={new Date()}
+                          />
+                        </div>
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          type="text"
+                          value={passenger.nationality || ""}
+                          onChange={(e) =>
+                            handlePassengerChange(
+                              index,
+                              "nationality",
+                              e.target.value,
+                            )
+                          }
+                          className="w-full min-w-[120px]  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Nationality"
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div className="flex gap-2 px-4 py-3 bg-white border-t border-gray-200 justify-center">
+        <div className="flex flex-col sm:flex-row gap-2 px-4 py-3 bg-white border-t border-gray-200 justify-center">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-mdhover:bg-gray-200 transition-colors"
+            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors"
           >
             Cancel
           </button>
@@ -867,10 +988,10 @@ export default function BookingForm() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`px-8 py-2 rounded text-sm font-bold shadow transform transition-all duration-300 ${isSubmitting ? "bg-gray-400 text-white cursor-not-allowed" : "bg-[#3d6a8f] text-white hover:bg-[#2d5a8f] hover:scale-105 hover:shadow-lg active:scale-95"}`}
+            className={`w-full sm:w-auto px-8 py-2 rounded text-sm font-bold shadow transform transition-all duration-300 ${isSubmitting ? "bg-gray-400 text-white cursor-not-allowed" : "bg-[#3d6a8f] text-white hover:bg-[#2d5a8f] hover:scale-105 hover:shadow-lg active:scale-95"}`}
           >
             {isSubmitting ? (
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-2 justify-center">
                 <svg
                   className="animate-spin w-4 h-4"
                   xmlns="http://www.w3.org/2000/svg"
@@ -902,18 +1023,171 @@ export default function BookingForm() {
         </div>
       </form>
 
+      {/* --- MRZ SCAN MODAL --- */}
+      {mrzModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+            {/* Header */}
+            <div className="bg-[#3d6a8f] px-6 py-4 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 p-2 rounded-lg">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                    <line x1="2" y1="14" x2="22" y2="14" />
+                    <line x1="6" y1="18" x2="6.01" y2="18" />
+                    <line x1="10" y1="18" x2="14" y2="18" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="text-white font-bold text-base">
+                    Passport MRZ Scanner
+                  </h4>
+                  <p className="text-white/70 text-xs">
+                    Passenger{" "}
+                    {mrzModal.index !== null
+                      ? formData.passengers[mrzModal.index]?.type
+                      : ""}{" "}
+                    {(mrzModal.index || 0) + 1}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setMrzModal({ open: false, index: null })}
+                className="text-white/70 hover:text-white hover:bg-white/20 p-1.5 rounded-lg transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 flex flex-col gap-4">
+              {/* Instructions */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex gap-3">
+                <div className="text-blue-500 mt-0.5 shrink-0">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                </div>
+                <div className="text-xs text-blue-700 leading-relaxed">
+                  💡 The MRZ is the two lines of machine-readable text at the
+                  bottom of the main passport page.
+                </div>
+              </div>
+
+              {/* Textarea */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-gray-700">
+                  Paste the MRZ code
+                </label>
+                <textarea
+                  autoFocus
+                  value={mrzInput}
+                  onChange={(e) => {
+                    setMrzInput(e.target.value);
+                    setMrzError("");
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.ctrlKey && e.key === "Enter") handleMrzParse();
+                  }}
+                  placeholder={`P<PAKNAME<<GIVEN<NAME<<<<<<<<<<<<<<<<<<<<<\nAB1234567PAK8501011M2601014<<<<<<<<<<<<<<<6`}
+                  rows={4}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-[#3d6a8f]/30 focus:border-[#3d6a8f] resize-none bg-gray-50 placeholder-gray-300 leading-6"
+                />
+                {mrzError && (
+                  <p className="text-red-500 text-xs flex items-center gap-1.5 mt-0.5">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    {mrzError}
+                  </p>
+                )}
+              </div>
+
+              {/* Sample */}
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                  Example MRZ Format
+                </p>
+                <code className="text-[10px] font-mono text-gray-500 leading-5 block break-all">
+                  P&lt;PAKSMITH&lt;&lt;JOHN&lt;WILLIAM&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;
+                  <br />
+                  AB1234567PAK8501011M2601014&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;6
+                </code>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setMrzModal({ open: false, index: null })}
+                className="px-5 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleMrzParse}
+                disabled={!mrzInput.trim()}
+                className={`px-6 py-2 text-sm font-bold rounded-lg transition-all ${
+                  mrzInput.trim()
+                    ? "bg-[#3d6a8f] text-white hover:bg-[#2d5a8f] shadow-sm hover:shadow-md"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                }`}
+              >
+                Scan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* --- REFACTORED REVIEW MODAL --- */}
       {showReviewModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="bg-white rounded-md shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col max-h-[90vh]">
             {/* Modal Header */}
-            <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-              <div className="flex items-center gap-3">
+            <div className="bg-gray-50 border-b border-gray-200 px-4 sm:px-6 py-4 flex justify-between items-center gap-2">
+              <div className="flex items-center gap-2 sm:gap-3">
                 {/* <div className="bg-[#3d6a8f]/10 p-2 rounded-full">
                                     <UserCheck size={24} className="text-[#3d6a8f]" />
                                 </div> */}
                 <div>
-                  <h4 className="text-xl font-semibold! text-gray-900">
+                  <h4 className="text-base sm:text-xl font-semibold! text-gray-900">
                     Please review passenger booking data before submission
                   </h4>
                   {/* <p className="text-xs text-gray-500">Please verify all passenger information before final submission.</p> */}
@@ -921,84 +1195,86 @@ export default function BookingForm() {
               </div>
               <button
                 onClick={() => setShowReviewModal(false)}
-                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors"
+                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors flex-shrink-0"
               >
-                <X size={24} />
+                <X size={20} className="sm:w-6 sm:h-6" />
               </button>
             </div>
 
             {/* Modal Body (Scrollable) */}
-            <div className="overflow-y-auto p-6 flex-1">
-              <div className="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                <table className="w-full text-sm text-left border-collapse">
-                  <thead>
-                    <tr className="bg-[#3d6a8f] text-white">
-                      <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">
-                        SR #
-                      </th>
-                      <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">
-                        Title
-                      </th>
-                      <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">
-                        Surname
-                      </th>
-                      <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">
-                        Given Name
-                      </th>
-                      <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">
-                        Passport
-                      </th>
-                      <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">
-                        DOB
-                      </th>
-                      <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">
-                        Passport Expiry
-                      </th>
-                      <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider">
-                        Nationality
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 bg-white">
-                    {formData.passengers.map((p, i) => (
-                      <tr
-                        key={i}
-                        className="hover:bg-blue-50/30 transition-colors"
-                      >
-                        <td className="px-4 py-3 border-r border-gray-100">
-                          {`${p.type} ${p.type === "Adult" ? i + 1 : ""}`}
-                        </td>
-                        <td className="px-4 py-3 border-r border-gray-100">
-                          {p.title}
-                        </td>
-                        <td className="px-4 py-3 border-r border-gray-100 font-bold">
-                          {p.surName}
-                        </td>
-                        <td className="px-4 py-3 border-r border-gray-100 font-bold">
-                          {p.givenName}
-                        </td>
-                        <td className="px-4 py-3 border-r border-gray-100 tracking-wide">
-                          {p.passport}
-                        </td>
-                        <td className="px-4 py-3 border-r border-gray-100">
-                          {formatDateForDisplay(p.dateOfBirth)}
-                        </td>
-                        <td className="px-4 py-3 border-r border-gray-100">
-                          {formatDateForDisplay(p.passportExpiry)}
-                        </td>
-                        <td className="px-4 py-3">{p.nationality}</td>
+            <div className="overflow-y-auto p-4 sm:p-6 flex-1">
+              <div className="rounded-xl border border-gray-200 overflow-x-auto shadow-sm">
+                <div className="min-w-[800px]">
+                  <table className="w-full text-sm text-left border-collapse">
+                    <thead>
+                      <tr className="bg-[#3d6a8f] text-white">
+                        <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">
+                          SR #
+                        </th>
+                        <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">
+                          Title
+                        </th>
+                        <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">
+                          Surname
+                        </th>
+                        <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">
+                          Given Name
+                        </th>
+                        <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">
+                          Passport
+                        </th>
+                        <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">
+                          DOB
+                        </th>
+                        <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">
+                          Passport Expiry
+                        </th>
+                        <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider">
+                          Nationality
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 bg-white">
+                      {formData.passengers.map((p, i) => (
+                        <tr
+                          key={i}
+                          className="hover:bg-blue-50/30 transition-colors"
+                        >
+                          <td className="px-4 py-3 border-r border-gray-100">
+                            {`${p.type} ${p.type === "Adult" ? i + 1 : ""}`}
+                          </td>
+                          <td className="px-4 py-3 border-r border-gray-100">
+                            {p.title}
+                          </td>
+                          <td className="px-4 py-3 border-r border-gray-100 font-bold">
+                            {p.surName}
+                          </td>
+                          <td className="px-4 py-3 border-r border-gray-100 font-bold">
+                            {p.givenName}
+                          </td>
+                          <td className="px-4 py-3 border-r border-gray-100 tracking-wide">
+                            {p.passport}
+                          </td>
+                          <td className="px-4 py-3 border-r border-gray-100">
+                            {formatDateForDisplay(p.dateOfBirth)}
+                          </td>
+                          <td className="px-4 py-3 border-r border-gray-100">
+                            {formatDateForDisplay(p.passportExpiry)}
+                          </td>
+                          <td className="px-4 py-3">{p.nationality}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="bg-gray-50 border-t border-gray-200 px-6 py-5 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="bg-gray-50 border-t border-gray-200 px-4 sm:px-6 py-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               {/* Confirmation Checkbox */}
-              <label className="flex items-center gap-3 cursor-pointer group bg-white border border-gray-200 px-4 py-3 rounded-lg hover:border-[#3d6a8f] transition-all shadow-sm w-full sm:w-auto">
-                <div className="relative flex items-center">
+              <label className="flex items-start sm:items-center gap-3 cursor-pointer group bg-white border border-gray-200 px-4 py-3 rounded-lg hover:border-[#3d6a8f] transition-all shadow-sm w-full sm:w-auto">
+                <div className="relative flex items-center flex-shrink-0 mt-0.5 sm:mt-0">
                   <input
                     type="checkbox"
                     checked={isReviewed}
@@ -1010,7 +1286,7 @@ export default function BookingForm() {
                     className="absolute left-0.5 top-0.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none"
                   />
                 </div>
-                <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900 select-none">
+                <span className="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-gray-900 select-none">
                   {/* I confirm that all data is accurate. */}I hereby confirm
                   that all the information I have provided in this form is
                   accurate and complete.
@@ -1022,7 +1298,7 @@ export default function BookingForm() {
                 <button
                   type="button"
                   onClick={() => setShowReviewModal(false)}
-                  className="px-6 py-2.5 rounded-lg text-sm font-bold text-gray-600 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-800 transition-colors flex items-center gap-2"
+                  className="flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-sm font-bold text-gray-600 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-800 transition-colors flex items-center justify-center gap-2"
                   disabled={isSubmitting}
                 >
                   Edit
@@ -1031,7 +1307,7 @@ export default function BookingForm() {
                   type="button"
                   onClick={handleFinalSubmit}
                   disabled={!isReviewed || isSubmitting}
-                  className={`px-8 py-2.5 rounded-lg text-sm font-bold shadow-md flex items-center gap-2 transition-all transform active:scale-95
+                  className={`flex-1 sm:flex-none px-8 py-2.5 rounded-lg text-sm font-bold shadow-md flex items-center justify-center gap-2 transition-all transform active:scale-95
                                         ${
                                           isReviewed && !isSubmitting
                                             ? "bg-[#3d6a8f] text-white hover:bg-[#2d5a8f] hover:shadow-lg"

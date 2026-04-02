@@ -1,18 +1,22 @@
 import React, { useEffect, useState } from "react";
+import { Ticket, Menu, X } from "lucide-react";
+import { FaPlane, FaSuitcase, FaUtensils, FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../../api/axios";
 import { toast } from "react-toastify";
 import MaskedDatePicker from "../../../components/MaskedDatePicker";
+import { theme } from "../../../theme/theme";
+import TopBar from "../../../components/TopBar/TopBar";
 
 export default function AllGroups({ headerType, header, searchParams }) {
   const user = JSON.parse(localStorage.getItem("frontend_user"));
   const navigate = useNavigate();
+
   const [groups, setGroups] = useState([]);
   const [allGroups, setAllGroups] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  // Filter states
   const [filters, setFilters] = useState({
     sectors: [],
     airlines: [],
@@ -20,10 +24,7 @@ export default function AllGroups({ headerType, header, searchParams }) {
     departDate: null,
   });
 
-  // Advanced search toggle
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
-
-  // Get unique values for filter checkboxes
   const [airlines, setAirlines] = useState([]);
   const [sectors, setSectors] = useState([]);
 
@@ -34,29 +35,17 @@ export default function AllGroups({ headerType, header, searchParams }) {
   const fetchGroups = async () => {
     try {
       setLoading(true);
-      setError(null);
-      let allGroups = [];
+      const response = await axiosInstance.get("/sector/getUnifiedGroups");
+
+      let fetchedGroups = response.data.success
+        ? (response.data.data || []).filter(
+            (group) => Number(group.available_no_of_pax) > 0,
+          )
+        : [];
+
       const groupType = searchParams.get("group_type") || "";
-
-      // Fetch unified groups from backend (already sorted by sector order)
-      const response = await axiosInstance
-        .get("/sector/getUnifiedGroups")
-        .catch((err) => {
-          console.error("Unified Groups API Error:", err);
-          return { data: { success: false, data: [] } };
-        });
-
-      if (response.data.success) {
-        allGroups = (response.data.data || []).filter(
-          (group) => Number(group.available_no_of_pax) > 0,
-        );
-      }
-
-      // Apply filtering based on group_type if specified
       if (groupType) {
         const normalizedGroupType = groupType.toLowerCase().trim();
-
-        // Define group type mappings - maps search terms to actual group types in data
         const groupTypeMap = {
           uae: (type) => type === "uae" || type.includes("uae"),
           ksa: (type) => type === "ksa oneway" || type.includes("ksa"),
@@ -66,25 +55,16 @@ export default function AllGroups({ headerType, header, searchParams }) {
             type === "muscat" ||
             type.includes("muscat") ||
             type.includes("mascat"),
-          mascat: (type) =>
-            type === "muscat" ||
-            type.includes("muscat") ||
-            type.includes("mascat"),
           qatar: (type) => type === "qatar" || type.includes("qatar"),
           uk: (type) => type === "uk" || type.includes("uk"),
           umrah: (type) => type === "umrah" || type.includes("umrah"),
         };
 
-        allGroups = allGroups.filter((group) => {
+        fetchedGroups = fetchedGroups.filter((group) => {
           if (!group.type) return false;
           const normalizedType = group.type.toLowerCase().trim();
-          // Check if we have a custom matcher for this group type
           const matcher = groupTypeMap[normalizedGroupType];
-          if (matcher) {
-            return matcher(normalizedType);
-          }
-
-          // Fallback to direct comparison and contains check
+          if (matcher) return matcher(normalizedType);
           return (
             normalizedType === normalizedGroupType ||
             normalizedType.includes(normalizedGroupType) ||
@@ -93,48 +73,40 @@ export default function AllGroups({ headerType, header, searchParams }) {
         });
       }
 
-      // Extract unique airlines and sectors for filters
       const uniqueAirlines = [
         ...new Set(
-          allGroups.map((g) => g.airline?.airline_name).filter(Boolean),
+          fetchedGroups.map((g) => g.airline?.airline_name).filter(Boolean),
         ),
       ];
       const uniqueSectors = [
-        ...new Set(allGroups.map((g) => g.sector).filter(Boolean)),
+        ...new Set(fetchedGroups.map((g) => g.sector).filter(Boolean)),
       ];
+
       setAirlines(uniqueAirlines.sort());
       setSectors(uniqueSectors.sort());
-
-      setAllGroups(allGroups);
-      applyFilters(allGroups);
+      setAllGroups(fetchedGroups);
+      applyFilters(fetchedGroups);
     } catch (err) {
       console.error("Error fetching groups:", err);
-      setError(null); // Don't show error, just use empty data
+      toast.error("Failed to load groups");
       setAllGroups([]);
       setGroups([]);
-      toast.error("Failed to load groups. Showing empty list.");
     } finally {
       setLoading(false);
     }
   };
-  // console.log(allGroups, "allgroups");
 
   const applyFilters = (dataToFilter = allGroups) => {
     let filtered = [...dataToFilter];
 
-    // 1. Filter by selected sectors
     if (filters.sectors.length > 0) {
       filtered = filtered.filter((g) => filters.sectors.includes(g.sector));
     }
-
-    // 2. Filter by selected airlines
     if (filters.airlines.length > 0) {
       filtered = filtered.filter((g) =>
         filters.airlines.includes(g.airline?.airline_name),
       );
     }
-
-    // 3. Filter by search keyword
     if (filters.searchKeyword) {
       const keyword = filters.searchKeyword.toLowerCase();
       filtered = filtered.filter((g) => {
@@ -148,8 +120,6 @@ export default function AllGroups({ headerType, header, searchParams }) {
         return matchesSector || matchesAirline || matchesFlightNo;
       });
     }
-
-    // 4. Filter by departure date
     if (filters.departDate) {
       filtered = filtered.filter((g) => {
         const deptDate = new Date(g.dept_date);
@@ -162,10 +132,9 @@ export default function AllGroups({ headerType, header, searchParams }) {
       });
     }
 
-    // NOTE: Do not apply global date sorting here to preserve backend sector order.
-
     setGroups(filtered);
   };
+
   const handleFilterChange = (filterType, value) => {
     if (filterType === "sector") {
       setFilters((prev) => ({
@@ -194,394 +163,411 @@ export default function AllGroups({ headerType, header, searchParams }) {
     applyFilters();
   }, [filters, allGroups]);
 
-  if (error) {
-    return (
-      <div className="w-full min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button
-            onClick={fetchGroups}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-          >
-            Retry
-          </button>
+  const LoadingSkeleton = () => (
+    <div className="space-y-6 p-4">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="animate-pulse">
+          <div className="h-12 rounded-2xl bg-gray-200 mb-4 w-full" />
+          <div className="h-16 bg-gray-100 rounded-xl mb-2 w-48 mx-auto" />
+          {[1, 2].map((j) => (
+            <div key={j} className="h-24 bg-gray-100 rounded-2xl mb-3" />
+          ))}
         </div>
+      ))}
+    </div>
+  );
+
+  const groupedData = groups.reduce((acc, group) => {
+    const key = `${group.airline?.airline_name || "Unknown"}-${group.sector || "Unknown"}`;
+    if (!acc[key]) {
+      acc[key] = {
+        airline: group.airline?.airline_name || "Unknown",
+        airlineLogo: group.airline?.logo_url || null,
+        sector: group.sector || "Unknown",
+        groups: [],
+      };
+    }
+    acc[key].groups.push(group);
+    return acc;
+  }, {});
+
+  // Shared Filter UI Component for Sidebar and Mobile Drawer
+  const FilterContent = () => (
+    <>
+      <h3
+        className="font-semibold text-lg mb-4"
+        style={{ color: theme.colors.textPrimary }}
+      >
+        Airlines
+      </h3>
+      <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+        {airlines.map((airline) => (
+          <label
+            key={airline}
+            className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-xl transition"
+          >
+            <input
+              type="checkbox"
+              checked={filters.airlines.includes(airline)}
+              onChange={() => handleFilterChange("airline", airline)}
+              className="w-4 h-4 rounded"
+            />
+            <span className="text-sm text-gray-700">{airline}</span>
+          </label>
+        ))}
       </div>
-    );
-  }
+      <div className="h-px bg-gray-200 my-6" />
+      <h3
+        className="font-semibold text-lg mb-4"
+        style={{ color: theme.colors.textPrimary }}
+      >
+        Sectors
+      </h3>
+      <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+        {sectors.map((sector) => (
+          <label
+            key={sector}
+            className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-xl transition"
+          >
+            <input
+              type="checkbox"
+              checked={filters.sectors.includes(sector)}
+              onChange={() => handleFilterChange("sector", sector)}
+              className="w-4 h-4 rounded"
+            />
+            <span className="text-sm text-gray-700">{sector}</span>
+          </label>
+        ))}
+      </div>
+    </>
+  );
 
   return (
-    <div className="w-full min-h-screen mx-auto">
+    <>
+      <TopBar title={"All Groups Tickets"} />
       <div
-        className={`flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 ${headerType === "dashboard" ? "bg-white rounded-lg shadow p-4 mb-4" : ""}`}
+        className="w-full min-h-screen"
+        style={{ background: theme.colors.background }}
       >
-        <div className="w-full xl:w-auto">{header}</div>
+        {/* Responsive Header Container */}
+        <div
+          className={`flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 p-4 md:p-5 bg-white border-b shadow-sm ${headerType === "dashboard" ? "rounded-t-3xl" : ""}`}
+        >
+          <div className="w-full xl:w-auto">{header}</div>
 
-        {/* Advanced Search Section */}
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
-          {/* Advanced Search Toggle */}
-          <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-2 border-b sm:border-0 pb-2 sm:pb-0 border-gray-100">
-            <label className="flex items-center cursor-pointer">
-              <div className="relative">
-                <input
-                  type="checkbox"
-                  checked={showAdvancedSearch}
-                  onChange={(e) => setShowAdvancedSearch(e.target.checked)}
-                  className="sr-only"
-                />
-                <div
-                  className={`w-10 h-6 rounded-full transition-colors ${
-                    showAdvancedSearch ? "bg-blue-600" : "bg-gray-300"
-                  }`}
-                >
+          <div className="flex flex-col lg:flex-row items-center gap-4 w-full xl:w-auto">
+            <div className="flex items-center justify-between w-full lg:w-auto gap-4">
+              {/* Advanced Search Toggle */}
+              <label className="flex items-center cursor-pointer">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    checked={showAdvancedSearch}
+                    onChange={(e) => setShowAdvancedSearch(e.target.checked)}
+                    className="sr-only"
+                  />
                   <div
-                    className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                      showAdvancedSearch ? "translate-x-4" : ""
-                    }`}
-                  ></div>
+                    className="w-11 h-6 rounded-full transition-all"
+                    style={{
+                      background: showAdvancedSearch
+                        ? theme.colors.ublGradient
+                        : "#d1d5db",
+                    }}
+                  >
+                    <div
+                      className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform shadow ${showAdvancedSearch ? "translate-x-5" : ""}`}
+                    />
+                  </div>
                 </div>
+                <span className="ml-3 text-sm font-medium text-gray-700 whitespace-nowrap">
+                  Advanced Search
+                </span>
+              </label>
+
+              {/* Mobile Filter Button (Visible only on small screens when Advanced Search is on) */}
+              {showAdvancedSearch && (
+                <button
+                  onClick={() => setIsMobileFilterOpen(true)}
+                  className="lg:hidden p-2 rounded-xl bg-gray-100 text-gray-700"
+                >
+                  <Menu size={20} />
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+              <div className="w-full sm:w-48">
+                <MaskedDatePicker
+                  value={filters.departDate}
+                  onChange={(date) => handleFilterChange("departDate", date)}
+                  placeholderText="Departure Date"
+                  minDate={new Date()}
+                />
               </div>
-              <span className="ml-2 text-sm font-medium text-gray-700 whitespace-nowrap">
-                Advance Search
-              </span>
-            </label>
-          </div>
-
-          {/* Search by Dept Date */}
-          <div className="w-full sm:w-48 shrink-0">
-            <MaskedDatePicker
-              value={filters.departDate}
-              onChange={(date) => handleFilterChange("departDate", date)}
-              placeholderText="Search By Dept Date"
-              minDate={new Date()}
-            />
-          </div>
-
-          {/* Search by Keyword */}
-          <div className="w-full sm:w-64">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search by Keyword"
-                value={filters.searchKeyword}
-                onChange={(e) =>
-                  handleFilterChange("searchKeyword", e.target.value)
-                }
-                className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                🔍
-              </button>
+              <div className="flex-1 lg:w-64 relative">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={filters.searchKeyword}
+                  onChange={(e) =>
+                    handleFilterChange("searchKeyword", e.target.value)
+                  }
+                  className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 text-sm"
+                />
+                <FaSearch className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Main Content with Sidebar */}
-      <div className="flex gap-4">
-        {/* Left Sidebar - Filters */}
-        {showAdvancedSearch && (
-          <div className="hidden lg:block w-64 shrink-0">
-            {/* Airlines Filter */}
-            <div className="bg-white rounded-lg shadow p-4 mb-4">
-              <h3 className="font-semibold text-gray-900 mb-3">Airlines</h3>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {airlines.map((airline) => (
-                  <label
-                    key={airline}
-                    className="flex items-center cursor-pointer hover:bg-gray-50 p-1 rounded"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={filters.airlines.includes(airline)}
-                      onChange={() => handleFilterChange("airline", airline)}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">
-                      {airline}
-                    </span>
-                  </label>
-                ))}
+        {/* Mobile Filter Drawer Overlay */}
+        {isMobileFilterOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <div
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setIsMobileFilterOpen(false)}
+            />
+            <div className="absolute right-0 top-0 h-full w-80 bg-white p-6 shadow-xl animate-in slide-in-from-right">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold">Filters</h2>
+                <button onClick={() => setIsMobileFilterOpen(false)}>
+                  <X />
+                </button>
               </div>
-            </div>
-
-            {/* Sectors Filter */}
-            <div className="bg-white rounded-lg shadow p-4">
-              <h3 className="font-semibold text-gray-900 mb-3">Sectors</h3>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {sectors.map((sector) => (
-                  <label
-                    key={sector}
-                    className="flex items-center cursor-pointer hover:bg-gray-50 p-1 rounded"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={filters.sectors.includes(sector)}
-                      onChange={() => handleFilterChange("sector", sector)}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">{sector}</span>
-                  </label>
-                ))}
-              </div>
+              <FilterContent />
             </div>
           </div>
         )}
 
-        {/* Main Table Area - Responsive Image View */}
-        <div className="flex-1 w-full overflow-hidden">
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            {/* overflow-x-auto allows horizontal scrolling on mobile */}
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                {/* Deep Blue Header to match image */}
-                <thead className="bg-[#1e4a76] text-white">
-                  <tr>
-                    <th className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
-                      Flight#
-                    </th>
-                    <th className="px-3 py-2 text-center text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
-                      Date
-                    </th>
-                    <th className="px-3 py-2 text-center text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
-                      Origin-Destination
-                    </th>
-                    <th className="px-3 py-2 text-center text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
-                      Time
-                    </th>
-                    <th className="px-3 py-2 text-center text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
-                      Baggage
-                    </th>
-                    <th className="px-3 py-2 text-center text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
-                      Meal
-                    </th>
-                    <th className="px-3 py-2 text-center text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
-                      Price
-                    </th>
-                    <th className="px-3 py-2 text-center text-[11px] font-medium uppercase tracking-wider whitespace-nowrap">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white text-gray-700 font-bold whitespace-nowrap text-[8px] md:text-[12.5px]">
-                  {loading && (
-                    <tr>
-                      <td
-                        colSpan="8"
-                        className="px-6 py-8 text-center text-gray-500 text-sm"
-                      >
-                        Loading groups...
-                      </td>
-                    </tr>
-                  )}
+        <div className="flex flex-col lg:flex-row gap-6 p-4 md:p-5">
+          {/* Desktop Sidebar */}
+          {showAdvancedSearch && (
+            <div className="hidden lg:block w-72 shrink-0">
+              <div className="bg-white rounded-3xl shadow-sm p-6 sticky top-6">
+                <FilterContent />
+              </div>
+            </div>
+          )}
 
-                  {!loading && groups.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan="8"
-                        className="px-6 py-8 text-center text-gray-500 text-sm"
-                      >
-                        No groups available at the moment
-                      </td>
-                    </tr>
-                  )}
+          {/* Main Content */}
+          <div className="flex-1 space-y-6 overflow-hidden">
+            {loading ? (
+              <div className="bg-white rounded-3xl shadow-sm p-4">
+                <LoadingSkeleton />
+              </div>
+            ) : groups.length === 0 ? (
+              <div className="bg-white rounded-3xl shadow-sm p-10 md:p-20 text-center text-gray-400">
+                No groups available at the moment
+              </div>
+            ) : (
+              Object.entries(groupedData).map(([key, data]) => {
+                const sectorParts = data.sector?.split("-") || [];
+                const origin = sectorParts[0] || "";
+                const destination = sectorParts[1] || data.sector;
 
-                  {!loading &&
-                    groups.length > 0 &&
-                    (() => {
-                      const groupedData = groups.reduce((acc, group) => {
-                        const key = `${group.airline?.airline_name || "Unknown"}-${group.sector || "Unknown"}`;
-                        if (!acc[key]) {
-                          acc[key] = {
-                            airline: group.airline?.airline_name || "Unknown",
-                            sector: group.sector || "Unknown",
-                            logo_url: group.airline?.logo_url || null,
-                            groups: [],
-                          };
-                        }
-                        acc[key].groups.push(group);
-                        return acc;
-                      }, {});
+                return (
+                  <div
+                    key={key}
+                    className="rounded-2xl overflow-hidden shadow-md bg-white"
+                  >
+                    {/* Sector Header Bar */}
+                    <div
+                      className="flex items-center justify-center gap-4 px-4 py-3 md:py-4"
+                      style={{ background: theme.colors.primary }}
+                    >
+                      <i className="fa-solid fa-plane-departure text-white text-lg md:text-2xl"></i>
+                      <span className="text-white font-bold text-lg md:text-2xl tracking-widest uppercase">
+                        {data.sector}
+                      </span>
+                      <i className="fa-solid fa-plane-arrival text-white text-lg md:text-2xl"></i>
+                    </div>
 
-                      const formatDate = (dateStr) => {
-                        const date = new Date(dateStr);
-                        const day = date.getDate().toString().padStart(2, "0");
-                        const month = date.toLocaleDateString("en-US", {
-                          month: "short",
-                        });
-                        const year = date.getFullYear();
-                        return `${day} ${month} ${year}`;
-                      };
+                    {/* Airline Logo Area */}
+                    <div className="bg-white flex items-center justify-center py-4 border-b border-gray-100">
+                      {data.airlineLogo ? (
+                        <img
+                          style={{ height: "50px" }}
+                          src={data.airlineLogo}
+                          alt={data.airline}
+                          className="h-10 md:h-14 object-contain"
+                        />
+                      ) : (
+                        <span
+                          className="font-semibold text-lg"
+                          style={{ color: theme.colors.textPrimary }}
+                        >
+                          {data.airline}
+                        </span>
+                      )}
+                    </div>
 
-                      return Object.entries(groupedData).map(([key, data]) => (
-                        <React.Fragment key={key}>
-                          {/* Airline Header Row - Styled like image (Pink Airline + Black Sector) */}
-                          <tr className="bg-white border-b border-gray-100">
-                            <td colSpan="8" className="px-4 py-2 text-center">
-                              <div className="flex items-center justify-center gap-2">
-                                <span className="font-bold text-[#D70F64] text-sm">
-                                  {data.airline}
-                                </span>
-                                <span className="font-bold text-lg">
-                                  {data.sector}
-                                </span>
-                              </div>
-                            </td>
-                          </tr>
+                    {/* Flight Cards */}
+                    <div className="bg-gray-50 p-2 md:p-4 space-y-4">
+                      {data.groups
+                        .sort(
+                          (a, b) =>
+                            new Date(a.dept_date) - new Date(b.dept_date),
+                        )
+                        .map((group) => {
+                          const flight = group.details?.[0];
 
-                          {/* */}
-
-                          {/* Group Rows - Condensed, single line per cell */}
-                          {(() => {
-                            const sorted = [...data.groups].sort((a, b) => {
-                              const dateA = new Date(a.dept_date);
-                              const dateB = new Date(b.dept_date);
-                              if (dateA.getTime() === dateB.getTime()) {
-                                return a.price - b.price;
-                              }
-                              return dateA - dateB;
-                            });
-
-                            // Same date pe sirf sabse kam price wala dikhao jab tak uski seats available hain
-                            const seen = new Set();
-                            const filtered = sorted.filter((group) => {
-                              const dateKey = new Date(
-                                group.dept_date,
-                              ).toDateString();
-                              if (seen.has(dateKey)) return false; // is date ka sasta already show ho chuka
-                              seen.add(dateKey);
-                              return true;
-                            });
-
-                            return filtered;
-                          })().map((group) => (
-                            <tr
+                          return (
+                            <div
                               key={group.id}
-                              className="border-b border-dashed border-gray-100 bg-cyan-50/70"
+                              className="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 overflow-hidden"
                             >
-                              {/* Flight Number */}
-                              <td className="text-left px-3 py-2">
-                                {group.details?.map((flight, i) => (
-                                  <div
-                                    key={i}
-                                    className="flex items-center gap-1.5"
-                                  >
-                                    {flight.flight_no}
+                              {/* Main Card Content: Stack on mobile, Row on Tablet/Desktop */}
+                              <div className="flex flex-col lg:flex-row items-center p-4 md:p-6 lg:px-8 gap-6 lg:gap-8">
+                                {/* Left: Date & Flight Info */}
+                                <div className="w-full lg:w-auto flex lg:flex-col items-center lg:items-start justify-between lg:justify-center border-b lg:border-b-0 pb-4 lg:pb-0 border-gray-100">
+                                  <div className="text-sm font-medium text-gray-500">
+                                    {flight
+                                      ? new Date(
+                                          flight.flight_date,
+                                        ).toLocaleDateString("en-GB", {
+                                          day: "2-digit",
+                                          month: "short",
+                                          year: "numeric",
+                                        })
+                                      : "—"}
                                   </div>
-                                ))}
-                              </td>
-                              {/* Date Column with Cyan Icon */}
-                              <td className="text-center py-2">
-                                {group.details?.map((flight, i) => (
-                                  <div
-                                    key={i}
-                                    className="flex justify-center items-center gap-1.5"
-                                  >
-                                    <svg
-                                      className="w-3.5 h-3.5"
-                                      fill="currentColor"
-                                      viewBox="0 0 20 20"
-                                    >
-                                      <path
-                                        fillRule="evenodd"
-                                        d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                                        clipRule="evenodd"
-                                      />
-                                    </svg>
-                                    <span>
-                                      {formatDate(flight.flight_date)}
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <FaPlane
+                                      className="text-lg"
+                                      style={{
+                                        color: theme.colors.ublGradientStart,
+                                      }}
+                                    />
+                                    <span className="font-semibold text-lg md:text-xl">
+                                      {flight?.flight_no || "SV-725"}
                                     </span>
                                   </div>
-                                ))}
-                              </td>
-                              <td className="text-center py-2">
-                                {group.details?.map((flight, i) => {
-                                  const sectors = group.sector.split("-");
-                                  if (i >= sectors.length - 1) return null;
-                                  return (
-                                    <div
-                                      key={i}
-                                      className="flex justify-center items-center gap-1.5"
-                                    >
-                                      {sectors[i].toUpperCase()}-
-                                      {sectors[i + 1].toUpperCase()}
+                                </div>
+
+                                {/* Center: Route Path */}
+                                <div className="flex-1 flex items-center justify-center w-full gap-6 md:gap-8 px-2 md:px-0">
+                                  <div className="text-center">
+                                    <div className="text-xl md:text-2xl font-bold">
+                                      {origin}
                                     </div>
-                                  );
-                                })}
-                              </td>
-
-                              {/* Time */}
-                              <td className="text-center py-2">
-                                {group.details?.map((flight, i) => (
-                                  <div
-                                    key={i}
-                                    className="flex justify-center items-center gap-1.5"
-                                  >
-                                    {flight.dept_time?.substring(0, 5)}-
-                                    {flight.arv_time?.substring(0, 5)}
+                                    <div className="text-sm md:text-base text-gray-500 font-medium">
+                                      {flight?.dept_time?.substring(0, 5) ||
+                                        "09:50"}
+                                    </div>
                                   </div>
-                                ))}
-                              </td>
 
-                              {/* Baggage */}
-                              <td className="text-center py-2">
-                                {group.details?.map((flight, i) => (
-                                  <div
-                                    key={i}
-                                    className="flex justify-center items-center gap-1.5"
-                                  >
-                                    {flight.baggage
-                                      ? `${flight.baggage} KG`
-                                      : "N/A"}
+                                  <div className="flex items-center flex-1 relative min-w-[60px] max-w-[200px]">
+                                    <div
+                                      className="h-0.5 w-full"
+                                      style={{
+                                        background: theme.colors.ublGradient,
+                                      }}
+                                    />
+                                    <div className="absolute left-1/2 -translate-x-1/2 bg-white px-1">
+                                      <FaPlane
+                                        className="text-lg md:text-2xl"
+                                        style={{
+                                          color: theme.colors.ublGradientStart,
+                                        }}
+                                      />
+                                    </div>
                                   </div>
-                                ))}
-                              </td>
 
-                              {/* Meal */}
-                              <td className="text-center py-2">
-                                {group.details?.map((flight, i) => (
-                                  <div
-                                    key={i}
-                                    className="flex justify-center items-center gap-1.5"
-                                  >
-                                    {flight.meal || "No"}
+                                  <div className="text-center">
+                                    <div className="text-xl md:text-2xl font-bold">
+                                      {destination}
+                                    </div>
+                                    <div className="text-sm md:text-base text-gray-500 font-medium">
+                                      {flight?.arv_time?.substring(0, 5) ||
+                                        "12:05"}
+                                    </div>
                                   </div>
-                                ))}
-                              </td>
+                                </div>
 
-                              {/* Price */}
-                              <td className="text-center py-2">
-                                {user.priceOnCall
-                                  ? "Price on Call"
-                                  : `PKR ${group.price?.toLocaleString()}`}
-                              </td>
+                                {/* Right: Features, Price & Button */}
+                                <div className="w-full lg:w-auto flex flex-col sm:flex-row lg:flex-row items-center gap-4 lg:gap-8 border-t lg:border-t-0 pt-4 lg:pt-0 border-gray-100">
+                                  {/* Baggage/Meal */}
+                                  <div className="flex items-center gap-2">
+                                    {flight?.baggage && (
+                                      <div className="flex items-center gap-2 bg-gray-100 rounded-xl px-3 py-2 text-xs font-medium">
+                                        <FaSuitcase
+                                          style={{
+                                            color:
+                                              theme.colors.ublGradientStart,
+                                          }}
+                                        />
+                                        <span>{flight.baggage}KG</span>
+                                      </div>
+                                    )}
+                                    {flight?.meal && flight.meal !== "No" && (
+                                      <div className="flex items-center gap-2 bg-gray-100 rounded-xl px-3 py-2 text-xs font-medium">
+                                        <FaUtensils
+                                          style={{
+                                            color:
+                                              theme.colors.ublGradientStart,
+                                          }}
+                                        />
+                                        <span>Meal</span>
+                                      </div>
+                                    )}
+                                  </div>
 
-                              {/* Action Button - Orange */}
-                              <td className="text-center py-2">
-                                <button
-                                  onClick={() => handleBookNow(group)}
-                                  disabled={!user.showHideButton}
-                                  className={`px-2 py-1 md:px-3 md:py-1.5 rounded text-[10px] md:text-[12.5px] font-semibold shadow-sm transition-all duration-200 ${
-                                    user.showHideButton
-                                      ? "bg-[#f97316] hover:bg-[#ea580c] text-white cursor-pointer"
-                                      : "bg-gray-300 text-gray-500 cursor-not-allowed opacity-60"
-                                  }
-  `}
-                                >
-                                  Book now
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                        </React.Fragment>
-                      ));
-                    })()}
-                </tbody>
-              </table>
-            </div>
+                                  {/* Pricing */}
+                                  <div className="text-center sm:text-right min-w-[100px]">
+                                    <div className="text-[10px] text-gray-500 uppercase">
+                                      Adult
+                                    </div>
+                                    <div
+                                      className="text-2xl font-bold"
+                                      style={{
+                                        color: theme.colors.ublGradientStart,
+                                      }}
+                                    >
+                                      {user?.priceOnCall
+                                        ? "On Call"
+                                        : group.price?.toLocaleString()}
+                                    </div>
+                                    {!user?.priceOnCall && (
+                                      <div className="text-[10px] text-gray-400">
+                                        PKR
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Action */}
+                                  <button
+                                    onClick={() => handleBookNow(group)}
+                                    disabled={!user?.showHideButton}
+                                    className="w-full sm:w-auto flex items-center justify-center gap-3 px-6 py-4 md:px-8 md:py-5 font-semibold transition-all shadow-sm hover:shadow active:scale-95"
+                                    style={{
+                                      borderRadius: "12px",
+                                      background: user?.showHideButton
+                                        ? theme.colors.ublGradient
+                                        : "#e5e7eb",
+                                      color: user?.showHideButton
+                                        ? "white"
+                                        : "#9ca3af",
+                                      cursor: user?.showHideButton
+                                        ? "pointer"
+                                        : "not-allowed",
+                                    }}
+                                  >
+                                    <Ticket size={20} />
+                                    <span>Book Now</span>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

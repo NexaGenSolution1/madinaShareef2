@@ -55,7 +55,7 @@ const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
 // Brother's International Travels  
 // Address.. Main Bazar Batkhela.  
 //         Ptcl. . .0932 412499
-// EMAIL. Brothersit369@gmail.com`;
+// EMAIL. pridetravel313@gmail.com`;
 
 //     return [header, lines.join(`\n${divider}\n`), divider, footer].join('\n');
 // }
@@ -180,7 +180,7 @@ Mobile. 03478885551-
 Brother's International Travels  
 Address.. Main Bazar Batkhela.  
         Ptcl. . .0932 412499
-EMAIL. Brothersit369@gmail.com`;
+EMAIL. pridetravel313@gmail.com`;
 
     return [header, ...outputLines, divider, footer].join("\n");
 }
@@ -310,7 +310,7 @@ export default function ManageSectors() {
 
     return (
         <>
-            <PageMeta title="All Sectors - Brothers International Travels" description="View all sectors list" />
+            <PageMeta title="All Sectors - World Fly Tickets Travels" description="View all sectors list" />
 
             <div className="mb-6">
                 <PageBreadCrumb pageTitle="All Sectors" />

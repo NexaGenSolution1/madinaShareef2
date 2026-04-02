@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../api/axios";
 import MaskedDatePicker from "../../components/MaskedDatePicker";
+import TopBar from "../../components/TopBar/TopBar";
 
 const Ledger = () => {
   const getCurrentYearStart = () => {
@@ -22,7 +23,10 @@ const Ledger = () => {
   // Calculate totals
   const calculateTotals = () => {
     const debit = ledgerData.reduce((sum, item) => sum + (item.debit || 0), 0);
-    const credit = ledgerData.reduce((sum, item) => sum + (item.credit || 0), 0);
+    const credit = ledgerData.reduce(
+      (sum, item) => sum + (item.credit || 0),
+      0,
+    );
     const closingBalance = debit - credit;
 
     return { debit, credit, closingBalance };
@@ -41,11 +45,11 @@ const Ledger = () => {
       setFetching(true);
       setError(null);
 
-      const user = JSON.parse(localStorage.getItem('frontend_user'));
+      const user = JSON.parse(localStorage.getItem("frontend_user"));
       const userId = user?._id || user?.id;
 
       if (!userId) {
-        setError('User not authenticated. Please login again.');
+        setError("User not authenticated. Please login again.");
         setFetching(false);
         return;
       }
@@ -58,7 +62,7 @@ const Ledger = () => {
       });
 
       if (response.data.success) {
-        console.log('Fetched ledger data:', response.data.data);
+        console.log("Fetched ledger data:", response.data.data);
         setLedgerData(response.data.data || []);
       }
     } catch (error) {
@@ -75,7 +79,7 @@ const Ledger = () => {
   }, [filters]);
 
   const handleFilterChange = (filterName, value) => {
-    setFilters(prev => ({ ...prev, [filterName]: value }));
+    setFilters((prev) => ({ ...prev, [filterName]: value }));
   };
 
   const resetFilters = () => {
@@ -92,21 +96,25 @@ const Ledger = () => {
 
   const handleExport = async (type) => {
     try {
-      const user = JSON.parse(localStorage.getItem('frontend_user'));
+      const user = JSON.parse(localStorage.getItem("frontend_user"));
       const userId = user?._id || user?.id;
-      const userName = user?.name || 'User';
+      const userName = user?.name || "User";
 
-      if (type === 'copy') {
-        const tableData = filteredData.map(entry =>
-          `${entry.voucherId || '-'}\t${entry.date ? new Date(entry.date).toLocaleDateString() : '-'}\t${entry.ticketNumber || '-'}\t${entry.description || '-'}\t${entry.debit > 0 ? formatCurrency(entry.debit) : ''}\t${entry.credit > 0 ? formatCurrency(entry.credit) : ''}`
-        ).join('\n');
+      if (type === "copy") {
+        const tableData = filteredData
+          .map(
+            (entry) =>
+              `${entry.voucherId || "-"}\t${entry.date ? new Date(entry.date).toLocaleDateString() : "-"}\t${entry.ticketNumber || "-"}\t${entry.description || "-"}\t${entry.debit > 0 ? formatCurrency(entry.debit) : ""}\t${entry.credit > 0 ? formatCurrency(entry.credit) : ""}`,
+          )
+          .join("\n");
 
-        const header = 'Voucher Id\tDate\tTicket #\tDescription\tDebit\tCredit\n';
+        const header =
+          "Voucher Id\tDate\tTicket #\tDescription\tDebit\tCredit\n";
         const totals = `\nTotal\t\t\t\t${formatCurrency(calculateTotals().debit)}\t${formatCurrency(calculateTotals().credit)}`;
         const fullText = `Ledger of ${userName.toUpperCase()}\nFrom ${filters.dateFrom} To ${filters.dateTo}\n\n${header}${tableData}${totals}`;
 
         await navigator.clipboard.writeText(fullText);
-        alert('Table data copied to clipboard!');
+        alert("Table data copied to clipboard!");
         return;
       }
 
@@ -118,32 +126,38 @@ const Ledger = () => {
           dateTo: filters.dateTo,
           userName,
         },
-        responseType: 'blob',
+        responseType: "blob",
       });
 
-      if (response.headers['content-type']?.includes('application/json')) {
+      if (response.headers["content-type"]?.includes("application/json")) {
         const reader = new FileReader();
         const errorText = await new Promise((resolve) => {
           reader.onload = () => resolve(reader.result);
           reader.readAsText(response.data);
         });
         const errorData = JSON.parse(errorText);
-        throw new Error(errorData.message || 'Export failed');
+        throw new Error(errorData.message || "Export failed");
       }
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
 
-      const extension = type === 'csv' ? 'csv' : type === 'excel' ? 'xlsx' : 'pdf';
-      link.setAttribute('download', `ledger-${userName}-${Date.now()}.${extension}`);
+      const extension =
+        type === "csv" ? "csv" : type === "excel" ? "xlsx" : "pdf";
+      link.setAttribute(
+        "download",
+        `ledger-${userName}-${Date.now()}.${extension}`,
+      );
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error(`Error exporting as ${type}:`, error);
-      alert(`Failed to export as ${type.toUpperCase()}. ${error.message || ''}`);
+      alert(
+        `Failed to export as ${type.toUpperCase()}. ${error.message || ""}`,
+      );
     }
   };
 
@@ -169,7 +183,6 @@ const Ledger = () => {
       </div>
     );
   }
-
 
   if (error && ledgerData.length === 0) {
     return (
@@ -208,25 +221,40 @@ const Ledger = () => {
       `}</style>
 
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Ledger</h1>
-        <p className="text-gray-600">View and manage your financial ledger</p>
-      </div>
+      <TopBar title={"Ledger"} />
 
       {/* Print Title - Only visible in print */}
-      <div className="print-only" style={{ display: 'none' }}>
+      <div className="print-only" style={{ display: "none" }}>
         <h2 className="print-title">
-          LEDGER OF {JSON.parse(localStorage.getItem('frontend_user') || '{}')?.name?.toUpperCase() || 'USER'}
+          LEDGER OF{" "}
+          {JSON.parse(
+            localStorage.getItem("frontend_user") || "{}",
+          )?.name?.toUpperCase() || "USER"}
         </h2>
         <p className="print-date-range">
-          From {new Date(filters.dateFrom).toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })} To {new Date(filters.dateTo).toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}
+          From{" "}
+          {new Date(filters.dateFrom).toLocaleDateString("en-US", {
+            weekday: "short",
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          })}{" "}
+          To{" "}
+          {new Date(filters.dateTo).toLocaleDateString("en-US", {
+            weekday: "short",
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          })}
         </p>
       </div>
 
       {/* Filters Section */}
       <div className="mb-6 bg-white rounded-lg shadow p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900">Date Range & Export</h3>
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+            Date Range & Export
+          </h3>
           <button
             onClick={resetFilters}
             className="text-sm text-red-600 hover:text-red-800 font-medium self-start sm:self-auto"
@@ -247,9 +275,11 @@ const Ledger = () => {
               onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             /> */}
-            <MaskedDatePicker value={filters.dateFrom}
-              onChange={(date) => handleFilterChange('dateFrom', date)}
-              placeholderText="From Date" />
+            <MaskedDatePicker
+              value={filters.dateFrom}
+              onChange={(date) => handleFilterChange("dateFrom", date)}
+              placeholderText="From Date"
+            />
           </div>
 
           {/* To Date */}
@@ -263,34 +293,36 @@ const Ledger = () => {
               onChange={(e) => handleFilterChange('dateTo', e.target.value)}
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             /> */}
-            <MaskedDatePicker value={filters.dateFrom}
-              onChange={(date) => handleFilterChange('dateFrom', date)}
-              placeholderText="From Date" />
+            <MaskedDatePicker
+              value={filters.dateFrom}
+              onChange={(date) => handleFilterChange("dateFrom", date)}
+              placeholderText="From Date"
+            />
           </div>
         </div>
 
         {/* Export Buttons */}
         <div className="flex flex-wrap gap-2 no-print">
           <button
-            onClick={() => handleExport('copy')}
+            onClick={() => handleExport("copy")}
             className="px-3 sm:px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors"
           >
             Copy
           </button>
           <button
-            onClick={() => handleExport('csv')}
+            onClick={() => handleExport("csv")}
             className="px-3 sm:px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors"
           >
             CSV
           </button>
           <button
-            onClick={() => handleExport('excel')}
+            onClick={() => handleExport("excel")}
             className="px-3 sm:px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors"
           >
             Excel
           </button>
           <button
-            onClick={() => handleExport('pdf')}
+            onClick={() => handleExport("pdf")}
             className="px-3 sm:px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors"
           >
             PDF
@@ -351,24 +383,35 @@ const Ledger = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredData.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="px-2 sm:px-4 py-6 sm:py-8 text-center text-sm text-gray-500">
+                    <td
+                      colSpan="6"
+                      className="px-2 sm:px-4 py-6 sm:py-8 text-center text-sm text-gray-500"
+                    >
                       No ledger entries found
                     </td>
                   </tr>
                 ) : (
                   filteredData.map((item, index) => (
-                    <tr key={index} className="hover:bg-gray-50 transition-colors">
+                    <tr
+                      key={index}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
                       <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
                         {item.voucherId || "-"}
                       </td>
                       <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-900">
-                        {item.date ? new Date(item.date).toLocaleDateString() : "-"}
+                        {item.date
+                          ? new Date(item.date).toLocaleDateString()
+                          : "-"}
                       </td>
                       <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-900">
                         {item.ticketNumber || "-"}
                       </td>
                       <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900">
-                        <div className="max-w-xs sm:max-w-md truncate" title={item.description}>
+                        <div
+                          className="max-w-xs sm:max-w-md truncate"
+                          title={item.description}
+                        >
                           {item.description || "-"}
                         </div>
                       </td>
@@ -384,7 +427,10 @@ const Ledger = () => {
               </tbody>
               <tfoot className="bg-gray-50">
                 <tr className="border-t-2 border-gray-300">
-                  <td colSpan="4" className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-bold text-right text-gray-900">
+                  <td
+                    colSpan="4"
+                    className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-bold text-right text-gray-900"
+                  >
                     Total:
                   </td>
                   <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-bold text-right text-gray-900 whitespace-nowrap">
@@ -403,16 +449,26 @@ const Ledger = () => {
       {/* Summary */}
       <div className="mt-4 sm:mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <div className="bg-white rounded-lg shadow p-3 sm:p-4">
-          <div className="text-xs sm:text-sm text-gray-600 mb-1">Total Debit</div>
-          <div className="text-xl sm:text-2xl font-bold text-blue-600">{formatCurrency(totals.debit)}</div>
+          <div className="text-xs sm:text-sm text-gray-600 mb-1">
+            Total Debit
+          </div>
+          <div className="text-xl sm:text-2xl font-bold text-blue-600">
+            {formatCurrency(totals.debit)}
+          </div>
         </div>
         <div className="bg-white rounded-lg shadow p-3 sm:p-4">
-          <div className="text-xs sm:text-sm text-gray-600 mb-1">Total Credit</div>
-          <div className="text-xl sm:text-2xl font-bold text-green-600">{formatCurrency(totals.credit)}</div>
+          <div className="text-xs sm:text-sm text-gray-600 mb-1">
+            Total Credit
+          </div>
+          <div className="text-xl sm:text-2xl font-bold text-green-600">
+            {formatCurrency(totals.credit)}
+          </div>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
           <div className="text-sm text-gray-600 mb-1">Closing Balance</div>
-          <div className={`text-2xl font-bold ${totals.closingBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <div
+            className={`text-2xl font-bold ${totals.closingBalance >= 0 ? "text-green-600" : "text-red-600"}`}
+          >
             {formatCurrency(totals.closingBalance)}
           </div>
         </div>

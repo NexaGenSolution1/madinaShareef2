@@ -145,7 +145,7 @@ Mobile. 03478885551-
 Brother's International Travels  
 Address.. Main Bazar Batkhela.  
         Ptcl. . .0932 412499
-EMAIL. Brothersit369@gmail.com`;
+EMAIL. pridetravel313@gmail.com`;
 
   return [header, ...outputLines, divider, footer].join("\n");
 }
