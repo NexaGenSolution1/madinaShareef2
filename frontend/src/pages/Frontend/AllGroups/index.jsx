@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Ticket, Menu, X } from "lucide-react";
-import { FaPlane, FaSuitcase, FaUtensils, FaSearch } from "react-icons/fa";
+import {
+  FaPlane,
+  FaSuitcase,
+  FaUtensils,
+  FaSearch,
+  FaPlaneDeparture,
+  FaPlaneArrival,
+} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../../api/axios";
 import { toast } from "react-toastify";
@@ -244,7 +251,7 @@ export default function AllGroups({ headerType, header, searchParams }) {
 
   return (
     <>
-      <TopBar title={"All Groups Tickets"} />
+      <TopBar title={"All Group Tickets"} />
       <div
         className="w-full min-h-screen"
         style={{ background: theme.colors.background }}
@@ -375,11 +382,11 @@ export default function AllGroups({ headerType, header, searchParams }) {
                       className="flex items-center justify-center gap-4 px-4 py-3 md:py-4"
                       style={{ background: theme.colors.primary }}
                     >
-                      <i className="fa-solid fa-plane-departure text-white text-lg md:text-2xl"></i>
+                      <FaPlaneDeparture className="text-white text-lg md:text-2xl" />
                       <span className="text-white font-bold text-lg md:text-2xl tracking-widest uppercase">
                         {data.sector}
                       </span>
-                      <i className="fa-solid fa-plane-arrival text-white text-lg md:text-2xl"></i>
+                      <FaPlaneArrival className="text-white text-lg md:text-2xl" />
                     </div>
 
                     {/* Airline Logo Area */}

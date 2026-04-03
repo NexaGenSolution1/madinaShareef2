@@ -8,6 +8,7 @@ import MaskedDatePicker from "../../components/MaskedDatePicker";
 import { printGDSBooking } from "../../utils/bookingPDFService";
 import { Check } from "lucide-react";
 import { generateClientPDF } from "../../utils/genrateclientpdf";
+import TopBar from "../../components/TopBar/TopBar";
 
 export default function MyBookings() {
   const navigate = useNavigate();
@@ -208,15 +209,16 @@ export default function MyBookings() {
 
   return (
     <div className="w-full min-h-screen mx-auto px-4">
+      <TopBar title={" My Bookings"} />
       {/* Header */}
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           My Bookings
         </h1>
         <p className="text-sm sm:text-base text-gray-600">
           View and manage your flight bookings
         </p>
-      </div>
+      </div> */}
 
       {/* Search and Filters in One Row */}
       <div className="mb-4 bg-white rounded-lg shadow p-3 sm:p-4">

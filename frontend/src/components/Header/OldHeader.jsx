@@ -34,7 +34,7 @@ export default function OldHeader({ user, handleLogout }) {
     .map((g) => g.toLowerCase().trim());
 
   return (
-    <header className="fixed w-full top-0 left-0 z-[999]">
+    <header className="fixed w-full top-0 left-0 z-999">
       {/* GLASS NAV */}
       <div
         className="backdrop-blur-xl border-b"
@@ -46,8 +46,12 @@ export default function OldHeader({ user, handleLogout }) {
         <div className="main-container flex items-center justify-between py-3">
           {/* LEFT */}
           <div className="flex items-center gap-4">
-            <Link to="/" className="w-12">
-              <img src={logo} className="w-full object-contain" />
+            <Link to="/" className="">
+              <img
+                style={{ height: "70px" }}
+                src={logo}
+                className="w-full object-contain"
+              />
             </Link>
 
             {/* NAV */}
@@ -73,7 +77,7 @@ export default function OldHeader({ user, handleLogout }) {
 
                       {isActive && (
                         <span
-                          className="absolute left-0 -bottom-1 w-full h-[2px]"
+                          className="absolute left-0 -bottom-1 w-full h-0.5"
                           style={{
                             background: theme.colors.primary,
                           }}
@@ -169,7 +173,7 @@ export default function OldHeader({ user, handleLogout }) {
 
       {/* MOBILE MENU */}
       <div
-        className={`fixed top-0 right-0 h-full w-[80%] max-w-sm bg-white shadow-xl transition-transform duration-300 z-[998] ${
+        className={`fixed top-0 right-0 h-full w-[80%] max-w-sm bg-white shadow-xl transition-transform duration-300 z-998 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import logo from "../../assets/images/header-logo.png"; // Make sure this is your new HD PNG
+import logo from "../../assets/images/logo.webp"; // Make sure this is your new HD PNG
 import { CiMenuFries } from "react-icons/ci";
 import { AiOutlineClose } from "react-icons/ai";
 import { groupTypes } from "../../data/groupTypes";
@@ -73,8 +73,8 @@ export default function Header({ user, handleLogout }) {
   }
 
   return (
-    <header className="fixed w-full top-0 left-0 shadow-md z-[999]">
-      <div className="relative flex items-center justify-between gap-2 px-3 md:px-6 bg-[#009BB2] py-2 min-h-[60px] md:min-h-[80px]">
+    <header className="fixed w-full top-0 left-0 shadow-md z-999">
+      <div className="relative flex items-center justify-between gap-2 px-3 md:px-6 bg-[#009BB2] py-2 min-h-15 md:min-h-20">
         {/* Left Side: Logo + Company Name */}
         <div className="flex items-center gap-2 sm:gap-4 flex-1">
           <Link to="/" className="w-10 sm:w-12 md:w-16 block shrink-0">
@@ -156,7 +156,7 @@ export default function Header({ user, handleLogout }) {
                 </button>
 
                 {profileOpen && (
-                  <div className="absolute right-0 top-12 w-48 rounded-lg bg-white shadow-xl py-2 text-sm z-[1000] border border-gray-100">
+                  <div className="absolute right-0 top-12 w-48 rounded-lg bg-white shadow-xl py-2 text-sm z-1000 border border-gray-100">
                     <div className="px-4 py-2 border-b border-gray-100">
                       <p className="text-gray-500 text-xs text-nowrap">
                         Signed in as
@@ -211,7 +211,7 @@ export default function Header({ user, handleLogout }) {
 
       {/* Mobile Sidebar Menu */}
       <div
-        className={`fixed inset-0 top-[60px] bg-white z-[998] transition-transform duration-300 xl:hidden ${
+        className={`fixed inset-0 top-15 bg-white z-998 transition-transform duration-300 xl:hidden ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
