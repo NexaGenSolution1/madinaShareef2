@@ -177,7 +177,7 @@ function buildCopyText(groups: UnifiedGroup[]): string {
 =======================
        Aizaz Ur Rahman
 Mobile. 03478885551-
-Brother's International Travels  
+World Fly Ticket Travels  
 Address.. Main Bazar Batkhela.  
         Ptcl. . .0932 412499
 EMAIL. pridetravel313@gmail.com`;

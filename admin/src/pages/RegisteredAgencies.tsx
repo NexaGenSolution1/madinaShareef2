@@ -54,7 +54,7 @@ const RegisteredAgencies = () => {
   const [showLoading, setShowLoading] = useState<string | null>(null);
   const [bulkLoading, setBulkLoading] = useState(false);
 
-  const frontendUrl = import.meta.env.VITE_FRONTEND_URL || "https://brothersinttvl.com";
+  const frontendUrl = import.meta.env.VITE_FRONTEND_URL || "https://worldflytickets.com";
 
   useEffect(() => {
     fetchUsers();
