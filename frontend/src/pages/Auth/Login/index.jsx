@@ -155,7 +155,7 @@ const Login = ({ onLogin }) => {
 
           {/* RIGHT PANEL - Login Form */}
           <div className="flex-1 p-6 sm:p-8 md:p-10 lg:p-12 flex flex-col justify-center bg-white">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl flex items-center justify-center mb-4 sm:mb-6 mx-auto md:mx-0">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-linear-to-br from-blue-50 to-indigo-50 rounded-xl flex items-center justify-center mb-4 sm:mb-6 mx-auto md:mx-0">
               <svg
                 className="w-6 h-6 sm:w-7 sm:h-7 fill-[#21397C]"
                 viewBox="0 0 24 24"
@@ -248,7 +248,7 @@ const Login = ({ onLogin }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-[#21397C] to-[#2CA3B4] text-white font-semibold rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 text-sm sm:text-base"
+                className="w-full py-2.5 sm:py-3 bg-linear-to-r from-[#21397C] to-[#2CA3B4] text-white font-semibold rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 text-sm sm:text-base"
               >
                 {loading ? (
                   <span className="inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
@@ -329,7 +329,7 @@ const Login = ({ onLogin }) => {
               <button
                 type="submit"
                 disabled={forgotLoading}
-                className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-[#21397C] to-[#2CA3B4] text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-200 disabled:opacity-70 text-sm sm:text-base"
+                className="w-full py-2.5 sm:py-3 bg-linear-to-r from-[#21397C] to-[#2CA3B4] text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-200 disabled:opacity-70 text-sm sm:text-base"
               >
                 {forgotLoading ? "Sending..." : "Send Reset Link"}
               </button>
