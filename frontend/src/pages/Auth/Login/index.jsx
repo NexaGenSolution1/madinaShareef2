@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axiosInstance from "../../../api/axios";
 import { toast } from "react-toastify";
-import styles from "./Login.module.css";
+import logo from "../../../assets/images/logo.webp";
 
 const Login = ({ onLogin }) => {
   const [formData, setFormData] = useState({
@@ -32,10 +32,10 @@ const Login = ({ onLogin }) => {
         localStorage.setItem("frontend_token", token);
         localStorage.setItem("frontend_user", JSON.stringify(user));
         toast.success("Login successful!");
-        window.location.href = "/";
         if (user.role === "Admin") {
           window.location.href = "/admin-portal/";
         } else {
+          window.location.href = "/";
           if (onLogin) onLogin(user);
         }
       }
@@ -104,185 +104,258 @@ const Login = ({ onLogin }) => {
 
   return (
     <>
-      <div className={styles.loginPage}>
-        <div className={styles.loginCard}>
-          {/* LEFT PANEL */}
-          <div className={styles.leftPanel}>
-            <h1>Welcome Back</h1>
+      <div
+        id="login"
+        className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 p-4 sm:p-5"
+      >
+        <div className="flex flex-col md:flex-row w-full max-w-250 bg-white rounded-2xl shadow-2xl overflow-hidden min-h-140">
+          {/* LEFT PANEL - Decorative only, no info (Hidden on mobile) */}
+          <div className="hidden md:flex flex-1 bg-linear-to-br from-[#21397C] to-[#2CA3B4] items-center justify-center p-8 lg:p-12 relative overflow-hidden">
+            <div className="absolute top-[-50%] right-[-50%] w-[200%] h-[200%] bg-[radial-gradient(circle,rgba(255,255,255,0.08)_0%,rgba(255,255,255,0)_70%)] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-white/20 via-white/80 to-white/20" />
 
-            <div className={styles.companyCards}>
-              <div className={styles.companyCard}>
-                <div className={styles.companyName}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-                    <path d="M3 21V7l9-4 9 4v14H3zm2-2h14V8.5l-7-3.1L5 8.5V19zm3-3h2v-4H8v4zm4 0h2v-4h-2v4zm4 0h2v-4h-2v4z" />
-                  </svg>
-                  World Fly Tickets Travels
-                </div>
-                <div className={styles.companyDetail}>Licence: PR-3919</div>
+            <div className="text-center text-white z-10 animate-[fadeInUp_0.6s_ease-out]">
+              <div className="w-22 h-22 mx-auto mb-6 bg-white rounded-xl flex items-center justify-center backdrop-blur-sm">
+                {/* <svg
+                  className="w-10 h-10 text-white"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12 2L2 7L12 12L22 7L12 2Z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M2 17L12 22L22 17"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M2 12L12 17L22 12"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg> */}
+                <img src={logo} alt="logo" />
               </div>
-              <div className={styles.companyCard}>
-                <div className={styles.companyName}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
-                    <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v2h20v-2c0-3.3-6.7-5-10-5z" />
-                  </svg>
-                  Barand Care 360 International
-                </div>
-                <div className={styles.companyDetail}>
-                  Overseas Employment Promoters
-                  <br />
-                  Licence: Nill
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.infoSection}>
-              <div className={styles.infoBlock}>
-                <h4>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
-                    <path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z" />
-                  </svg>
-                  Phone
-                </h4>
-                <p>
-                  0932 412499
-                  <br />
-                  0347 8885551
-                  <br />
-                </p>
-              </div>
-              <div className={styles.infoBlock}>
-                <h4>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
-                    <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-                  </svg>
-                  Email
-                </h4>
-                <p>
-                  pridetravel313@gmail.com
-                  <br />
-                </p>
-              </div>
-            </div>
-
-            <div className={styles.addressSection}>
-              <h4>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                </svg>
-                Address
-              </h4>
-              <p>Main Bazaar Batkhela Distt, Malakand.</p>
-            </div>
-
-            <div className={styles.directorCard}>
-              <div className={styles.directorName}>Aizaz Ur Rahman</div>
-              <div className={styles.directorTitle}>Managing Director</div>
-            </div>
-
-            <div className={styles.signupLink}>
-              Don't have an account? <a href="/auth/register">Sign Up</a>
+              <h2 className="text-3xl font-semibold mb-3 tracking-tight">
+                Secure Access
+              </h2>
+              <p className="text-sm opacity-85">Sign in to your account</p>
             </div>
           </div>
 
-          {/* RIGHT PANEL */}
-          <div className={styles.rightPanel}>
-            <div className={styles.lockIconWrap}>
-              <svg viewBox="0 0 24 24">
+          {/* RIGHT PANEL - Login Form */}
+          <div className="flex-1 p-6 sm:p-8 md:p-10 lg:p-12 flex flex-col justify-center bg-white">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl flex items-center justify-center mb-4 sm:mb-6 mx-auto md:mx-0">
+              <svg
+                className="w-6 h-6 sm:w-7 sm:h-7 fill-[#21397C]"
+                viewBox="0 0 24 24"
+              >
                 <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
               </svg>
             </div>
-            <h2>Sign In</h2>
 
-            <form
-              onSubmit={handleSubmit}
-              style={{ width: "100%" }}
-              autoComplete="off"
-            >
-              <div className={styles.formGroup}>
-                <label>
-                  Email Address <span>*</span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2 tracking-tight text-center md:text-left">
+              Welcome Back
+            </h2>
+            <p className="text-slate-500 text-sm mb-6 sm:mb-8 text-center md:text-left">
+              Please enter your credentials
+            </p>
+
+            <form onSubmit={handleSubmit} className="w-full" autoComplete="off">
+              <div className="mb-4 sm:mb-5">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Email Address
                 </label>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder=""
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  autoComplete="email"
-                />
+                <div className="relative">
+                  <svg
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <path
+                      d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="name@company.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    autoComplete="email"
+                    className="w-full pl-10 pr-3 py-2.5 sm:py-3 border-2 border-slate-200 rounded-xl text-sm text-slate-900 bg-white focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all"
+                  />
+                </div>
               </div>
 
-              <div className={styles.formGroup}>
-                <label>
-                  Password <span>*</span>
+              <div className="mb-4 sm:mb-5">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Password
                 </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  autoComplete="current-password"
-                />
+                <div className="relative">
+                  <svg
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <path
+                      d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    autoComplete="current-password"
+                    className="w-full pl-10 pr-3 py-2.5 sm:py-3 border-2 border-slate-200 rounded-xl text-sm text-slate-900 bg-white focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all"
+                  />
+                </div>
               </div>
 
-              <div className={styles.forgotLink}>
-                <button type="button" onClick={() => setShowForgot(true)}>
-                  Forgot Password?
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 sm:mb-7">
+                <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                  />
+                  Remember me
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowForgot(true)}
+                  className="text-sm font-medium text-teal-600 hover:text-teal-700 transition-colors"
+                >
+                  Forgot password?
                 </button>
               </div>
 
               <button
                 type="submit"
-                className={styles.signinBtn}
                 disabled={loading}
+                className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-[#21397C] to-[#2CA3B4] text-white font-semibold rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 text-sm sm:text-base"
               >
-                {loading ? "Signing in..." : "Sign In"}
+                {loading ? (
+                  <span className="inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                ) : (
+                  "Sign In"
+                )}
               </button>
             </form>
+
+            <div className="mt-6 text-center">
+              <p className="text-sm text-slate-500">
+                Don't have an account?{" "}
+                <Link
+                  to="/auth/register"
+                  className="font-medium text-teal-600 hover:text-teal-700 transition-colors"
+                >
+                  Create account
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Forgot Password Modal */}
       {showForgot && (
         <div
-          className={styles.modalOverlay}
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setShowForgot(false)}
         >
-          <div className={styles.modalBox} onClick={(e) => e.stopPropagation()}>
+          <div
+            className="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 relative animate-[fadeInUp_0.3s_ease-out] mx-4 sm:mx-0"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
-              className={styles.modalClose}
               onClick={() => setShowForgot(false)}
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-2xl"
             >
               ×
             </button>
-            <h3>Write your email address.</h3>
-            <form
-              onSubmit={handleForgotPassword}
-              style={{ display: "flex", flexDirection: "column", gap: 14 }}
-            >
-              <div className={styles.formGroup} style={{ marginBottom: 0 }}>
+
+            <div className="text-center mb-5 sm:mb-6">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <svg
+                  className="w-6 h-6 sm:w-7 sm:h-7 text-amber-600"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2">
+                Reset Password
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-500">
+                Enter your email address and we'll send you a link to reset your
+                password.
+              </p>
+            </div>
+
+            <form onSubmit={handleForgotPassword}>
+              <div className="mb-5">
                 <input
                   type="email"
-                  placeholder="Email"
+                  placeholder="Email address"
                   value={forgotEmail}
                   onChange={(e) => setForgotEmail(e.target.value)}
                   required
                   autoComplete="email"
+                  className="w-full px-4 py-2.5 sm:py-3 border-2 border-slate-200 rounded-xl text-sm text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all"
                 />
               </div>
               <button
                 type="submit"
-                className={styles.signinBtn}
                 disabled={forgotLoading}
+                className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-[#21397C] to-[#2CA3B4] text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-200 disabled:opacity-70 text-sm sm:text-base"
               >
-                {forgotLoading ? "Sending..." : "Send Me Password"}
+                {forgotLoading ? "Sending..." : "Send Reset Link"}
               </button>
             </form>
           </div>
         </div>
       )}
+
+      <style>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @media (max-width: 768px) {
+          .animate\\:\\[fadeInUp_0\\.6s_ease-out\\] {
+            animation: fadeInUp 0.6s ease-out;
+          }
+        }
+      `}</style>
     </>
   );
 };

@@ -304,16 +304,17 @@ export const getUnifiedGroups = async (req, res) => {
     let aliHaiderGroups = [];
 
     try {
-      const response = await axios.get(
-        `${process.env.ALI_HAIDER_API_URL}api/available/groups?type=0&airline_id=0`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      // const response = await axios.get(
+      //   `${process.env.ALI_HAIDER_API_URL}api/available/groups?type=0&airline_id=0`,
+      //   {
+      //     headers: {
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //   },
+      // );
 
-      aliHaiderGroups = response?.data?.groups || [];
+      // aliHaiderGroups = response?.data?.groups || [];
+      aliHaiderGroups = [];
 
       /* ===============================
          4.1️⃣ Auto-Store Missing Sectors

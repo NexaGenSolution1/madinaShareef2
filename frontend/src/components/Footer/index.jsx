@@ -41,8 +41,8 @@ export default function Footer() {
               Signup
             </Link>
 
-            <Link
-              to="/auth/login"
+            <a
+              href="#login"
               className="flex items-center gap-2 px-6 py-3 rounded-lg border transition-all"
               style={{
                 borderColor: "#fff",
@@ -50,7 +50,7 @@ export default function Footer() {
               }}
             >
               Login <CiLogin />
-            </Link>
+            </a>
           </div>
         </div>
       </div>

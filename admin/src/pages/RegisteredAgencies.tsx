@@ -509,7 +509,7 @@ const RegisteredAgencies = () => {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/3">
         <div className="px-4 py-6 md:px-6 xl:px-7.5">
           {/* Filters */}
           <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
