@@ -160,8 +160,8 @@ const Airline = () => {
 
   return (
     <>
-      <PageMeta title="Add New Airline - Bother International" description="Manage and add airlines for Bother International" />
-      
+      <PageMeta title="Add New Airline - World Fly Ticket Travel" description="Manage and add airlines for World Fly Ticket Travel" />
+
       <div className="mb-6">
         <PageBreadCrumb pageTitle="Add New Airline" />
       </div>
@@ -173,11 +173,10 @@ const Airline = () => {
 
         {message.text && (
           <div
-            className={`mb-4 p-3 sm:p-4 rounded-lg text-sm ${
-              message.type === "success"
+            className={`mb-4 p-3 sm:p-4 rounded-lg text-sm ${message.type === "success"
                 ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                 : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-            }`}
+              }`}
           >
             {message.text}
           </div>
@@ -305,7 +304,7 @@ const Airline = () => {
                   <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
                     Airline ID
                   </th>
-                   <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
+                  <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
                     Airline Code
                   </th>
                   <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider whitespace-nowrap">
@@ -328,7 +327,7 @@ const Airline = () => {
                     <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 dark:text-gray-100">
                       {index + 1}
                     </td>
-                     <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 dark:text-gray-100">
+                    <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 dark:text-gray-100">
                       {airline.airlineCode}
                     </td>
                     <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 dark:text-gray-100">

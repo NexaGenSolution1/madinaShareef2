@@ -133,7 +133,7 @@ const AddBank = () => {
           },
         });
       }
-    
+
 
       if (response.data.success) {
         setMessage({
@@ -173,8 +173,8 @@ const AddBank = () => {
 
   return (
     <>
-      <PageMeta title="Add New Bank - Bother International" description="Manage and add bank accounts for Bother International" />
-      
+      <PageMeta title="Add New Bank - World Fly Ticket Travel" description="Manage and add bank accounts for World Fly Ticket Travel" />
+
       <div className="mb-6">
         <PageBreadCrumb pageTitle="Add New Bank" />
       </div>
@@ -186,11 +186,10 @@ const AddBank = () => {
 
         {message.text && (
           <div
-            className={`mb-4 p-4 rounded-lg ${
-              message.type === "success"
+            className={`mb-4 p-4 rounded-lg ${message.type === "success"
                 ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                 : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-            }`}
+              }`}
           >
             {message.text}
           </div>
@@ -414,11 +413,10 @@ const AddBank = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          bank.status === "Active"
+                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${bank.status === "Active"
                             ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                             : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                        }`}
+                          }`}
                       >
                         {bank.status}
                       </span>

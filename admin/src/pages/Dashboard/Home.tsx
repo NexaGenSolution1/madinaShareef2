@@ -193,8 +193,8 @@ export default function Home() {
   return (
     <>
       <PageMeta
-        title="Dashboard | Bother International"
-        description="Dashboard overview for Bother International"
+        title="Dashboard | World Fly Ticket Travel"
+        description="Dashboard overview for World Fly Ticket Travel"
       />
 
       <div className="mb-6">
