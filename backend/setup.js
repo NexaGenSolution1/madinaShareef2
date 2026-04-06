@@ -14,7 +14,7 @@ const setupAdmin = async () => {
     console.log(`MongoDB Connected: ${mongoose.connection.host}`.bgCyan.white);
 
     // Admin user details
-    const adminEmail = "pridetravel313@gmail.com";
+    const adminEmail = "worldflytravelisb@gmail.com";
     const adminPassword = "123456";
 
     // Demo user details

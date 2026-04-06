@@ -139,39 +139,47 @@ export default function Footer() {
 
               <div className="flex flex-col gap-4">
                 <a
-                  href="https://wa.me/+923349658913"
+                  href="https://wa.me/+923145266660"
                   target="_blank"
                   className="flex items-center gap-3 hover:translate-x-1 transition"
                   style={{ color: theme.colors.sidebarText }}
                 >
-                  <FaWhatsapp /> 0334-9658913
+                  <FaWhatsapp /> 0314-5266660
                 </a>
 
                 <a
-                  href="tel:+923355891694"
+                  href="tel:+923145222231"
                   className="flex items-center gap-3 hover:translate-x-1 transition"
                   style={{ color: theme.colors.sidebarText }}
                 >
-                  <FaPhoneAlt /> 0335-5891694
+                  <FaPhoneAlt /> 0314-5222231
                 </a>
 
                 <a
-                  href="mailto:pridetravel313@gmail.com"
+                  href="tel:0512154600"
+                  className="flex items-center gap-3 hover:translate-x-1 transition"
+                  style={{ color: theme.colors.sidebarText }}
+                >
+                  <FaPhoneAlt /> 051-2154600
+                </a>
+
+                <a
+                  href="mailto:worldflytravelisb@gmail.com"
                   className="flex items-center gap-3 break-all hover:translate-x-1 transition"
                   style={{ color: theme.colors.sidebarText }}
                 >
-                  <IoMail /> pridetravel313@gmail.com
+                  <IoMail /> worldflytravelisb@gmail.com
                 </a>
 
-                {/* <a
-                  href="https://maps.app.goo.gl/GZ4C6ZMPfg758iV29"
+                <a
+                  href="https://maps.app.goo.gl/FQNy83JNCoqCRcBG6"
                   target="_blank"
                   className="flex items-start gap-3 hover:translate-x-1 transition"
                   style={{ color: theme.colors.sidebarText }}
                 >
                   <IoLocationSharp className="mt-1" />
-                  Main Bazaar Batkhela, Distt Malakand
-                </a> */}
+                  SHOP NO 03 G FLOOR G 13 SERVICES ROAD G 12 Islamabad
+                </a>
               </div>
             </div>
           </div>

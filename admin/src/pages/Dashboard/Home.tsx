@@ -141,11 +141,11 @@ function buildCopyText(groups: UnifiedGroup[]): string {
   const footer = `ALL GROUPS ARE NON REFUNDABLE AND NON CHANGEABLE
 =======================
        Aizaz Ur Rahman
-Mobile. 03478885551-
+Mobile. 0314-5266660-
 World Fly Ticket Travels  
-Address.. Main Bazar Batkhela.  
-        Ptcl. . .0932 412499
-EMAIL. pridetravel313@gmail.com`;
+Address.. SHOP NO 03 G FLOOR G 13 SERVICES ROAD G 12 Islamabad.  
+        Ptcl. . .051-2154600
+EMAIL. worldflytravelisb@gmail.com`;
 
   return [header, ...outputLines, divider, footer].join("\n");
 }

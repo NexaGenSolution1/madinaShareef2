@@ -450,9 +450,9 @@ const Login = ({ onLogin }) => {
                   Email
                 </h4>
                 <p>
-                  pridetravel313@gmail.com
+                  worldflytravelisb@gmail.com
                   <br />
-                  pridetravel313@gmail.com
+                  worldflytravelisb@gmail.com
                 </p>
               </div>
             </div>
