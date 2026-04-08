@@ -50,7 +50,7 @@ export default function ChooseUsSection() {
             className="text-3xl sm:text-4xl md:text-5xl font-bold mt-3"
             style={{ color: theme.colors.textPrimary }}
           >
-            Why Choose World Fly Tickets Travels
+            Why Choose World fly travel and tours (Pvt Ltd )
           </h2>
 
           <div

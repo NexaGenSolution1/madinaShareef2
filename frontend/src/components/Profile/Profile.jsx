@@ -30,6 +30,7 @@ export default function Profile() {
     try {
       setLoading(true);
       const response = await getUserProfile();
+
       if (response.success) {
         const userData = response.data;
         setUser(userData);
@@ -296,6 +297,27 @@ export default function Profile() {
                       value={formData.country}
                       onChange={handleInputChange}
                       placeholder="Enter country"
+                      className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <label
+                      htmlFor="address"
+                      className="block text-sm font-bold text-gray-900 mb-2"
+                    >
+                      Address. <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="address"
+                      id="address"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      placeholder="Enter address"
+                      required
                       className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>

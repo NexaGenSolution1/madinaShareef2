@@ -42,10 +42,10 @@ export default function HeroSection() {
         <div className="flex justify-center mb-16">
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white drop-shadow-2xl">
-              World Fly Tickets
+              World Fly
             </h1>
             <p className="text-xl md:text-2xl mt-3 font-medium text-white">
-              Travels & Tours
+              Travels & Tours (Pvt Ltd )
             </p>
             <div className="w-24 h-1 bg-white/40 mx-auto mt-6 rounded-full"></div>
           </div>
@@ -57,7 +57,7 @@ export default function HeroSection() {
             <Link
               key={group.value}
               to={`/${group.path}`}
-              className="group relative h-[280px] rounded-3xl overflow-hidden shadow-xl shadow-black/50 transition-all duration-500 hover:scale-105 hover:-translate-y-2"
+              className="group relative h-70 rounded-3xl overflow-hidden shadow-xl shadow-black/50 transition-all duration-500 hover:scale-105 hover:-translate-y-2"
             >
               {/* Image - Full Height & Width */}
               <img
@@ -68,7 +68,7 @@ export default function HeroSection() {
               />
 
               {/* Bottom Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent" />
 
               {/* Content */}
               <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
@@ -96,7 +96,7 @@ export default function HeroSection() {
       </div>
 
       {/* Bottom Fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-50 to-transparent z-20" />
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-linear-to-t from-gray-50 to-transparent z-20" />
     </section>
   );
 }

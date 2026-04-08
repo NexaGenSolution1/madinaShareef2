@@ -88,9 +88,9 @@ export default function AboutSection() {
             style={{ color: theme.colors.textSecondary }}
           >
             If you are looking for a dependable and professional travel partner,
-            World Fly Tickets Travels is your premier choice. With years of
-            industry expertise, we have built a reputation for excellence and
-            integrity in every journey we plan.
+            World fly travel and tours (Pvt Ltd ) is your premier choice. With
+            years of industry expertise, we have built a reputation for
+            excellence and integrity in every journey we plan.
           </p>
 
           <p

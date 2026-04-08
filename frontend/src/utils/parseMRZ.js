@@ -65,7 +65,7 @@ export const parseMRZ = (mrzText) => {
     const expiry = parseDate(expiryRaw, false);
 
     let title = "Mr";
-    if (sex === "F") title = "Mrs";
+    if (sex === "F") title = "Ms";
 
     // Validate we got at least passport and name
     if (!passportNo && !surName) return null;

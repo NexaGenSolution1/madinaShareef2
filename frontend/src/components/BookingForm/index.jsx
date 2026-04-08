@@ -865,7 +865,6 @@ export default function BookingForm() {
                           {passenger.type === "Adult" && (
                             <>
                               <option value="Mr">Mr</option>
-                              <option value="Mrs">Mrs</option>
                               <option value="Ms">Ms</option>
                             </>
                           )}

@@ -1,6 +1,14 @@
 import Register from "../models/Register.js";
 import jwt from "jsonwebtoken";
-import { sendPasswordResetEmail, sendCredentialsEmail } from "../utils/emailService.js";
+import {
+  sendPasswordResetEmail,
+  sendCredentialsEmail,
+} from "../utils/emailService.js";
+import {
+  ensureZipAccountExists,
+  updateZipAcc,
+} from "../utils/zipAccountHelper.js";
+import api from "../services/ZipApi.js";
 // import { alHaiderAuthMiddleware } from "../middleware/auth.middleware.js";
 
 /* ===========================
@@ -8,8 +16,34 @@ import { sendPasswordResetEmail, sendCredentialsEmail } from "../utils/emailServ
 =========================== */
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: "7d"
+    expiresIn: "7d",
   });
+};
+
+/**
+ * Create ZIP account for agent users
+ */
+const handleZipAccountCreation = async (user) => {
+  try {
+    const zipResult = await ensureZipAccountExists({
+      name: user.companyName || user.name,
+      email: user.email,
+    });
+
+    if (zipResult.success) {
+      console.log(`✅ ZIP account ready for: ${user.email}`);
+    } else {
+      console.log(
+        `⚠️ ZIP account creation warning for ${user.email}:`,
+        zipResult.message,
+      );
+    }
+  } catch (zipError) {
+    console.error(
+      `❌ ZIP account creation error for ${user.email}:`,
+      zipError.message,
+    );
+  }
 };
 
 /* ===========================
@@ -17,16 +51,26 @@ const generateToken = (userId) => {
 =========================== */
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, phone, role, companyName, address = "", city = "", password } = req.body;
+    const {
+      name,
+      email,
+      phone,
+      role,
+      companyName,
+      address = "",
+      city = "",
+      password,
+    } = req.body;
 
     const userExists = await Register.findOne({ email });
     if (userExists) {
       return res.status(400).json({
         success: false,
-        message: "User already exists"
+        message: "User already exists",
       });
     }
-    const generatedPassword = password || (Math.random().toString(36).slice(-8) + "A1!");
+    const generatedPassword =
+      password || Math.random().toString(36).slice(-8) + "A1!";
     const plainPassword = generatedPassword;
 
     // Set status to Inactive for Agency role, Active for others
@@ -43,6 +87,74 @@ export const registerUser = async (req, res) => {
       agencyCode = nextCodeNum.toString().padStart(4, "0");
     }
 
+    // Create account in ZIP API for new agent identity
+    try {
+      const subhead1Response = await api.get("/subhead1");
+      const subheads = subhead1Response.data;
+      const receivables = subheads.find(
+        (item) => item.subhead1_name.toLowerCase() === "receivables",
+      );
+
+      let subheadIdToSend = null;
+      if (receivables) {
+        const subhead2Response = await api.get("/subhead2");
+        const subhead2List = subhead2Response.data;
+
+        let agentPortalSubhead2 = subhead2List.find(
+          (item) =>
+            item.subhead2_name.toLowerCase() === "agent portal" &&
+            item.subhead1_id.toString() === receivables._id.toString(),
+        );
+
+        if (!agentPortalSubhead2) {
+          const createSubhead2Response = await api.post("/subhead2", {
+            subhead2_name: "Agent Portal",
+            subhead1_id: receivables._id,
+            subhead2_status: "active",
+            createdBy: "system",
+          });
+          agentPortalSubhead2 = createSubhead2Response.data;
+        }
+
+        subheadIdToSend = agentPortalSubhead2._id;
+      } else {
+        const chartHeadRes = await api.get("/chartheads");
+        const chartheads = chartHeadRes.data;
+        const fallback = chartheads.find(
+          (item) => item.charthead_name.toLowerCase() === "assets",
+        );
+        subheadIdToSend = fallback?._id || null;
+      }
+
+      // await api.post("/accounts", {
+      //   account_name: name,
+      //   subhead_id: subheadIdToSend,
+      // });
+      const createRes = await api.post("/accounts", {
+        account_name: name,
+        subhead_id: subheadIdToSend,
+      });
+
+      const userId = createRes.data._id;
+
+      if (userId) {
+        await api.put(`accounts/${userId}`, {
+          account_name: name,
+          phone,
+          email,
+          address,
+          companyName,
+        });
+      }
+      console.log(`✅ Created ZIP account for Agent: ${email}`);
+    } catch (zipError) {
+      console.error(
+        `❌ Failed to create ZIP account for ${email}:`,
+        zipError.message,
+      );
+      // Don't fail the agent identity creation if ZIP account creation fails
+    }
+
     const user = await Register.create({
       name,
       email,
@@ -55,7 +167,7 @@ export const registerUser = async (req, res) => {
       address,
       city,
       agencyCode,
-      status
+      status,
     });
 
     res.status(201).json({
@@ -67,15 +179,15 @@ export const registerUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        agencyCode: user.agencyCode
-      }
+        agencyCode: user.agencyCode,
+      },
     });
   } catch (error) {
     console.error("REGISTER ERROR:", error);
 
     res.status(400).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -86,18 +198,17 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const {
-       email, 
-      password, 
-      // agencyCode 
-    } 
-      = req.body;
+      email,
+      password,
+      // agencyCode
+    } = req.body;
 
     const user = await Register.findOne({ email }).select("+password");
 
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password"
+        message: "Invalid email or password",
       });
     }
 
@@ -125,7 +236,7 @@ export const loginUser = async (req, res) => {
         success: false,
         message: msg,
         status: user.status,
-        role: user.role
+        role: user.role,
       });
     }
 
@@ -188,15 +299,13 @@ export const loginUser = async (req, res) => {
         role: user.role,
         status: user.status,
         priceOnCall: user.priceOnCall || false,
-        showHideButton: user.showHideButton || false
-      }
+        showHideButton: user.showHideButton || false,
+      },
     });
-
-
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -210,12 +319,12 @@ export const getProfile = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: user
+      data: user,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -230,12 +339,12 @@ export const getAllUsers = async (req, res) => {
     res.status(200).json({
       success: true,
       count: users.length,
-      data: users
+      data: users,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -250,18 +359,18 @@ export const getUserById = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
     res.status(200).json({
       success: true,
-      data: user
+      data: user,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -286,8 +395,20 @@ export const updateUserProfile = async (req, res) => {
       status,
       password,
       registeredFrom,
-      logo
+      logo,
     } = req.body;
+
+    // here we will update the zip account of the user
+    const zipData = {
+      name,
+      address,
+      companyName,
+      consultant,
+      phone,
+      cell: phone,
+    };
+
+    const updateRes = await updateZipAcc(zipData);
 
     // If req.params.id exists, use it (admin updating user), otherwise use req.user.id (user updating own profile)
     const userId = req.params.id || req.user.id;
@@ -296,7 +417,7 @@ export const updateUserProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
@@ -309,8 +430,10 @@ export const updateUserProfile = async (req, res) => {
     if (country !== undefined) user.country = country;
     if (consultant !== undefined) user.consultant = consultant;
     if (marginType !== undefined) user.marginType = marginType;
-    if (flightMarginPercent !== undefined) user.flightMarginPercent = flightMarginPercent;
-    if (flightMarginAmount !== undefined) user.flightMarginAmount = flightMarginAmount;
+    if (flightMarginPercent !== undefined)
+      user.flightMarginPercent = flightMarginPercent;
+    if (flightMarginAmount !== undefined)
+      user.flightMarginAmount = flightMarginAmount;
     if (status !== undefined) user.status = status;
 
     // Handle logo upload (supports base64 or Cloudinary URL from file upload)
@@ -324,7 +447,7 @@ export const updateUserProfile = async (req, res) => {
     if (registeredFrom !== undefined) {
       user.registeredFrom = {
         ...user.registeredFrom,
-        ...registeredFrom
+        ...registeredFrom,
       };
     }
 
@@ -341,12 +464,12 @@ export const updateUserProfile = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "User updated successfully",
-      data: safeUser
+      data: safeUser,
     });
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -378,45 +501,45 @@ export const updateUserStatus = async (req, res) => {
       updates.activatedAt = null;
     }
 
-    const user = await Register.findByIdAndUpdate(
-      req.params.id,
-      updates,
-      { new: true }
-    );
+    const user = await Register.findByIdAndUpdate(req.params.id, updates, {
+      new: true,
+    });
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
     res.status(200).json({
       success: true,
       message: "User status updated",
-      data: user
+      data: user,
     });
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
 
 export const updatePriceOnCall = async (req, res) => {
-  console.log(req.body,"req.body")
+  console.log(req.body, "req.body");
   try {
     const { priceOnCall } = req.body;
 
     const user = await Register.findByIdAndUpdate(
       req.params.id,
       { priceOnCall: priceOnCall },
-      { new: true }
+      { new: true },
     );
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     res.json({ success: true, data: user });
@@ -432,11 +555,13 @@ export const updateShowHideButton = async (req, res) => {
     const user = await Register.findByIdAndUpdate(
       req.params.id,
       { showHideButton: showHideButton },
-      { new: true }
+      { new: true },
     );
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     res.json({ success: true, data: user });
@@ -451,30 +576,28 @@ export const updateBookNowButtonBulk = async (req, res) => {
     if (typeof showHideButton !== "boolean") {
       return res.status(400).json({
         success: false,
-        message: "showHideButton must be true or false"
+        message: "showHideButton must be true or false",
       });
     }
 
     const result = await Register.updateMany(
       { role: "Agency" },
-      { $set: { showHideButton } }
+      { $set: { showHideButton } },
     );
 
     res.json({
       success: true,
       message: `Booking Now turned ${showHideButton ? "ON" : "OFF"} for all agencies`,
-      modifiedCount: result.modifiedCount
+      modifiedCount: result.modifiedCount,
     });
-
   } catch (error) {
     console.error("Bulk Booking Now Error:", error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
-
 
 /* ===========================
    DELETE USER
@@ -486,18 +609,18 @@ export const deleteUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
     res.status(200).json({
       success: true,
-      message: "User deleted successfully"
+      message: "User deleted successfully",
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -513,7 +636,7 @@ export const changePassword = async (req, res) => {
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
         success: false,
-        message: "Current password and new password are required"
+        message: "Current password and new password are required",
       });
     }
 
@@ -522,7 +645,7 @@ export const changePassword = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
@@ -531,7 +654,7 @@ export const changePassword = async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: "Current password is incorrect"
+        message: "Current password is incorrect",
       });
     }
 
@@ -540,12 +663,12 @@ export const changePassword = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Password changed successfully"
+      message: "Password changed successfully",
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -560,7 +683,7 @@ export const requestPasswordReset = async (req, res) => {
     if (!email) {
       return res.status(400).json({
         success: false,
-        message: "Email is required"
+        message: "Email is required",
       });
     }
 
@@ -569,18 +692,27 @@ export const requestPasswordReset = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
     // Generate a reset token (valid for 1 hour)
-    const resetToken = jwt.sign({ id: user._id, type: "reset" }, process.env.JWT_SECRET, {
-      expiresIn: "1h"
-    });
+    const resetToken = jwt.sign(
+      { id: user._id, type: "reset" },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      },
+    );
 
     // Send email with reset link
     try {
-      await sendPasswordResetEmail(email, resetToken, user._id.toString(), user.name);
+      await sendPasswordResetEmail(
+        email,
+        resetToken,
+        user._id.toString(),
+        user.name,
+      );
 
       res.status(200).json({
         success: true,
@@ -588,8 +720,8 @@ export const requestPasswordReset = async (req, res) => {
         // In development, you might want to include the token for testing
         ...(process.env.NODE_ENV === "development" && {
           resetToken: resetToken,
-          userId: user._id
-        })
+          userId: user._id,
+        }),
       });
     } catch (emailError) {
       console.error("Email sending failed:", emailError);
@@ -598,21 +730,22 @@ export const requestPasswordReset = async (req, res) => {
       if (process.env.NODE_ENV === "development") {
         return res.status(200).json({
           success: true,
-          message: "Email service unavailable. Here's your reset token for testing:",
+          message:
+            "Email service unavailable. Here's your reset token for testing:",
           resetToken: resetToken,
-          userId: user._id
+          userId: user._id,
         });
       }
 
       return res.status(500).json({
         success: false,
-        message: "Failed to send reset email. Please try again later."
+        message: "Failed to send reset email. Please try again later.",
       });
     }
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -627,7 +760,7 @@ export const resetPassword = async (req, res) => {
     if (!resetToken || !newPassword || !userId) {
       return res.status(400).json({
         success: false,
-        message: "Reset token, user ID, and new password are required"
+        message: "Reset token, user ID, and new password are required",
       });
     }
 
@@ -637,7 +770,7 @@ export const resetPassword = async (req, res) => {
     if (decoded.type !== "reset" || decoded.id !== userId) {
       return res.status(401).json({
         success: false,
-        message: "Invalid or expired reset token"
+        message: "Invalid or expired reset token",
       });
     }
 
@@ -646,7 +779,7 @@ export const resetPassword = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
@@ -655,18 +788,18 @@ export const resetPassword = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Password has been reset successfully"
+      message: "Password has been reset successfully",
     });
   } catch (error) {
     if (error.name === "TokenExpiredError") {
       return res.status(401).json({
         success: false,
-        message: "Reset token has expired"
+        message: "Reset token has expired",
       });
     }
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -681,7 +814,7 @@ export const changeUserPassword = async (req, res) => {
     if (!userId || !newPassword) {
       return res.status(400).json({
         success: false,
-        message: "User ID and new password are required"
+        message: "User ID and new password are required",
       });
     }
 
@@ -690,7 +823,7 @@ export const changeUserPassword = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
@@ -699,12 +832,12 @@ export const changeUserPassword = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: `Password for ${user.name} (${user.role}) has been changed successfully`
+      message: `Password for ${user.name} (${user.role}) has been changed successfully`,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -721,14 +854,15 @@ export const sendUserCredentials = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
     if (!user.agencyCode || !user.email || !user.plainPassword) {
       return res.status(400).json({
         success: false,
-        message: "Missing required credentials. Ensure agent code, email, and password are available."
+        message:
+          "Missing required credentials. Ensure agent code, email, and password are available.",
       });
     }
 
@@ -738,18 +872,19 @@ export const sendUserCredentials = async (req, res) => {
       user.agencyCode,
       user.plainPassword,
       user.name,
-      user.companyName || "N/A"
+      user.companyName || "N/A",
     );
 
     res.status(200).json({
       success: true,
-      message: `Credentials have been sent successfully to ${user.email}`
+      message: `Credentials have been sent successfully to ${user.email}`,
     });
   } catch (error) {
     console.error("Error sending credentials:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to send credentials email. Please check email configuration."
+      message:
+        "Failed to send credentials email. Please check email configuration.",
     });
   }
 };

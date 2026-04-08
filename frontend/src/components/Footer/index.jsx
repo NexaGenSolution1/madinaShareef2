@@ -70,7 +70,7 @@ export default function Footer() {
                 className="text-lg font-semibold"
                 style={{ color: theme.colors.sidebarTextLight }}
               >
-                World Fly Tickets Travels
+                World Fly Travel & Tours (Pvt Ltd ).
               </h2>
               <p
                 className="mt-3 text-sm leading-relaxed"
@@ -191,7 +191,7 @@ export default function Footer() {
           style={{ borderColor: theme.colors.sidebarBorder }}
         >
           <p style={{ color: theme.colors.sidebarText }}>
-            {dayjs().year()} World Fly Tickets Travels.
+            {dayjs().year()} World Fly Travel & Tours (Pvt Ltd ).
           </p>
 
           <a
