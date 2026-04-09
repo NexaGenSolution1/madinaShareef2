@@ -57,69 +57,114 @@ const services = [
 export default function ServicesSection() {
   return (
     <section
-      className="relative py-20"
+      className="relative py-24 overflow-hidden"
       style={{
-        background: `linear-gradient(135deg, ${theme.colors.background}, ${theme.colors.backgroundDark})`,
+        // Grey Background - Different from other sections
+        background: `linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #cbd5e1 100%)`,
       }}
     >
-      <div className="main-container relative z-10">
+      {/* Subtle Grid Pattern for Depth */}
+      <div
+        className="absolute inset-0 opacity-20 pointer-events-none"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(100, 116, 139, 0.08) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(100, 116, 139, 0.08) 1px, transparent 1px)
+          `,
+          backgroundSize: "40px 40px",
+        }}
+      />
+
+      <div className="main-container relative z-10 max-w-7xl mx-auto px-6">
         {/* Heading */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-20">
+          <p
+            className="text-sm font-semibold tracking-widest uppercase mb-3"
+            style={{ color: theme.colors.accent }}
+          >
+            OUR EXPERTISE
+          </p>
           <h2
-            className="text-3xl sm:text-4xl md:text-5xl font-semibold"
+            className="text-4xl md:text-5xl font-bold tracking-tight"
             style={{ color: theme.colors.textPrimary }}
           >
             Our Services
           </h2>
           <div
-            className="w-24 h-1 mx-auto mt-4 rounded-full"
+            className="w-24 h-1 mx-auto mt-6 rounded-full"
             style={{
-              background: `linear-gradient(to right, ${theme.colors.primary}, ${theme.colors.accent})`,
+              background: theme.colors.ublGradient,
             }}
           />
         </div>
 
-        {/* Grid */}
+        {/* Services Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {services.map((service) => (
-            <div key={service.id} className="card group">
-              {/* Animated Blob */}
-              <div className="blob"></div>
-
-              {/* Shine */}
-              <div className="shine"></div>
+            <div
+              key={service.id}
+              className="group relative rounded-3xl overflow-hidden bg-white shadow-xl hover:shadow-2xl transition-all duration-500"
+            >
+              {/* Animated Gradient Border */}
+              <div
+                className="absolute -inset-[3px] rounded-3xl opacity-75 pointer-events-none z-10"
+                style={{
+                  background: `conic-gradient(
+                    from 0deg,
+                    transparent 30deg,
+                    ${theme.colors.primaryLight} 80deg,
+                    ${theme.colors.accentLight} 140deg,
+                    ${theme.colors.ublGradientEnd} 220deg,
+                    ${theme.colors.primaryLight} 300deg,
+                    transparent 330deg
+                  )`,
+                  backgroundSize: "280% 280%",
+                  animation: "borderFlow 12s linear infinite",
+                  filter: "blur(5px)",
+                }}
+              />
 
               {/* Card Content */}
-              <div className="card-inner">
-                {/* Image (FIXED HEIGHT) */}
-                <div className="img-wrapper">
-                  <img src={service.image} alt={service.title} />
+              <div className="relative z-20 bg-white rounded-3xl overflow-hidden">
+                {/* Image Section */}
+                <div className="relative h-64 overflow-hidden">
+                  <img
+                    src={service.image}
+                    alt={service.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+
+                  {/* Image Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                 </div>
 
-                {/* Content */}
-                <div className="p-5 text-center flex flex-col flex-1">
+                {/* Text Content */}
+                <div className="p-8 flex flex-col">
                   <h3
-                    className="text-xl font-semibold mb-2"
-                    style={{ color: theme.colors.primary }}
+                    className="text-2xl font-semibold mb-3 tracking-tight"
+                    style={{ color: theme.colors.textPrimary }}
                   >
                     {service.title}
                   </h3>
 
                   <p
-                    className="text-sm"
+                    className="text-[15.5px] leading-relaxed flex-1 mb-6"
                     style={{ color: theme.colors.textSecondary }}
                   >
                     {service.description}
                   </p>
 
                   <button
-                    className="mt-4 px-4 py-2 text-sm rounded-md transition-all duration-300"
+                    className="mt-auto w-full py-3.5 rounded-2xl font-semibold text-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2 group/btn"
                     style={{
-                      background: theme.colors.primary,
+                      background: theme.colors.ublGradient,
                       color: "#fff",
                     }}
                   >
                     Learn More
+                    <span className="transition-transform duration-300 group-hover/btn:translate-x-1">
+                      →
+                    </span>
                   </button>
                 </div>
               </div>
@@ -128,106 +173,26 @@ export default function ServicesSection() {
         </div>
       </div>
 
-      {/* Mosque */}
+      {/* Background Mosque - Subtle */}
       <img
         src={mosque}
         alt="mosque"
-        className="absolute bottom-0 right-0 w-full sm:w-1/2 opacity-10"
+        className="absolute bottom-0 right-0 w-3/4 sm:w-1/2 opacity-6 pointer-events-none"
       />
 
-      {/* STYLES */}
-      <style>{`
-      
-      .card {
-        position: relative;
-        border-radius: 16px;
-        overflow: hidden;
-        transition: 0.4s;
-        box-shadow: ${theme.shadows.lg};
-      }
-
-      .card:hover {
-        transform: translateY(-10px) scale(1.02);
-        box-shadow: ${theme.shadows.xl};
-      }
-
-      .card-inner {
-        position: relative;
-        z-index: 2;
-        background: rgba(255,255,255,0.9);
-        backdrop-filter: blur(16px);
-        border: 1px solid ${theme.colors.border};
-        border-radius: 16px;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-      }
-
-      /* FIXED IMAGE HEIGHT */
-      .img-wrapper {
-        height: 220px;
-        overflow: hidden;
-      }
-
-      .img-wrapper img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: 0.5s;
-      }
-
-      .card:hover img {
-        transform: scale(1.1);
-      }
-
-      /* BLOB */
-      .blob {
-        position: absolute;
-        width: 200px;
-        height: 200px;
-        background: linear-gradient(135deg, ${theme.colors.primaryLight}, ${theme.colors.accentLight});
-        border-radius: 50%;
-        filter: blur(40px);
-        opacity: 0.5;
-        animation: moveBlob 6s infinite ease-in-out;
-        z-index: 1;
-      }
-
-      @keyframes moveBlob {
-        0% { top: -50px; left: -50px; }
-        25% { top: -50px; left: 70%; }
-        50% { top: 60%; left: 70%; }
-        75% { top: 60%; left: -50px; }
-        100% { top: -50px; left: -50px; }
-      }
-
-      /* SHINE EFFECT */
-      .shine {
-        position: absolute;
-        top: 0;
-        left: -75%;
-        width: 50%;
-        height: 100%;
-        background: linear-gradient(
-          120deg,
-          transparent,
-          rgba(255,255,255,0.5),
-          transparent
-        );
-        transform: skewX(-20deg);
-        z-index: 3;
-      }
-
-      .card:hover .shine {
-        animation: shineMove 0.8s forwards;
-      }
-
-      @keyframes shineMove {
-        100% {
-          left: 125%;
+      {/* Smooth Border Animation */}
+      <style jsx>{`
+        @keyframes borderFlow {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
         }
-      }
-
       `}</style>
     </section>
   );

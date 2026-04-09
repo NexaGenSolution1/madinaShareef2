@@ -7,6 +7,7 @@ import countryCodes from "../../../data/countryCodes.json"; // adjust path
 import Select from "react-select";
 import Header from "../../../components/Header";
 import CommonSections from "../../../components/CommonSections";
+import bg from "../../../assets/images/bahrain.webp";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -120,7 +121,7 @@ const Register = () => {
       <div
         className="min-h-screen w-full flex flex-col items-center justify-start bg-no-repeat bg-cover bg-center bg-fixed relative pt-36 md:pt-42 lg:pt-48"
         style={{
-          backgroundImage: `url('https://images.pexels.com/photos/20277838/pexels-photo-20277838.jpeg')`,
+          backgroundImage: `url(${bg})`,
           backgroundColor: "#000000",
         }}
       >

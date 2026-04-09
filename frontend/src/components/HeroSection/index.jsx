@@ -57,7 +57,7 @@ export default function HeroSection() {
             <Link
               key={group.value}
               to={`/${group.path}`}
-              className="group relative h-70 rounded-3xl overflow-hidden shadow-xl shadow-black/50 transition-all duration-500 hover:scale-105 hover:-translate-y-2"
+              className="group relative h-50 rounded-3xl overflow-hidden shadow-xl shadow-black/50 transition-all duration-500 hover:scale-105 hover:-translate-y-2"
             >
               {/* Image - Full Height & Width */}
               <img

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import axiosInstance from "../../../api/axios";
 import { toast } from "react-toastify";
 import logo from "../../../assets/images/logo.webp";
+import bg from "../../../assets/images/bahrain.webp";
 
 const Login = ({ onLogin }) => {
   const [formData, setFormData] = useState({
@@ -106,45 +107,28 @@ const Login = ({ onLogin }) => {
     <>
       <div
         id="login"
-        className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 p-4 sm:p-5"
+        className="min-h-screen flex items-center justify-center p-4 sm:p-5"
+        style={{
+          // Main Background with Image and Dark Overlay
+          backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8)), url(${bg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundAttachment: "fixed",
+        }}
       >
         <div className="flex flex-col md:flex-row w-full max-w-250 bg-white rounded-2xl shadow-2xl overflow-hidden min-h-140">
-          {/* LEFT PANEL - Decorative only, no info (Hidden on mobile) */}
+          {/* LEFT PANEL - Branded Gradient */}
           <div className="hidden md:flex flex-1 bg-linear-to-br from-[#21397C] to-[#2CA3B4] items-center justify-center p-8 lg:p-12 relative overflow-hidden">
             <div className="absolute top-[-50%] right-[-50%] w-[200%] h-[200%] bg-[radial-gradient(circle,rgba(255,255,255,0.08)_0%,rgba(255,255,255,0)_70%)] pointer-events-none" />
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-white/20 via-white/80 to-white/20" />
 
             <div className="text-center text-white z-10 animate-[fadeInUp_0.6s_ease-out]">
-              <div className="w-22 h-22 mx-auto mb-6 bg-white rounded-xl flex items-center justify-center backdrop-blur-sm">
-                {/* <svg
-                  className="w-10 h-10 text-white"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M12 2L2 7L12 12L22 7L12 2Z"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M2 17L12 22L22 17"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M2 12L12 17L22 12"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg> */}
-                <img src={logo} alt="logo" />
+              <div className="w-22 h-22 mx-auto mb-6 rounded-xl flex items-center justify-center">
+                <img
+                  src={logo}
+                  alt="logo"
+                  className="w-full h-full object-contain"
+                />
               </div>
               <h2 className="text-3xl font-semibold mb-3 tracking-tight">
                 Secure Access
@@ -194,8 +178,7 @@ const Login = ({ onLogin }) => {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    autoComplete="email"
-                    className="w-full pl-10 pr-3 py-2.5 sm:py-3 border-2 border-slate-200 rounded-xl text-sm text-slate-900 bg-white focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all"
+                    className="w-full pl-10 pr-3 py-2.5 sm:py-3 border-2 border-slate-200 rounded-xl text-sm text-slate-900 bg-white focus:border-[#2CA3B4] outline-none transition-all"
                   />
                 </div>
               </div>
@@ -222,8 +205,7 @@ const Login = ({ onLogin }) => {
                     value={formData.password}
                     onChange={handleChange}
                     required
-                    autoComplete="current-password"
-                    className="w-full pl-10 pr-3 py-2.5 sm:py-3 border-2 border-slate-200 rounded-xl text-sm text-slate-900 bg-white focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all"
+                    className="w-full pl-10 pr-3 py-2.5 sm:py-3 border-2 border-slate-200 rounded-xl text-sm text-slate-900 bg-white focus:border-[#2CA3B4] outline-none transition-all"
                   />
                 </div>
               </div>
@@ -232,14 +214,14 @@ const Login = ({ onLogin }) => {
                 <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
                   <input
                     type="checkbox"
-                    className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                    className="w-4 h-4 rounded border-slate-300 text-[#21397C] focus:ring-[#21397C]"
                   />
                   Remember me
                 </label>
                 <button
                   type="button"
                   onClick={() => setShowForgot(true)}
-                  className="text-sm font-medium text-teal-600 hover:text-teal-700 transition-colors"
+                  className="text-sm font-medium text-[#2CA3B4] hover:text-[#21397C] transition-colors"
                 >
                   Forgot password?
                 </button>
@@ -248,7 +230,7 @@ const Login = ({ onLogin }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 sm:py-3 bg-linear-to-r from-[#21397C] to-[#2CA3B4] text-white font-semibold rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 text-sm sm:text-base"
+                className="w-full py-2.5 sm:py-3 bg-linear-to-r from-[#21397C] to-[#2CA3B4] text-white font-semibold rounded-xl hover:shadow-lg hover:scale-[1.01] transition-all duration-200 disabled:opacity-70 text-sm sm:text-base"
               >
                 {loading ? (
                   <span className="inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
@@ -263,7 +245,7 @@ const Login = ({ onLogin }) => {
                 Don't have an account?{" "}
                 <Link
                   to="/auth/register"
-                  className="font-medium text-teal-600 hover:text-teal-700 transition-colors"
+                  className="font-medium text-[#2CA3B4] hover:text-[#21397C] transition-colors"
                 >
                   Create account
                 </Link>
@@ -276,60 +258,40 @@ const Login = ({ onLogin }) => {
       {/* Forgot Password Modal */}
       {showForgot && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setShowForgot(false)}
         >
           <div
-            className="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 relative animate-[fadeInUp_0.3s_ease-out] mx-4 sm:mx-0"
+            className="bg-white rounded-2xl max-w-md w-full p-6 relative animate-[fadeInUp_0.3s_ease-out]"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setShowForgot(false)}
-              className="absolute top-3 right-3 sm:top-4 sm:right-4 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-2xl"
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-2xl"
             >
               ×
             </button>
-
-            <div className="text-center mb-5 sm:mb-6">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <svg
-                  className="w-6 h-6 sm:w-7 sm:h-7 text-amber-600"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2">
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-bold text-slate-900 mb-2">
                 Reset Password
               </h3>
-              <p className="text-xs sm:text-sm text-slate-500">
-                Enter your email address and we'll send you a link to reset your
-                password.
+              <p className="text-sm text-slate-500">
+                Enter your email and we'll send a reset link.
               </p>
             </div>
-
             <form onSubmit={handleForgotPassword}>
-              <div className="mb-5">
-                <input
-                  type="email"
-                  placeholder="Email address"
-                  value={forgotEmail}
-                  onChange={(e) => setForgotEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                  className="w-full px-4 py-2.5 sm:py-3 border-2 border-slate-200 rounded-xl text-sm text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all"
-                />
-              </div>
+              <input
+                type="email"
+                placeholder="Email address"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                required
+                className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm mb-4 outline-none focus:border-[#2CA3B4]"
+              />
               <button
                 type="submit"
                 disabled={forgotLoading}
-                className="w-full py-2.5 sm:py-3 bg-linear-to-r from-[#21397C] to-[#2CA3B4] text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-200 disabled:opacity-70 text-sm sm:text-base"
+                className="w-full py-3 bg-linear-to-r from-[#21397C] to-[#2CA3B4] text-white font-semibold rounded-xl"
               >
                 {forgotLoading ? "Sending..." : "Send Reset Link"}
               </button>
@@ -340,20 +302,8 @@ const Login = ({ onLogin }) => {
 
       <style>{`
         @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @media (max-width: 768px) {
-          .animate\\:\\[fadeInUp_0\\.6s_ease-out\\] {
-            animation: fadeInUp 0.6s ease-out;
-          }
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </>

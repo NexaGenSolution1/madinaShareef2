@@ -5,60 +5,89 @@ import { IoMail, IoLocationSharp } from "react-icons/io5";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import { theme } from "../../theme/theme";
+import footerBg from "../../assets/images/uae.webp";
+import { Plane } from "lucide-react";
 
 export default function Footer() {
   return (
     <>
       {/* TOP CTA */}
       <div
-        className="py-14"
+        className="py-24 px-4" // height barhane ke liye py-24 rakha
         style={{
           background: theme.colors.primary,
         }}
       >
-        <div className="main-container flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-5 text-white">
-            <IoMail className="text-5xl opacity-80" />
+        <div className="max-w-4xl mx-auto flex flex-col items-center text-center gap-8">
+          {/* Icon & Text Section */}
+          <div className="flex flex-col items-center gap-3 text-white">
+            {/* Airplane Icon (urta hua feel) */}
+            <div className="relative">
+              {/* <Plane className="w-20 h-20 text-white opacity-90 -rotate-12" /> */}
+              <img
+                src="https://ex-coders.com/html/turmet/assets/img/plane-shape.png"
+                alt=""
+                style={{
+                  height: "150px",
+                }}
+                srcset=""
+              />
+              {/* Optional: chhota glow ya trail feel ke liye */}
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-white/20 rounded-full blur-md" />
+            </div>
+
+            {/* Mail Icon (optional, agar dono chahte ho toh rakh sakte ho) */}
+            {/* <IoMail className="text-6xl opacity-90 -mt-4" /> */}
+
             <div>
-              <h2 className="text-2xl sm:text-3xl font-semibold">
+              <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mb-3">
                 Your Travel Journey Starts Here
               </h2>
-              <p className="text-sm opacity-80">
-                Sign up to get the best travel deals & offers
+              <p className="text-lg opacity-90 max-w-lg mx-auto">
+                Sign up to get the best travel deals & offers and stay updated
+                with our latest packages.
               </p>
             </div>
           </div>
 
-          <div className="flex gap-3">
+          {/* Buttons Section */}
+          <div className="flex flex-wrap justify-center gap-4 mt-2">
             <Link
               to="/auth/register"
-              className="px-6 py-3 rounded-lg font-medium transition-all"
+              className="px-8 py-4 rounded-md font-semibold text-lg transition-all hover:bg-opacity-90 shadow-lg"
               style={{
                 background: "#fff",
                 color: theme.colors.primary,
               }}
             >
-              Signup
+              Signup Now
             </Link>
 
             <a
               href="#login"
-              className="flex items-center gap-2 px-6 py-3 rounded-lg border transition-all"
+              className="flex items-center gap-2 px-8 py-4 rounded-md border-2 font-semibold text-lg transition-all hover:bg-white hover:text-[#000] hover:border-white"
               style={{
                 borderColor: "#fff",
-                color: "#fff",
+                // color: "#fff",
               }}
             >
-              Login <CiLogin />
+              Login <CiLogin className="text-xl" />
             </a>
           </div>
         </div>
       </div>
 
+      <div className="bg-black h-10"></div>
+
       {/* MAIN FOOTER */}
       <footer
-        className="relative pt-16"
-        style={{ background: theme.colors.sidebarBg }}
+        className="relative pt-16 text-white"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url(${footerBg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
       >
         <div className="main-container grid grid-cols-1 lg:grid-cols-2 gap-10 pb-12">
           {/* LEFT */}
@@ -144,7 +173,7 @@ export default function Footer() {
                   className="flex items-center gap-3 hover:translate-x-1 transition"
                   style={{ color: theme.colors.sidebarText }}
                 >
-                  <FaWhatsapp /> 0314-5266660
+                  <FaWhatsapp className="text-2xl" /> 0314-5266660
                 </a>
 
                 <a
@@ -177,8 +206,8 @@ export default function Footer() {
                   className="flex items-start gap-3 hover:translate-x-1 transition"
                   style={{ color: theme.colors.sidebarText }}
                 >
-                  <IoLocationSharp className="mt-1" />
-                  SHOP NO 03 G FLOOR G 13 SERVICES ROAD G 12 Islamabad
+                  <IoLocationSharp className="mt-1 text-3xl" />
+                  Shop No 03 G-Floor G-13 Services Road G-12 Islamabad
                 </a>
               </div>
             </div>
@@ -190,9 +219,12 @@ export default function Footer() {
           className="main-container flex flex-col md:flex-row justify-between items-center gap-3 py-6 border-t"
           style={{ borderColor: theme.colors.sidebarBorder }}
         >
-          <p style={{ color: theme.colors.sidebarText }}>
-            {dayjs().year()} World Fly Travel & Tours (Pvt Ltd ).
-          </p>
+          <a
+            href="https://worldflytickets.com/"
+            style={{ color: theme.colors.sidebarText }}
+          >
+            &copy; {dayjs().year()} World Fly Travel & Tours (Pvt Ltd ).
+          </a>
 
           <a
             target="_blank"
