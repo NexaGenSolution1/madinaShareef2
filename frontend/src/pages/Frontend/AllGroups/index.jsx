@@ -15,8 +15,7 @@ import MaskedDatePicker from "../../../components/MaskedDatePicker";
 import { theme } from "../../../theme/theme";
 import TopBar from "../../../components/TopBar/TopBar";
 
-export default function AllGroups({ headerType, header, searchParams }) {
-  const user = JSON.parse(localStorage.getItem("frontend_user"));
+export default function AllGroups({ headerType, header, searchParams, user }) {
   const navigate = useNavigate();
 
   const [groups, setGroups] = useState([]);
@@ -34,6 +33,30 @@ export default function AllGroups({ headerType, header, searchParams }) {
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [airlines, setAirlines] = useState([]);
   const [sectors, setSectors] = useState([]);
+
+  const calculateB2BPrice = (groupPrice) => {
+    if (!user) return groupPrice; // B2C case (handled separately)
+
+    // If user has priceOnCall flag, return "Price on Call"
+    if (user.priceOnCall) return null;
+
+    const marginType = user.marginType; // "Percentage" or "Amount"
+    const marginPercent = user.flightMarginPercent;
+    const marginAmount = user.flightMarginAmount;
+
+    let finalPrice = groupPrice;
+
+    if (marginType === "Percentage" && marginPercent > 0) {
+      // Add percentage margin
+      const marginValue = (groupPrice * marginPercent) / 100;
+      finalPrice = groupPrice + marginValue;
+    } else if (marginType === "Amount" && marginAmount > 0) {
+      // Add fixed amount margin
+      finalPrice = groupPrice + marginAmount;
+    }
+
+    return Math.round(finalPrice); // Round to nearest integer
+  };
 
   useEffect(() => {
     fetchGroups();
@@ -532,7 +555,7 @@ export default function AllGroups({ headerType, header, searchParams }) {
                                     >
                                       {user?.priceOnCall
                                         ? "On Call"
-                                        : group.price?.toLocaleString()}
+                                        : calculateB2BPrice(group.price)}
                                     </div>
                                     {!user?.priceOnCall && (
                                       <div className="text-[10px] text-gray-400">

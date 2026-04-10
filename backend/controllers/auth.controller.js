@@ -205,10 +205,17 @@ export const loginUser = async (req, res) => {
 
     const user = await Register.findOne({ email }).select("+password");
 
-    if (!user || !(await user.comparePassword(password))) {
+    if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password",
+        message: "User not Found",
+      });
+    }
+
+    if (!(await user.comparePassword(password))) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid Password",
       });
     }
 

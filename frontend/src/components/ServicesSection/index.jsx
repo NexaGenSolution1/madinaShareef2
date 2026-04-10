@@ -107,7 +107,7 @@ export default function ServicesSection() {
             >
               {/* Animated Gradient Border */}
               <div
-                className="absolute -inset-[3px] rounded-3xl opacity-75 pointer-events-none z-10"
+                className="absolute -inset-0.75 rounded-3xl opacity-75 pointer-events-none z-10"
                 style={{
                   background: `conic-gradient(
                     from 0deg,
@@ -129,13 +129,14 @@ export default function ServicesSection() {
                 {/* Image Section */}
                 <div className="relative h-64 overflow-hidden">
                   <img
+                    style={{ height: "100%" }}
                     src={service.image}
                     alt={service.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
 
                   {/* Image Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
                 </div>
 
                 {/* Text Content */}

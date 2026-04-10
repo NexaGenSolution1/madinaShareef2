@@ -96,7 +96,7 @@ export default function HeroSection() {
       </div>
 
       {/* Bottom Fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-linear-to-t from-gray-50 to-transparent z-20" />
+      {/* <div className="absolute bottom-0 left-0 right-0 h-32 bg-linear-to-t from-gray-50 to-transparent z-20" /> */}
     </section>
   );
 }

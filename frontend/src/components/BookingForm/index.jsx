@@ -8,12 +8,36 @@ import { X, CheckCircle } from "lucide-react";
 import TopBar from "../TopBar/TopBar";
 import { parseMRZ } from "../../utils/parseMRZ";
 
-export default function BookingForm() {
-  const user = JSON.parse(localStorage.getItem("frontend_user"));
+export default function BookingForm({ user }) {
+  // const user = JSON.parse(localStorage.getItem("frontend_user"));
   const navigate = useNavigate();
   const location = useLocation();
   const { id: bookingId } = useParams();
   const isEditMode = !!bookingId;
+
+  const calculateB2BPrice = (groupPrice) => {
+    if (!user) return groupPrice; // B2C case (handled separately)
+
+    // If user has priceOnCall flag, return "Price on Call"
+    if (user?.priceOnCall) return null;
+
+    const marginType = user.marginType; // "Percentage" or "Amount"
+    const marginPercent = user.flightMarginPercent;
+    const marginAmount = user.flightMarginAmount;
+
+    let finalPrice = groupPrice;
+
+    if (marginType === "Percentage" && marginPercent > 0) {
+      // Add percentage margin
+      const marginValue = (groupPrice * marginPercent) / 100;
+      finalPrice = groupPrice + marginValue;
+    } else if (marginType === "Amount" && marginAmount > 0) {
+      // Add fixed amount margin
+      finalPrice = groupPrice + marginAmount;
+    }
+
+    return Math.round(finalPrice); // Round to nearest integer
+  };
 
   const [formData, setFormData] = useState({
     contactPersonName: "N/A",
@@ -27,7 +51,6 @@ export default function BookingForm() {
   const [loadingBooking, setLoadingBooking] = useState(isEditMode);
   const [existingBooking, setExistingBooking] = useState(null);
   const [groupData, setGroupData] = useState(location.state?.groupData || null);
-  console.log(groupData);
   const [totalSeats, setTotalSeats] = useState(null);
 
   const [mrzModal, setMrzModal] = useState({ open: false, index: null });
@@ -293,11 +316,17 @@ export default function BookingForm() {
   };
 
   const calculateAdultTotal = () =>
-    (parseInt(formData.adults) || 0) * (groupData?.price || 0);
+    (parseInt(formData.adults) || 0) *
+    (calculateB2BPrice(groupData?.price) || 0);
+
   const calculateChildTotal = () =>
-    (parseInt(formData.children) || 0) * (groupData?.childPrice || 0);
+    (parseInt(formData.children) || 0) *
+    (calculateB2BPrice(groupData?.childPrice) || 0);
+
   const calculateInfantTotal = () =>
-    (parseInt(formData.infants) || 0) * (groupData?.infantPrice || 0);
+    (parseInt(formData.infants) || 0) *
+    (calculateB2BPrice(groupData?.infantPrice) || 0);
+
   const calculateTotalPrice = () =>
     calculateAdultTotal() + calculateChildTotal() + calculateInfantTotal();
 
@@ -360,9 +389,9 @@ export default function BookingForm() {
         infantsCount: parseInt(formData.infants),
         totalPassengers: totalPassengers,
         pricing: {
-          adultPrice: groupData.price || 0,
-          childPrice: groupData.childPrice || 0,
-          infantPrice: groupData.infantPrice || 0,
+          adultPrice: calculateB2BPrice(groupData.price) || 0,
+          childPrice: calculateB2BPrice(groupData.childPrice) || 0,
+          infantPrice: calculateB2BPrice(groupData.infantPrice) || 0,
           adultTotal: calculateAdultTotal(),
           childTotal: calculateChildTotal(),
           infantTotal: Math.round(calculateInfantTotal()),
@@ -419,9 +448,9 @@ export default function BookingForm() {
         infantsCount: parseInt(formData.infants),
         passengers: formData.passengers,
         pricing: {
-          adultPrice: groupData?.price || 0,
-          childPrice: groupData?.childPrice || 0,
-          infantPrice: groupData?.infantPrice || 0,
+          adultPrice: calculateB2BPrice(groupData?.price) || 0,
+          childPrice: calculateB2BPrice(groupData?.childPrice) || 0,
+          infantPrice: calculateB2BPrice(groupData?.infantPrice) || 0,
           adultTotal: calculateAdultTotal(),
           childTotal: calculateChildTotal(),
           infantTotal: Math.round(calculateInfantTotal()),
@@ -558,11 +587,11 @@ export default function BookingForm() {
                     Adult Price
                   </p>
                   <p
-                    className={`${user.priceOnCall ? "text-white bg-red-600" : "text-[#3d6a8f] bg-blue-50"} text-sm font-extrabold px-2 py-1 rounded-2xl whitespace-nowrap`}
+                    className={`${user?.priceOnCall ? "text-white bg-red-600" : "text-[#3d6a8f] bg-blue-50"} text-sm font-extrabold px-2 py-1 rounded-2xl whitespace-nowrap`}
                   >
-                    {user.priceOnCall
+                    {user?.priceOnCall
                       ? "Price on Call"
-                      : `PKR ${groupData?.price?.toLocaleString()}`}
+                      : `PKR ${calculateB2BPrice(groupData.price)}`}
                     {/* 
                                       {groupData?.price?.toLocaleString() || 0} */}
                   </p>
@@ -572,7 +601,7 @@ export default function BookingForm() {
                     Child
                   </p>
                   <p className="text-sm font-extrabold text-[#3d6a8f] bg-blue-50 px-2 py-1 rounded-2xl">
-                    {groupData?.childPrice || "N/A"}
+                    {calculateB2BPrice(groupData?.childPrice) || "N/A"}
                   </p>
                 </div>
 
@@ -582,7 +611,7 @@ export default function BookingForm() {
                   </p>
                   <p
                     className={`text-sm font-extrabold px-2 py-1 rounded-2xl whitespace-nowrap ${isInfantPriceAvailable() ? "text-[#3d6a8f] bg-blue-50" : "text-white bg-red-600"}`}
-                  >{`${isInfantPriceAvailable() ? `PKR ${groupData.infantPrice.toLocaleString()}` : "Price On Call"}`}</p>
+                  >{`${isInfantPriceAvailable() ? `PKR ${calculateB2BPrice(groupData.infantPrice)}` : "Price On Call"}`}</p>
                 </div>
               </div>
             </div>
@@ -636,18 +665,18 @@ export default function BookingForm() {
                   <td className="px-3 py-2 text-xs font-medium text-gray-900 border-r border-gray-200">
                     {/* PKR {groupData?.price?.toLocaleString() || 0} */}
                     <span
-                      className={`${user.priceOnCall ? "text-red-500" : "text-[#3d6a8f]"} inline-block text-xs font-extrabold px-2 py-1 rounded-2xl`}
+                      className={`${user?.priceOnCall ? "text-red-500" : "text-[#3d6a8f]"} inline-block text-xs font-extrabold px-2 py-1 rounded-2xl`}
                     >
-                      {user.priceOnCall
+                      {user?.priceOnCall
                         ? "Price on Call"
-                        : `PKR ${groupData?.price?.toLocaleString()}`}
+                        : `PKR ${calculateB2BPrice(groupData?.price)?.toLocaleString()}`}
                     </span>
                   </td>
                   <td className="px-3 py-2 text-center text-xs font-bold text-gray-900 border-r border-gray-200">
                     {formData.adults}
                   </td>
                   <td className="px-3 py-2 text-right text-xs font-bold text-gray-900">
-                    {user.priceOnCall ? (
+                    {user?.priceOnCall ? (
                       <span className="text-red-500 font-semibold">
                         Price on Call
                       </span>
@@ -680,7 +709,10 @@ export default function BookingForm() {
                   <td className="px-3 py-2 text-xs font-medium border-r border-gray-200">
                     {isChildPriceAvailable() ? (
                       <span className="text-[#3d6a8f] inline-block text-xs font-extrabold px-2 py-1 rounded-2xl">
-                        PKR {groupData?.childPrice?.toLocaleString() || 0}
+                        PKR{" "}
+                        {calculateB2BPrice(
+                          groupData?.childPrice,
+                        )?.toLocaleString() || 0}
                       </span>
                     ) : (
                       <span className="text-gray-500 font-semibold">N/A</span>
@@ -719,7 +751,10 @@ export default function BookingForm() {
                   <td className="px-3 py-2 text-xs font-medium border-r border-gray-200">
                     {isInfantPriceAvailable() ? (
                       <span className="text-gray-900">
-                        PKR {groupData?.infantPrice?.toLocaleString()}
+                        PKR{" "}
+                        {calculateB2BPrice(
+                          groupData?.infantPrice,
+                        )?.toLocaleString()}
                       </span>
                     ) : (
                       <span className="text-red-500 font-semibold">
@@ -749,7 +784,7 @@ export default function BookingForm() {
                     {totalPassengers}
                   </td>
                   <td className="px-3 py-2 text-right text-xs font-bold">
-                    {user.priceOnCall ? (
+                    {user?.priceOnCall ? (
                       <span className="text-red-500 font-semibold">
                         Price on Call
                       </span>

@@ -136,6 +136,7 @@ export default function Frontend() {
               <div className="bg-gray-50">
                 <div className="w-full min-h-screen mx-auto pt-32 px-8">
                   <AllGroups
+                    user={user}
                     headerType="frontend"
                     header={
                       <div className="mb-4 sm:mb-6 md:mb-8">
@@ -203,6 +204,7 @@ export default function Frontend() {
           path="all-groups"
           element={
             <AllGroups
+              user={user}
               headerType="dashboard"
               header={
                 <div className="flex flex-wrap gap-1 sm:gap-2">
