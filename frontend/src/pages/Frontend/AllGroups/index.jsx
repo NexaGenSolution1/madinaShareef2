@@ -22,6 +22,7 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
   const [allGroups, setAllGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [dbMargin, setDbMargin] = useState(null);
 
   const [filters, setFilters] = useState({
     sectors: [],
@@ -34,17 +35,30 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
   const [airlines, setAirlines] = useState([]);
   const [sectors, setSectors] = useState([]);
 
+  // Fetch margin from database
+  const fetchMargin = async () => {
+    try {
+      const response = await axiosInstance.get("/sector/getMargin");
+      if (response.data.success) {
+        setDbMargin(response.data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching margin:", err);
+    }
+  };
+
   const calculateB2BPrice = (groupPrice) => {
     if (!user) return groupPrice; // B2C case (handled separately)
 
     // If user has priceOnCall flag, return "Price on Call"
     if (user.priceOnCall) return null;
 
+    let finalPrice = groupPrice;
+
+    // Priority 1: Use user-specific margin if available
     const marginType = user.marginType; // "Percentage" or "Amount"
     const marginPercent = user.flightMarginPercent;
     const marginAmount = user.flightMarginAmount;
-
-    let finalPrice = groupPrice;
 
     if (marginType === "Percentage" && marginPercent > 0) {
       // Add percentage margin
@@ -55,10 +69,23 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
       finalPrice = groupPrice + marginAmount;
     }
 
+    // Priority 2: Fallback to database margin if user margin not set
+    if (finalPrice === groupPrice && dbMargin) {
+      if (dbMargin.type === "percent" && dbMargin.value > 0) {
+        // value is already in percentage (e.g., 100 = 100%)
+        const marginValue = (groupPrice * dbMargin.value) / 100;
+        finalPrice = groupPrice + marginValue;
+      } else if (dbMargin.type === "amount" && dbMargin.value > 0) {
+        // Add fixed amount margin
+        finalPrice = groupPrice + dbMargin.value;
+      }
+    }
+
     return Math.round(finalPrice).toLocaleString(); // Round to nearest integer
   };
 
   useEffect(() => {
+    fetchMargin(); // Fetch margin on component mount
     fetchGroups();
   }, [searchParams]);
 
