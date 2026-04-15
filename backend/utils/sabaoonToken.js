@@ -1,5 +1,6 @@
 import axios from "axios";
 import SabaoonToken from "../models/SabaoonToken.js";
+import FormData from "form-data";
 
 export const storeSabaoonToken = async (token, expiry) => {
     try {
@@ -40,11 +41,16 @@ export const refreshSabaoonToken = async () => {
 
     const loginUrl = `${SABAOON_API_URL}/login`;
 
-    const response = await axios.post(loginUrl, {
-        email: SABAOON_EMAIL,
-        password: SABAOON_PASSWORD,
-        agent_code: SABAOON_AGENT_CODE,
+    const form = new FormData();
+    form.append("email", SABAOON_EMAIL);
+    form.append("password", SABAOON_PASSWORD);
+    form.append("agent_code", SABAOON_AGENT_CODE);
+
+    const response = await axios.post(loginUrl, form, {
+        headers: form.getHeaders(),
     });
+
+    console.log("Sabaoon API Response:", JSON.stringify(response.data, null, 2));
 
     const { token, expiry } = response.data;
 
@@ -70,4 +76,22 @@ export const getValidSabaoonToken = async () => {
     }
 
     return record;
+};
+
+// Initialize Sabaoon token on startup: if DB is empty, login and save token
+export const initializeSabaoonToken = async () => {
+    try {
+        const existingToken = await getSabaoonToken();
+
+        if (!existingToken || !existingToken.token) {
+            console.log("Database is empty. Logging in and saving Sabaoon token...");
+            await refreshSabaoonToken();
+            console.log("Sabaoon token initialized successfully");
+        } else {
+            console.log("Sabaoon token already exists in database");
+        }
+    } catch (error) {
+        console.error("Error initializing Sabaoon token:", error);
+        throw error;
+    }
 };
