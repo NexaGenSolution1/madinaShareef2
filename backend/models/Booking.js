@@ -187,6 +187,17 @@ const bookingSchema = new mongoose.Schema(
       default: null,
       index: true, // helps cron/queries
     },
+
+    // Sabaoon API
+    sabaoonTransactionId: {
+      type: Number,
+      default: null,
+    },
+    sabaoonBookingStatus: {
+      type: String,
+      enum: ["pending", "success", "failed", "not_applicable"],
+      default: "pending",
+    },
   },
   {
     timestamps: true,

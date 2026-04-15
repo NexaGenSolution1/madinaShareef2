@@ -51,6 +51,8 @@ interface Booking {
         meal?: string
     }>
     createdAt: string
+    sabaoonTransactionId?: number | null
+    sabaoonBookingStatus?: 'pending' | 'success' | 'failed' | 'not_applicable' | null
 }
 
 export default function BookingDetail() {
@@ -400,6 +402,26 @@ export default function BookingDetail() {
                                     <label className="text-gray-600">Booked on</label>
                                     <p className="text-gray-900">{formatDate(safeBooking.createdAt)}</p>
                                 </div>
+                                {safeBooking.sabaoonBookingStatus && safeBooking.sabaoonBookingStatus !== 'not_applicable' && (
+                                    <div className="border-t border-gray-200 pt-4">
+                                        <label className="text-gray-600">Sabaoon Status</label>
+                                        <p className={`mt-1 inline-block px-2 py-1 rounded text-xs font-semibold ${
+                                            safeBooking.sabaoonBookingStatus === 'success'
+                                                ? 'bg-green-100 text-green-700'
+                                                : safeBooking.sabaoonBookingStatus === 'failed'
+                                                    ? 'bg-red-100 text-red-700'
+                                                    : 'bg-yellow-100 text-yellow-700'
+                                        }`}>
+                                            {safeBooking.sabaoonBookingStatus.charAt(0).toUpperCase() + safeBooking.sabaoonBookingStatus.slice(1)}
+                                        </p>
+                                    </div>
+                                )}
+                                {safeBooking.sabaoonTransactionId && (
+                                    <div className="border-t border-gray-200 pt-4">
+                                        <label className="text-gray-600">Sabaoon Transaction ID</label>
+                                        <p className="text-gray-900 font-medium text-sm">{safeBooking.sabaoonTransactionId}</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

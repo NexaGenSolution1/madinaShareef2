@@ -453,6 +453,32 @@ export default function BookingDetail() {
                     {formatDate(booking.createdAt)}
                   </p>
                 </div>
+                {booking.sabaoonTransactionId && (
+                  <div className="border-t border-gray-200 pt-4">
+                    <label className="text-gray-600">Sabaoon Txn ID</label>
+                    <p className="text-gray-900 font-medium text-sm">
+                      {booking.sabaoonTransactionId}
+                    </p>
+                  </div>
+                )}
+                {booking.sabaoonBookingStatus &&
+                  booking.sabaoonBookingStatus !== "not_applicable" && (
+                    <div className="border-t border-gray-200 pt-4">
+                      <label className="text-gray-600">Sabaoon Status</label>
+                      <p
+                        className={`mt-1 inline-block px-2 py-1 rounded text-xs font-semibold ${
+                          booking.sabaoonBookingStatus === "success"
+                            ? "bg-green-100 text-green-700"
+                            : booking.sabaoonBookingStatus === "failed"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-yellow-100 text-yellow-700"
+                        }`}
+                      >
+                        {booking.sabaoonBookingStatus.charAt(0).toUpperCase() +
+                          booking.sabaoonBookingStatus.slice(1)}
+                      </p>
+                    </div>
+                  )}
               </div>
             </div>
 

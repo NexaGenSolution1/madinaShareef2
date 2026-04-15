@@ -11,10 +11,12 @@ import sectorRoutes from "./routes/sector.routes.js";
 import airlineRoutes from "./routes/airline.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 import alHaiderAPIRoutes from "./routes/alHaiderAPI.routes.js";
+import sabaoonAPIRoutes from "./routes/sabaoonAPI.routes.js";
 import bookingRoutes from "./routes/booking.routes.js";
 import exportRoutes from "./routes/export.routes.js";
 import specialOffer from "./routes/specialOffer.route.js";
 
+import { getValidSabaoonToken } from "./utils/sabaoonToken.js";
 import testEmail from "./utils/testEmail.js";
 import { startBookingExpiryJob } from "./utils/bookingExpiryJob.js";
 
@@ -49,9 +51,15 @@ app.use("/api/sector", sectorRoutes);
 app.use("/api/airline", airlineRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/al-haider", alHaiderAPIRoutes);
+app.use("/api/sabaoon", sabaoonAPIRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/export", exportRoutes);
 app.use("/api/specialOffer", specialOffer);
+
+/* Warm-up: ensure a valid Sabaoon token is present on startup */
+getValidSabaoonToken().catch((err) =>
+  console.warn("Sabaoon token warm-up failed (will retry on first request):", err.message)
+);
 
 /* 🔥 Start Expiry Cron Job */
 startBookingExpiryJob();

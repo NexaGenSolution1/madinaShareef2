@@ -33,6 +33,9 @@ export default function OldHeader({ user, handleLogout }) {
     .getAll("group_type")
     .map((g) => g.toLowerCase().trim());
 
+  // Use the exact group_type param value for active detection
+  const currentGroupType = searchParams.get("group_type")?.trim() || "";
+
   return (
     <header className="fixed w-full top-0 left-0 z-999">
       {/* GLASS NAV */}
@@ -59,9 +62,10 @@ export default function OldHeader({ user, handleLogout }) {
             {user && (
               <div className="hidden xl:flex gap-6">
                 {groupTypes.map((group) => {
+                  // Active when: same path AND group_type param matches this group's value
                   const isActive =
-                    location.pathname === `/${group.path}` ||
-                    activeGroupTypes.includes(group.label.toLowerCase());
+                    location.pathname === "/all-groups" &&
+                    currentGroupType === group.value;
 
                   return (
                     <Link

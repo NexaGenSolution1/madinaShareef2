@@ -55,7 +55,7 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
       finalPrice = groupPrice + marginAmount;
     }
 
-    return Math.round(finalPrice); // Round to nearest integer
+    return Math.round(finalPrice).toLocaleString(); // Round to nearest integer
   };
 
   useEffect(() => {
@@ -65,43 +65,17 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
   const fetchGroups = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get("/sector/getUnifiedGroups");
 
-      let fetchedGroups = response.data.success
-        ? (response.data.data || []).filter(
-            (group) => Number(group.available_no_of_pax) > 0,
-          )
-        : [];
-
+      // Pass the Sabaoon type directly to the backend so it filters server-side
       const groupType = searchParams.get("group_type") || "";
-      if (groupType) {
-        const normalizedGroupType = groupType.toLowerCase().trim();
-        const groupTypeMap = {
-          uae: (type) => type === "uae" || type.includes("uae"),
-          ksa: (type) => type === "ksa oneway" || type.includes("ksa"),
-          "ksa oneway": (type) => type === "ksa oneway" || type.includes("ksa"),
-          bahrain: (type) => type === "bahrain" || type.includes("bahrain"),
-          muscat: (type) =>
-            type === "muscat" ||
-            type.includes("muscat") ||
-            type.includes("mascat"),
-          qatar: (type) => type === "qatar" || type.includes("qatar"),
-          uk: (type) => type === "uk" || type.includes("uk"),
-          umrah: (type) => type === "umrah" || type.includes("umrah"),
-        };
+      const params = {};
+      if (groupType) params.type = groupType;
 
-        fetchedGroups = fetchedGroups.filter((group) => {
-          if (!group.type) return false;
-          const normalizedType = group.type.toLowerCase().trim();
-          const matcher = groupTypeMap[normalizedGroupType];
-          if (matcher) return matcher(normalizedType);
-          return (
-            normalizedType === normalizedGroupType ||
-            normalizedType.includes(normalizedGroupType) ||
-            normalizedGroupType.includes(normalizedType)
-          );
-        });
-      }
+      const response = await axiosInstance.get("/sabaoon/groups", { params });
+
+      const fetchedGroups = response.data.success
+        ? response.data.data || []
+        : [];
 
       const uniqueAirlines = [
         ...new Set(
@@ -281,12 +255,12 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
       >
         {/* Responsive Header Container */}
         <div
-          className={`flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 p-4 md:p-5 bg-white border-b shadow-sm ${headerType === "dashboard" ? "rounded-t-3xl" : ""}`}
+          className={`flex flex-col xl:flex-row xl:items-center xl:justify-between gap-2 px-3 py-2 bg-white border-b border-b-neutral-200 shadow-sm ${headerType === "dashboard" ? "rounded-t-2xl" : ""}`}
         >
           <div className="w-full xl:w-auto">{header}</div>
 
-          <div className="flex flex-col lg:flex-row items-center gap-4 w-full xl:w-auto">
-            <div className="flex items-center justify-between w-full lg:w-auto gap-4">
+          <div className="flex flex-col lg:flex-row items-center gap-2 w-full xl:w-auto">
+            <div className="flex items-center justify-between w-full lg:w-auto gap-3">
               {/* Advanced Search Toggle */}
               <label className="flex items-center cursor-pointer">
                 <div className="relative">
@@ -297,7 +271,7 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                     className="sr-only"
                   />
                   <div
-                    className="w-11 h-6 rounded-full transition-all"
+                    className="w-9 h-5 rounded-full transition-all"
                     style={{
                       background: showAdvancedSearch
                         ? theme.colors.ublGradient
@@ -305,36 +279,36 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                     }}
                   >
                     <div
-                      className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform shadow ${showAdvancedSearch ? "translate-x-5" : ""}`}
+                      className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow ${showAdvancedSearch ? "translate-x-4" : ""}`}
                     />
                   </div>
                 </div>
-                <span className="ml-3 text-sm font-medium text-gray-700 whitespace-nowrap">
+                <span className="ml-2 text-xs font-medium text-gray-700 whitespace-nowrap">
                   Advanced Search
                 </span>
               </label>
 
-              {/* Mobile Filter Button (Visible only on small screens when Advanced Search is on) */}
               {showAdvancedSearch && (
                 <button
                   onClick={() => setIsMobileFilterOpen(true)}
-                  className="lg:hidden p-2 rounded-xl bg-gray-100 text-gray-700"
+                  className="lg:hidden p-1.5 rounded-lg bg-gray-100 text-gray-700"
                 >
-                  <Menu size={20} />
+                  <Menu size={16} />
                 </button>
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+            <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
               <div className="w-full sm:w-48">
                 <MaskedDatePicker
                   value={filters.departDate}
                   onChange={(date) => handleFilterChange("departDate", date)}
                   placeholderText="Departure Date"
                   minDate={new Date()}
+                  size="small"
                 />
               </div>
-              <div className="flex-1 lg:w-64 relative">
+              <div className="flex-1 lg:w-52 relative">
                 <input
                   type="text"
                   placeholder="Search..."
@@ -342,9 +316,9 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                   onChange={(e) =>
                     handleFilterChange("searchKeyword", e.target.value)
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 text-sm"
+                  className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-xs"
                 />
-                <FaSearch className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
               </div>
             </div>
           </div>
@@ -369,24 +343,24 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
           </div>
         )}
 
-        <div className="flex flex-col lg:flex-row gap-6 p-4 md:p-5">
+        <div className="flex flex-col lg:flex-row gap-4 pt-3 pb-6">
           {/* Desktop Sidebar */}
           {showAdvancedSearch && (
-            <div className="hidden lg:block w-72 shrink-0">
-              <div className="bg-white rounded-3xl shadow-sm p-6 sticky top-6">
+            <div className="hidden lg:block w-56 shrink-0">
+              <div className="bg-white rounded-2xl shadow-sm p-4 sticky top-6">
                 <FilterContent />
               </div>
             </div>
           )}
 
           {/* Main Content */}
-          <div className="flex-1 space-y-6 overflow-hidden">
+          <div className="flex-1 space-y-3 overflow-hidden">
             {loading ? (
               <div className="bg-white rounded-3xl shadow-sm p-4">
                 <LoadingSkeleton />
               </div>
             ) : groups.length === 0 ? (
-              <div className="bg-white rounded-3xl shadow-sm p-10 md:p-20 text-center text-gray-400">
+              <div className="bg-white rounded-2xl shadow-sm p-8 text-center text-gray-400">
                 No groups available at the moment
               </div>
             ) : (
@@ -398,32 +372,32 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                 return (
                   <div
                     key={key}
-                    className="rounded-2xl overflow-hidden shadow-md bg-white"
+                    className="rounded-2xl overflow-hidden bg-white"
                   >
                     {/* Sector Header Bar */}
                     <div
-                      className="flex items-center justify-center gap-4 px-4 py-3 md:py-4"
+                      className="flex items-center justify-center gap-3 px-4 py-4"
                       style={{ background: theme.colors.primary }}
                     >
-                      <FaPlaneDeparture className="text-white text-lg md:text-2xl" />
-                      <span className="text-white font-bold text-lg md:text-2xl tracking-widest uppercase">
+                      <FaPlaneDeparture className="text-white text-base" />
+                      <span className="text-white font-bold text-base tracking-widest uppercase">
                         {data.sector}
                       </span>
-                      <FaPlaneArrival className="text-white text-lg md:text-2xl" />
+                      <FaPlaneArrival className="text-white text-base" />
                     </div>
 
                     {/* Airline Logo Area */}
-                    <div className="bg-white flex items-center justify-center py-4 border-b border-gray-100">
+                    <div className="bg-white flex items-center justify-center py-2 border-b border-neutral-100">
                       {data.airlineLogo ? (
                         <img
-                          style={{ height: "50px" }}
+                          style={{ height: "36px" }}
                           src={data.airlineLogo}
                           alt={data.airline}
-                          className="h-10 md:h-14 object-contain"
+                          className="object-contain"
                         />
                       ) : (
                         <span
-                          className="font-semibold text-lg"
+                          className="font-semibold text-sm"
                           style={{ color: theme.colors.textPrimary }}
                         >
                           {data.airline}
@@ -432,7 +406,7 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                     </div>
 
                     {/* Flight Cards */}
-                    <div className="bg-gray-50 p-2 md:p-4 space-y-4">
+                    <div className="bg-gray-50 py-3">
                       {data.groups
                         .sort(
                           (a, b) =>
@@ -444,49 +418,49 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                           return (
                             <div
                               key={group.id}
-                              className="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 overflow-hidden"
+                              className="bg-white border border-neutral-100 overflow-hidden"
                             >
                               {/* Main Card Content: Stack on mobile, Row on Tablet/Desktop */}
-                              <div className="flex flex-col lg:flex-row items-center p-4 md:p-6 lg:px-8 gap-6 lg:gap-8">
+                              <div className="flex flex-col lg:flex-row items-center p-2 px-3 lg:px-5 gap-4 lg:gap-6">
                                 {/* Left: Date & Flight Info */}
-                                <div className="w-full lg:w-auto flex lg:flex-col items-center lg:items-start justify-between lg:justify-center border-b lg:border-b-0 pb-4 lg:pb-0 border-gray-100">
-                                  <div className="text-sm font-medium text-gray-500">
+                                <div className="w-full lg:w-auto flex lg:flex-col items-center lg:items-start justify-between lg:justify-center border-b lg:border-b-0 pb-3 lg:pb-0 border-gray-100">
+                                  <div className="text-xs font-medium text-gray-500">
                                     {flight
                                       ? new Date(
-                                          flight.flight_date,
-                                        ).toLocaleDateString("en-GB", {
-                                          day: "2-digit",
-                                          month: "short",
-                                          year: "numeric",
-                                        })
+                                        flight.flight_date,
+                                      ).toLocaleDateString("en-GB", {
+                                        day: "2-digit",
+                                        month: "short",
+                                        year: "numeric",
+                                      })
                                       : "—"}
                                   </div>
-                                  <div className="flex items-center gap-2 mt-1">
+                                  <div className="flex items-center gap-1.5 mt-0.5">
                                     <FaPlane
-                                      className="text-lg"
+                                      className="text-sm"
                                       style={{
                                         color: theme.colors.ublGradientStart,
                                       }}
                                     />
-                                    <span className="font-semibold text-lg md:text-xl">
+                                    <span className="font-semibold text-sm">
                                       {flight?.flight_no || "SV-725"}
                                     </span>
                                   </div>
                                 </div>
 
                                 {/* Center: Route Path */}
-                                <div className="flex-1 flex items-center justify-center w-full gap-6 md:gap-8 px-2 md:px-0">
+                                <div className="flex-1 flex items-center justify-center w-full gap-4 px-1">
                                   <div className="text-center">
-                                    <div className="text-xl md:text-2xl font-bold">
+                                    <div className="text-lg font-bold">
                                       {origin}
                                     </div>
-                                    <div className="text-sm md:text-base text-gray-500 font-medium">
+                                    <div className="text-xs text-gray-500 font-medium">
                                       {flight?.dept_time?.substring(0, 5) ||
                                         "09:50"}
                                     </div>
                                   </div>
 
-                                  <div className="flex items-center flex-1 relative min-w-15 max-w-50">
+                                  <div className="flex items-center flex-1 relative min-w-10 max-w-36">
                                     <div
                                       className="h-0.5 w-full"
                                       style={{
@@ -495,7 +469,7 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                                     />
                                     <div className="absolute left-1/2 -translate-x-1/2 bg-white px-1">
                                       <FaPlane
-                                        className="text-lg md:text-2xl"
+                                        className="text-base"
                                         style={{
                                           color: theme.colors.ublGradientStart,
                                         }}
@@ -504,10 +478,10 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                                   </div>
 
                                   <div className="text-center">
-                                    <div className="text-xl md:text-2xl font-bold">
+                                    <div className="text-lg font-bold">
                                       {destination}
                                     </div>
-                                    <div className="text-sm md:text-base text-gray-500 font-medium">
+                                    <div className="text-xs text-gray-500 font-medium">
                                       {flight?.arv_time?.substring(0, 5) ||
                                         "12:05"}
                                     </div>
@@ -515,12 +489,13 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                                 </div>
 
                                 {/* Right: Features, Price & Button */}
-                                <div className="w-full lg:w-auto flex flex-col sm:flex-row lg:flex-row items-center gap-4 lg:gap-8 border-t lg:border-t-0 pt-4 lg:pt-0 border-gray-100">
+                                <div className="w-full lg:w-auto flex flex-col sm:flex-row lg:flex-row items-center gap-3 lg:gap-5 border-t lg:border-t-0 pt-3 lg:pt-0 border-gray-100">
                                   {/* Baggage/Meal */}
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-1.5">
                                     {flight?.baggage && (
-                                      <div className="flex items-center gap-2 bg-gray-100 rounded-xl px-3 py-2 text-xs font-medium">
+                                      <div className="flex items-center gap-1.5 bg-gray-100 rounded-lg px-2 py-1 text-xs font-medium">
                                         <FaSuitcase
+                                          className="text-xs"
                                           style={{
                                             color:
                                               theme.colors.ublGradientStart,
@@ -530,8 +505,9 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                                       </div>
                                     )}
                                     {flight?.meal && flight.meal !== "No" && (
-                                      <div className="flex items-center gap-2 bg-gray-100 rounded-xl px-3 py-2 text-xs font-medium">
+                                      <div className="flex items-center gap-1.5 bg-gray-100 rounded-lg px-2 py-1 text-xs font-medium">
                                         <FaUtensils
+                                          className="text-xs"
                                           style={{
                                             color:
                                               theme.colors.ublGradientStart,
@@ -543,12 +519,12 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                                   </div>
 
                                   {/* Pricing */}
-                                  <div className="text-center sm:text-right min-w-25">
-                                    <div className="text-[10px] text-gray-500 uppercase">
+                                  <div className="text-center sm:text-right min-w-20">
+                                    <div className="text-[9px] text-gray-500 uppercase">
                                       Adult
                                     </div>
                                     <div
-                                      className="text-2xl font-bold"
+                                      className="text-lg font-bold"
                                       style={{
                                         color: theme.colors.ublGradientStart,
                                       }}
@@ -558,7 +534,7 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                                         : calculateB2BPrice(group.price)}
                                     </div>
                                     {!user?.priceOnCall && (
-                                      <div className="text-[10px] text-gray-400">
+                                      <div className="text-[9px] text-gray-400">
                                         PKR
                                       </div>
                                     )}
@@ -568,9 +544,9 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                                   <button
                                     onClick={() => handleBookNow(group)}
                                     disabled={!user?.showHideButton}
-                                    className="w-full sm:w-auto flex items-center justify-center gap-3 px-6 py-4 md:px-8 md:py-5 font-semibold transition-all shadow-sm hover:shadow active:scale-95"
+                                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 font-semibold text-sm transition-all shadow-sm hover:shadow active:scale-95"
                                     style={{
-                                      borderRadius: "12px",
+                                      borderRadius: "10px",
                                       background: user?.showHideButton
                                         ? theme.colors.ublGradient
                                         : "#e5e7eb",
@@ -582,7 +558,7 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                                         : "not-allowed",
                                     }}
                                   >
-                                    <Ticket size={20} />
+                                    <Ticket size={15} />
                                     <span>Book Now</span>
                                   </button>
                                 </div>

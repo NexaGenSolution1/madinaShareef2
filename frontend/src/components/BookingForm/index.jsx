@@ -591,7 +591,7 @@ export default function BookingForm({ user }) {
                   >
                     {user?.priceOnCall
                       ? "Price on Call"
-                      : `PKR ${calculateB2BPrice(groupData.price)}`}
+                      : `PKR ${calculateB2BPrice(groupData.price)?.toLocaleString()}`}
                     {/* 
                                       {groupData?.price?.toLocaleString() || 0} */}
                   </p>
@@ -601,7 +601,7 @@ export default function BookingForm({ user }) {
                     Child
                   </p>
                   <p className="text-sm font-extrabold text-[#3d6a8f] bg-blue-50 px-2 py-1 rounded-2xl">
-                    {calculateB2BPrice(groupData?.childPrice) || "N/A"}
+                    {calculateB2BPrice(groupData?.childPrice)?.toLocaleString() || "N/A"}
                   </p>
                 </div>
 
@@ -611,7 +611,7 @@ export default function BookingForm({ user }) {
                   </p>
                   <p
                     className={`text-sm font-extrabold px-2 py-1 rounded-2xl whitespace-nowrap ${isInfantPriceAvailable() ? "text-[#3d6a8f] bg-blue-50" : "text-white bg-red-600"}`}
-                  >{`${isInfantPriceAvailable() ? `PKR ${calculateB2BPrice(groupData.infantPrice)}` : "Price On Call"}`}</p>
+                  >{`${isInfantPriceAvailable() ? `PKR ${calculateB2BPrice(groupData.infantPrice)?.toLocaleString()}` : "Price On Call"}`}</p>
                 </div>
               </div>
             </div>
@@ -1197,11 +1197,10 @@ export default function BookingForm({ user }) {
                 type="button"
                 onClick={handleMrzParse}
                 disabled={!mrzInput.trim()}
-                className={`px-6 py-2 text-sm font-bold rounded-lg transition-all ${
-                  mrzInput.trim()
+                className={`px-6 py-2 text-sm font-bold rounded-lg transition-all ${mrzInput.trim()
                     ? "bg-[#3d6a8f] text-white hover:bg-[#2d5a8f] shadow-sm hover:shadow-md"
                     : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                }`}
+                  }`}
               >
                 Scan
               </button>
@@ -1342,11 +1341,10 @@ export default function BookingForm({ user }) {
                   onClick={handleFinalSubmit}
                   disabled={!isReviewed || isSubmitting}
                   className={`flex-1 sm:flex-none px-8 py-2.5 rounded-lg text-sm font-bold shadow-md flex items-center justify-center gap-2 transition-all transform active:scale-95
-                                        ${
-                                          isReviewed && !isSubmitting
-                                            ? "bg-[#3d6a8f] text-white hover:bg-[#2d5a8f] hover:shadow-lg"
-                                            : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                        }`}
+                                        ${isReviewed && !isSubmitting
+                      ? "bg-[#3d6a8f] text-white hover:bg-[#2d5a8f] hover:shadow-lg"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    }`}
                 >
                   {isSubmitting ? <>Loading...</> : <>Submit</>}
                 </button>

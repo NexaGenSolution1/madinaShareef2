@@ -143,18 +143,18 @@ export default function Frontend() {
             <>
               <Header user={user} handleLogout={handleLogout} />
               <div className="bg-gray-50">
-                <div className="w-full min-h-screen mx-auto pt-32 px-8">
+                <div className="w-full min-h-screen mx-auto pt-22 px-3 sm:px-8 md:px-12">
                   <AllGroups
                     user={user}
                     headerType="frontend"
                     header={
-                      <div className="mb-4 sm:mb-6 md:mb-8">
-                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-                          All Groups
+                      <div>
+                        <h1 className="text-lg md:text-xl font-bold text-gray-900">
+                          Search Groups
                         </h1>
-                        <p className="text-sm sm:text-base text-gray-600">
+                        {/* <p className="text-sm sm:text-base text-gray-600">
                           Browse and book available flight groups
-                        </p>
+                        </p> */}
                       </div>
                     }
                     searchParams={searchParams}

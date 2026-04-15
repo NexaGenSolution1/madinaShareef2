@@ -6,37 +6,37 @@ export const groupTypes = [
     },
     {
         label: 'UAE Groups',
-        value: 'uae groups',
-        path: 'all-groups?group_type=uae&group_type=uae groups'
+        value: 'UAE ONE WAY GROUP',
+        path: 'all-groups?group_type=UAE ONE WAY GROUP'
     },
     {
         label: 'KSA Groups',
-        value: 'ksa groups',
-        path: 'all-groups?group_type=ksa oneway&group_type=ksa groups'
+        value: 'ONE WAY GROUP',
+        path: 'all-groups?group_type=ONE WAY GROUP'
     },
     {
         label: 'Bahrain Groups',
-        value: 'bahrain groups',
-        path: 'all-groups?group_type=bahrain&group_type=bahrain groups'
+        value: 'BAHRAIN ONE WAY GROUP',
+        path: 'all-groups?group_type=BAHRAIN ONE WAY GROUP'
     },
     {
         label: 'Muscat Groups',
-        value: 'muscat groups',
-        path: 'all-groups?group_type=muscat&group_type=muscat groups&group_type=mascat groups'
+        value: 'OMAN ONE WAY GROUP',
+        path: 'all-groups?group_type=OMAN ONE WAY GROUP'
     },
     {
         label: 'Qatar Groups',
-        value: 'qatar groups',
-        path: 'all-groups?group_type=qatar&group_type=qatar groups'
+        value: 'QATAR ONE WAY GROUP',
+        path: 'all-groups?group_type=QATAR ONE WAY GROUP'
     },
     {
         label: 'UK Groups',
-        value: 'uk groups',
-        path: 'all-groups?group_type=uk&group_type=uk groups'
+        value: 'UK ONE WAY GROUP',
+        path: 'all-groups?group_type=UK ONE WAY GROUP'
     },
     {
         label: 'Umrah Groups',
-        value: 'umrah groups',
-        path: 'all-groups?group_type=umrah&group_type=umrah groups'
+        value: 'UMRAH GROUP',
+        path: 'all-groups?group_type=UMRAH GROUP'
     },
 ]

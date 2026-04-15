@@ -35,6 +35,8 @@ interface Booking {
     pricing: { grandTotal: number }
     status: string,
     expiresAt: string | null
+    sabaoonTransactionId?: number | null
+    sabaoonBookingStatus?: 'pending' | 'success' | 'failed' | 'not_applicable' | null
 }
 
 interface StatusOption {
@@ -261,6 +263,26 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                         )}
                                     </div>
                                 </td>
+
+                                {/* Sabaoon Status */}
+                                {booking.sabaoonBookingStatus && booking.sabaoonBookingStatus !== 'not_applicable' && (
+                                    <td className="px-3 py-4 align-top text-center border-r border-gray-300">
+                                        <div className="flex flex-col items-center gap-1">
+                                            <span className={`inline-block px-2 py-1 rounded text-[10px] font-semibold ${
+                                                booking.sabaoonBookingStatus === 'success'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : booking.sabaoonBookingStatus === 'failed'
+                                                        ? 'bg-red-100 text-red-700'
+                                                        : 'bg-yellow-100 text-yellow-700'
+                                            }`}>
+                                                Sabaoon: {booking.sabaoonBookingStatus.charAt(0).toUpperCase() + booking.sabaoonBookingStatus.slice(1)}
+                                            </span>
+                                            {booking.sabaoonTransactionId && (
+                                                <span className="text-[10px] text-gray-500">Txn #{booking.sabaoonTransactionId}</span>
+                                            )}
+                                        </div>
+                                    </td>
+                                )}
 
                                 {/* Action */}
                                 <td className="py-4 align-middle text-center">

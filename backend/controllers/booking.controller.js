@@ -521,6 +521,7 @@ import GroupTicketing from "../models/GroupTicketing.js";
 import mongoose from "mongoose";
 import Register from "../models/Register.js";
 import { deductSeatsFromCache } from "../utils/cacheHelpers.js";
+import { createSabaoonBooking } from "./sabaoon.controller.js";
 
 const HOLD_DURATION = 2 * 60 * 60 * 1000; // 2 hours
 
@@ -589,6 +590,9 @@ export const createBooking = async (req, res) => {
     const expiresAt = new Date(Date.now() + HOLD_DURATION);
     const groupId = normalizeGroupId(incomingGroupId);
 
+    // Sabaoon groups have numeric string IDs (e.g. "968"), not MongoDB ObjectIds
+    const isSabaoonGroup = !isLocalGroup(groupId);
+
     // 1️⃣ Deduct from local DB (existing logic)
     await adjustSeatsIfLocalGroup(groupId, -seatCount, true);
 
@@ -614,7 +618,35 @@ export const createBooking = async (req, res) => {
       userId: req.user._id,
       status: "on hold",
       expiresAt,
+      sabaoonBookingStatus: isSabaoonGroup ? "pending" : "not_applicable",
     });
+
+    // ─── Call Sabaoon booking API for external (Sabaoon) groups ───
+    if (isSabaoonGroup) {
+      try {
+        const { transactionId } = await createSabaoonBooking({
+          groupId,
+          pnr,
+          bookingReference: booking.bookingReference,
+          adultsCount,
+          childrenCount,
+          infantsCount,
+          passengers,
+          pricing,
+        });
+
+        booking.sabaoonTransactionId = transactionId;
+        booking.sabaoonBookingStatus = "success";
+        await booking.save();
+        console.log(`Sabaoon booking created — transaction_id: ${transactionId}`);
+      } catch (sabaoonErr) {
+        console.error("Sabaoon booking API failed:", sabaoonErr.message);
+        booking.sabaoonBookingStatus = "failed";
+        await booking.save();
+        // We still return success to the user — local booking is saved.
+        // The admin can retry / reconcile manually.
+      }
+    }
 
     res.status(201).json({ success: true, data: booking });
   } catch (err) {
