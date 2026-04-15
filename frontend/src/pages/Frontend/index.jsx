@@ -14,6 +14,7 @@ import Bank from "./Bank";
 import Footer from "../../components/Footer";
 import NoPage from "../../components/NoPage";
 import Register from "../Auth/Register";
+import ForgotPassword from "../Auth/ForgotPassword";
 import Payment from "./Payment";
 import DashboardLayout from "../../components/Dashboard/DashboardLayout";
 import Dashboard from "./Dashboard";
@@ -123,6 +124,14 @@ export default function Frontend() {
           ) : (
             <Navigate to="/dashboard" replace />
           )
+        }
+      />
+      <Route
+        path="/auth/forgot-password"
+        element={
+          <>
+            <ForgotPassword />
+          </>
         }
       />
 

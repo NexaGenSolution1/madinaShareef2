@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import axios from "axios";
+import axiosInstance from "../../../api/axios";
 import { toast } from "react-toastify";
 import Header from "../../../components/Header";
 
@@ -42,8 +42,8 @@ export default function ForgotPassword() {
 
     try {
       setIsLoading(true);
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/auth/forgot-password`,
+      const response = await axiosInstance.post(
+        `/auth/forgot-password`,
         { email }
       );
 
@@ -87,8 +87,8 @@ export default function ForgotPassword() {
 
     try {
       setIsLoading(true);
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/auth/reset-password`,
+      const response = await axiosInstance.post(
+        `/auth/reset-password`,
         {
           resetToken,
           userId,
@@ -99,7 +99,7 @@ export default function ForgotPassword() {
       if (response.data.success) {
         toast.success(response.data.message);
         setTimeout(() => {
-          navigate("/auth/login");
+          navigate("/");
         }, 2000);
       }
     } catch (err) {
