@@ -4,6 +4,7 @@ import GroupTicketing from "../models/GroupTicketing.js";
 import Sector from "../models/Sector.js";
 import UnifiedGroupCache from "../models/UnifiedGroupCache.js";
 import Booking from "../models/Booking.js";
+import Margin from "../models/Margin.js";
 
 const normalizeSector = (sector) => {
   if (!sector) return null;
@@ -570,6 +571,102 @@ export const getUnifiedGroups = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+// Apply Margin to all public groups
+export const applyMargin = async (req, res) => {
+  try {
+    const { value, type } = req.body;
+
+    // Validate inputs
+    if (!value && value !== 0 || !type || !["percent", "amount"].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid input. Provide value and type (percent or amount)",
+      });
+    }
+
+    const marginValue = parseFloat(value);
+
+    if (isNaN(marginValue) || marginValue < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Margin value must be a positive number",
+      });
+    }
+
+    /* ===============================
+       Save margin to database
+    =============================== */
+    let marginDoc = await Margin.findOne();
+
+    if (marginDoc) {
+      // Update existing margin
+      marginDoc.value = marginValue;
+      marginDoc.type = type;
+      marginDoc.appliedAt = new Date();
+      await marginDoc.save();
+    } else {
+      // Create new margin
+      marginDoc = await Margin.create({
+        value: marginValue,
+        type: type,
+        appliedAt: new Date(),
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Margin saved successfully: ${marginValue} ${type === "percent" ? "%" : "Rs"}`,
+      data: {
+        value: marginDoc.value,
+        type: marginDoc.type,
+        appliedAt: marginDoc.appliedAt,
+      },
+    });
+  } catch (error) {
+    console.error("Error saving margin:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error saving margin",
+      error: error.message,
+    });
+  }
+};
+
+// Get current margin
+export const getMargin = async (req, res) => {
+  try {
+    const marginDoc = await Margin.findOne();
+
+    if (!marginDoc) {
+      return res.status(200).json({
+        success: true,
+        message: "No margin set",
+        data: {
+          value: 0,
+          type: "percent",
+          appliedAt: null,
+        },
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        value: marginDoc.value,
+        type: marginDoc.type,
+        appliedAt: marginDoc.appliedAt,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching margin:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching margin",
+      error: error.message,
     });
   }
 };

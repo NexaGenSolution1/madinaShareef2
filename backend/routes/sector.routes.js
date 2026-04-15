@@ -8,12 +8,20 @@ import {
   deleteSector,
   updateSectorOrder,
   getUnifiedGroups,
+  applyMargin,
+  getMargin,
 } from "../controllers/sector.controller.js";
 
 const router = express.Router();
 
 // Get unified sectors and groups
 router.get("/getUnifiedGroups", getUnifiedGroups);
+
+// Get current margin
+router.get("/getMargin", getMargin);
+
+// Apply margin (save to DB)
+router.post("/applyMargin", applyMargin);
 
 // Add new sector
 router.post("/add", addSector);

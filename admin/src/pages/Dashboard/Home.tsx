@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router";
 import AgentStatusChart from "../../components/charts/AgentStatusChart";
 import { useEffect, useState } from "react";
 import axiosInstance from "../../Api/axios";
+import { Modal } from "../../components/ui/modal";
 
 
 interface UnifiedGroup {
@@ -154,6 +155,11 @@ export default function Home() {
   const navigate = useNavigate()
   const [unifiedGroups, setUnifiedGroups] = useState<UnifiedGroup[]>([]);
   const [copied, setCopied] = useState(false);
+  const [isMarginModalOpen, setIsMarginModalOpen] = useState(false);
+  const [marginValue, setMarginValue] = useState("");
+  const [marginType, setMarginType] = useState<"percent" | "amount">("percent");
+  const [isApplyingMargin, setIsApplyingMargin] = useState(false);
+  const [currentMargin, setCurrentMargin] = useState<{ value: number; type: "percent" | "amount" } | null>(null);
 
   const fetchUnifiedGroups = async () => {
     try {
@@ -165,6 +171,20 @@ export default function Home() {
       }
     } catch (error: any) {
       console.error("Error fetching unified groups:", error);
+    }
+  };
+
+  const fetchMargin = async () => {
+    try {
+      const response = await axiosInstance.get("/sector/getMargin");
+      if (response.data.success) {
+        setCurrentMargin({
+          value: response.data.data.value,
+          type: response.data.data.type,
+        });
+      }
+    } catch (error: any) {
+      console.error("Error fetching margin:", error);
     }
   };
 
@@ -186,8 +206,42 @@ export default function Home() {
     }
   };
 
+  const handleApplyMargin = async () => {
+    if (!marginValue || marginValue === "0") {
+      alert("Please enter a valid margin value");
+      return;
+    }
+
+    setIsApplyingMargin(true);
+    try {
+      const payload = {
+        value: parseFloat(marginValue),
+        type: marginType,
+      };
+
+      const response = await axiosInstance.post("/sector/applyMargin", payload);
+
+      if (response.data.success) {
+        alert(`Margin saved: ${marginValue} ${marginType === "percent" ? "%" : "Rs"}`);
+        setIsMarginModalOpen(false);
+        setMarginValue("");
+        setMarginType("percent");
+        // Fetch updated margin
+        fetchMargin();
+      } else {
+        alert(response.data.message || "Failed to save margin");
+      }
+    } catch (error: any) {
+      alert(error.response?.data?.message || "Error saving margin");
+      console.error("Error saving margin:", error);
+    } finally {
+      setIsApplyingMargin(false);
+    }
+  };
+
   useEffect(() => {
     fetchUnifiedGroups();
+    fetchMargin();
   }, []);
 
   return (
@@ -235,6 +289,17 @@ export default function Home() {
             </>
           )}
         </button>
+
+        <button
+          onClick={() => setIsMarginModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded text-sm font-medium transition-all cursor-pointer ml-3 bg-purple-600 hover:bg-purple-700 text-white"
+          title="Apply margin to all groups"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          Apply Margin
+        </button>
       </div>
 
       {/* Top Cards Section */}
@@ -275,6 +340,113 @@ export default function Home() {
           View All Groups
         </button>
       </div>
+
+      {/* Apply Margin Modal */}
+      <Modal
+        isOpen={isMarginModalOpen}
+        onClose={() => {
+          setIsMarginModalOpen(false);
+          setMarginValue("");
+          setMarginType("percent");
+        }}
+        className="max-w-md"
+      >
+        <div className="p-6 sm:p-8">
+          <h2 className="text-2xl font-bold text-black dark:text-white mb-6">Apply Margin</h2>
+
+          {/* Current Margin Info */}
+          {currentMargin && currentMargin.value > 0 && (
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 mb-6">
+              <p className="text-xs sm:text-sm text-green-700 dark:text-green-300">
+                <strong>Current Margin:</strong> {currentMargin.value} {currentMargin.type === "percent" ? "%" : "Rs"}
+              </p>
+            </div>
+          )}
+
+          <div className="space-y-5">
+            {/* Margin Type Selection */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                Margin Type
+              </label>
+              <div className="flex gap-4">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="marginType"
+                    value="percent"
+                    checked={marginType === "percent"}
+                    onChange={(e) => setMarginType(e.target.value as "percent" | "amount")}
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Percentage (%)</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="marginType"
+                    value="amount"
+                    checked={marginType === "amount"}
+                    onChange={(e) => setMarginType(e.target.value as "percent" | "amount")}
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Fixed Amount (Rs)</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Margin Value Input */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Margin Value
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={marginValue}
+                  onChange={(e) => setMarginValue(e.target.value)}
+                  placeholder={marginType === "percent" ? "Enter percentage (e.g., 5)" : "Enter amount (e.g., 500)"}
+                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-gray-400 font-medium">
+                  {marginType === "percent" ? "%" : "Rs"}
+                </span>
+              </div>
+            </div>
+
+            {/* Info Text */}
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+              <p className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
+                {marginType === "percent"
+                  ? "This margin will be applied at the frontend when displaying prices."
+                  : "This margin will be applied at the frontend when displaying prices."}
+              </p>
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-3 mt-8">
+            <button
+              onClick={() => {
+                setIsMarginModalOpen(false);
+                setMarginValue("");
+                setMarginType("percent");
+              }}
+              className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+              disabled={isApplyingMargin}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleApplyMargin}
+              disabled={isApplyingMargin || !marginValue}
+              className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors disabled:cursor-not-allowed"
+            >
+              {isApplyingMargin ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }
