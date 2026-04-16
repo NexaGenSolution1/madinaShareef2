@@ -402,34 +402,34 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                     className="rounded-2xl overflow-hidden bg-white"
                   >
                     {/* Sector Header Bar */}
-                    <div
-                      className="flex items-center justify-center gap-3 px-4 py-4"
-                      style={{ background: theme.colors.primary }}
-                    >
-                      <FaPlaneDeparture className="text-white text-base" />
-                      <span className="text-white font-bold text-base tracking-widest uppercase">
-                        {data.sector}
-                      </span>
-                      <FaPlaneArrival className="text-white text-base" />
-                    </div>
+                    <div className="bg-linear-to-r from-blue-50 via-transparent to-blue-50 flex justify-center items-center gap-6 py-2.5 border-b border-neutral-200">
+                      {/* Airline Logo Area */}
+                      <div className="bg-white flex items-center justify-center border-b border-neutral-100">
+                        {data.airlineLogo ? (
+                          <img
+                            style={{ height: "56px" }}
+                            src={data.airlineLogo}
+                            alt={data.airline}
+                            className="object-contain"
+                          />
+                        ) : (
+                          <span
+                            className="font-semibold text-sm"
+                            style={{ color: theme.colors.textPrimary }}
+                          >
+                            {data.airline}
+                          </span>
+                        )}
+                      </div>
 
-                    {/* Airline Logo Area */}
-                    <div className="bg-white flex items-center justify-center py-2 border-b border-neutral-100">
-                      {data.airlineLogo ? (
-                        <img
-                          style={{ height: "36px" }}
-                          src={data.airlineLogo}
-                          alt={data.airline}
-                          className="object-contain"
-                        />
-                      ) : (
-                        <span
-                          className="font-semibold text-sm"
-                          style={{ color: theme.colors.textPrimary }}
-                        >
-                          {data.airline}
+                      <div
+                        className="flex items-center justify-center gap-4 px-4 py-4"
+                      >
+                        <FaPlaneDeparture className="text-lg" />
+                        <span className="font-bold text-lg tracking-widest uppercase">
+                          {data.sector}
                         </span>
-                      )}
+                      </div>
                     </div>
 
                     {/* Flight Cards */}

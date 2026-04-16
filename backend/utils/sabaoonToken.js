@@ -78,17 +78,18 @@ export const getValidSabaoonToken = async () => {
     return record;
 };
 
-// Initialize Sabaoon token on startup: if DB is empty, login and save token
+// Initialize Sabaoon token on startup: if DB is empty or token is expired, login and save token
 export const initializeSabaoonToken = async () => {
     try {
         const existingToken = await getSabaoonToken();
+        const isExpired = !existingToken || !existingToken.token || new Date(existingToken.expiry) <= new Date();
 
-        if (!existingToken || !existingToken.token) {
-            console.log("Database is empty. Logging in and saving Sabaoon token...");
+        if (isExpired) {
+            console.log("Sabaoon token is missing or expired. Logging in and saving fresh token...");
             await refreshSabaoonToken();
             console.log("Sabaoon token initialized successfully");
         } else {
-            console.log("Sabaoon token already exists in database");
+            console.log("Sabaoon token already exists and is valid in database");
         }
     } catch (error) {
         console.error("Error initializing Sabaoon token:", error);

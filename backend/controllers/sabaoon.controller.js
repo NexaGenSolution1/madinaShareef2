@@ -1,4 +1,5 @@
 import axios from "axios";
+import FormData from "form-data";
 import { getValidSabaoonToken } from "../utils/sabaoonToken.js";
 
 // ─────────────────────────────────────────────────────────
@@ -110,6 +111,13 @@ export const createSabaoonBooking = async ({
   pricing,
 }) => {
   const tokenRecord = await getValidSabaoonToken();
+  const token = tokenRecord.token;
+
+  if (!token) {
+    throw new Error("No valid Sabaoon token available");
+  }
+
+  console.log(`[Sabaoon] Creating booking with token: ${token.slice(0, 8)}...`);
 
   // Split PNR into pnr_1 / pnr_2 (Sabaoon sometimes has "PNR1 / PNR2")
   const pnrParts = (pnr || "").split(/\s*\/\s*/);
@@ -118,56 +126,49 @@ export const createSabaoonBooking = async ({
 
   const totalSeats = adultsCount + childrenCount; // Sabaoon counts infants differently
 
-  // Build per-passenger arrays
-  const pax_title = [];
-  const human_type = [];
-  const sur_name = [];
-  const given_name = [];
-  const pass_no = [];
-  const dob = [];
-  const doi = [];
-  const doe = [];
+  // Build form-data body (Sabaoon backend is PHP and expects multipart/form-data,
+  // matching the same format used by the login endpoint).
+  const form = new FormData();
+
+  form.append("token", token);
+  form.append("agent_id", process.env.SABAOON_AGENT_CODE || "");
+  form.append("roe", bookingReference);
+  form.append("no_of_seat", String(totalSeats));
+  form.append("group_id", String(groupId));
+  form.append("pnr_1", pnr_1);
+  form.append("pnr_2", pnr_2);
 
   for (const p of passengers) {
-    pax_title.push(p.title || "Mr");
-    human_type.push((p.type || "Adult").toLowerCase());
-    sur_name.push(p.surName || "");
-    given_name.push(p.givenName || "");
-    pass_no.push(p.passport || "");
-    dob.push(formatDate(p.dateOfBirth));
-    doi.push(""); // We don't collect passport issue date
-    doe.push(formatDate(p.passportExpiry));
+    form.append("pax_title[]", p.title || "Mr");
+    form.append("human_type[]", (p.type || "Adult").toLowerCase());
+    form.append("sur_name[]", p.surName || "");
+    form.append("given_name[]", p.givenName || "");
+    form.append("pass_no[]", p.passport || "");
+    form.append("dob[]", formatDate(p.dateOfBirth));
+    form.append("doi[]", ""); // We don't collect passport issue date
+    form.append("doe[]", formatDate(p.passportExpiry));
   }
 
-  // Build price arrays (one entry per passenger of that type)
-  const adult_price = Array(adultsCount).fill(String(pricing.adultPrice || 0));
-  const child_price = Array(childrenCount).fill(String(pricing.childPrice || 0));
-  const infant_price = Array(infantsCount).fill(String(pricing.infantPrice || 0));
-
-  const payload = {
-    token: tokenRecord.token,
-    roe: bookingReference,
-    no_of_seat: String(totalSeats),
-    group_id: String(groupId),
-    pnr_1,
-    pnr_2,
-    pax_title,
-    human_type,
-    sur_name,
-    given_name,
-    pass_no,
-    dob,
-    doi,
-    doe,
-    adult_price,
-    child_price,
-    infant_price,
-  };
+  // Price arrays — one entry per passenger of that type
+  for (let i = 0; i < adultsCount; i++)
+    form.append("adult_price[]", String(pricing.adultPrice || 0));
+  for (let i = 0; i < childrenCount; i++)
+    form.append("child_price[]", String(pricing.childPrice || 0));
+  for (let i = 0; i < infantsCount; i++)
+    form.append("infant_price[]", String(pricing.infantPrice || 0));
 
   const response = await axios.post(
     `${process.env.SABAOON_API_URL}/booking`,
-    payload
+    form,
+    {
+      headers: {
+        ...form.getHeaders(),
+        Authorization: `Token ${token}`,
+      },
+    }
   );
+
+  console.log("[Sabaoon] Booking response:", JSON.stringify(response.data));
 
   const { status, message, transaction_id } = response.data;
 
