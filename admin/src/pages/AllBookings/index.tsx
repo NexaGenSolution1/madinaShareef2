@@ -81,6 +81,9 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                     <th className="px-4 py-3 text-center text-xs font-semibold text-white border-r border-[#3d6fa8]">
                         <span>Status</span>
                     </th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-white border-r border-[#3d6fa8]">
+                        <span>Sabaoon Hitting</span>
+                    </th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-white">
                         Action
                     </th>

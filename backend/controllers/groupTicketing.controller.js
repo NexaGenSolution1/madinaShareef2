@@ -119,6 +119,30 @@ export const updateGroupTicketing = async (req, res) => {
 };
 
 /* ===========================
+   GET PUBLIC GROUP TICKETINGS (for frontend display)
+=========================== */
+export const getPublicGroupTicketings = async (req, res) => {
+  try {
+    const { groupType } = req.query;
+    const query = { internalStatus: "Public", totalSeats: { $gt: 0 } };
+    if (groupType) query.groupType = groupType;
+
+    const groups = await GroupTicketing.find(query).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: groups.length,
+      data: groups
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+/* ===========================
    DELETE GROUP BOOKING
 =========================== */
 export const deleteGroupTicketing = async (req, res) => {

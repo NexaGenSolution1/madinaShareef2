@@ -1,6 +1,7 @@
 import axios from "axios";
 import FormData from "form-data";
 import { getValidSabaoonToken } from "../utils/sabaoonToken.js";
+import SabaoonGroupOverride from "../models/SabaoonGroupOverride.js";
 
 // ─────────────────────────────────────────────────────────
 // Helpers
@@ -15,69 +16,137 @@ const formatDate = (value) => {
 };
 
 // ─────────────────────────────────────────────────────────
-// GET ALL GROUPS
+// SHARED HELPER
+// ─────────────────────────────────────────────────────────
+
+/**
+ * Fetches and normalises all available Sabaoon groups from the external API.
+ * Throws on token or network failure.
+ */
+const fetchNormalisedSabaoonGroups = async (type) => {
+  let tokenRecord;
+  try {
+    tokenRecord = await getValidSabaoonToken();
+  } catch (refreshErr) {
+    console.error("Failed to obtain a valid Sabaoon token:", refreshErr.message);
+    throw new Error("Unable to authenticate with Sabaoon. Please try again later.");
+  }
+
+  const params = { token: tokenRecord.token };
+  if (type) params.type = type;
+
+  const response = await axios.get(`${process.env.SABAOON_API_URL}/groups`, { params });
+  const rawGroups = response.data?.groups || [];
+  const LOGO_BASE = "https://sabaoon.com/assets/img/airline-logo/";
+
+  return rawGroups
+    .filter((g) => Number(g.available_no_of_pax) > 0)
+    .map((g) => {
+      const firstDetail = g.details?.[0] || {};
+      const airlineObj = Array.isArray(g.airline) ? g.airline[0] : g.airline;
+
+      const logoUrl = airlineObj?.logo_url
+        ? airlineObj.logo_url.startsWith("http")
+          ? airlineObj.logo_url
+          : `${LOGO_BASE}${encodeURIComponent(airlineObj.logo_url)}`
+        : null;
+
+      return {
+        ...g,
+        price: Number(g.price) || 0,
+        sector:
+          firstDetail.origin && firstDetail.destination
+            ? `${firstDetail.origin}-${firstDetail.destination}`
+            : g.sector,
+        airline: airlineObj ? { ...airlineObj, logo_url: logoUrl } : null,
+        details: (g.details || []).map((d) => ({ ...d, meal: g.meal })),
+      };
+    });
+};
+
+// ─────────────────────────────────────────────────────────
+// GET ALL GROUPS (public / frontend)
 // ─────────────────────────────────────────────────────────
 
 export const getSabaoonGroups = async (req, res) => {
   try {
-    let tokenRecord;
-    try {
-      tokenRecord = await getValidSabaoonToken();
-    } catch (refreshErr) {
-      console.error("Failed to obtain a valid Sabaoon token:", refreshErr.message);
-      return res
-        .status(503)
-        .json({ success: false, message: "Unable to authenticate with Sabaoon. Please try again later." });
-    }
+    const groups = await fetchNormalisedSabaoonGroups(req.query.type);
 
-    const { type } = req.query;
-    const params = { token: tokenRecord.token };
-    if (type) params.type = type;
+    // Load admin overrides and build a lookup map
+    const overrides = await SabaoonGroupOverride.find({}).lean();
+    const overrideMap = Object.fromEntries(overrides.map((o) => [String(o.groupId), o]));
 
-    const response = await axios.get(
-      `${process.env.SABAOON_API_URL}/groups`,
-      { params }
-    );
-
-    const rawGroups = response.data?.groups || [];
-
-    const normalizedGroups = rawGroups
-      .filter((g) => Number(g.available_no_of_pax) > 0)
+    // Filter out hidden groups; attach individualMargin when set
+    const publicGroups = groups
+      .filter((g) => !overrideMap[String(g.id)]?.isHidden)
       .map((g) => {
-        const firstDetail = g.details?.[0] || {};
-        const airlineObj = Array.isArray(g.airline) ? g.airline[0] : g.airline;
-
-        const LOGO_BASE = "https://sabaoon.com/assets/img/airline-logo/";
-        const logoUrl = airlineObj?.logo_url
-          ? airlineObj.logo_url.startsWith("http")
-            ? airlineObj.logo_url
-            : `${LOGO_BASE}${encodeURIComponent(airlineObj.logo_url)}`
-          : null;
-
-        return {
-          ...g,
-          // Parse price to number (Sabaoon sends it as a string)
-          price: Number(g.price) || 0,
-          // Build sector string from origin-destination so the frontend can split it
-          sector:
-            firstDetail.origin && firstDetail.destination
-              ? `${firstDetail.origin}-${firstDetail.destination}`
-              : g.sector,
-          // Normalise airline to a plain object (frontend expects g.airline?.airline_name)
-          airline: airlineObj
-            ? { ...airlineObj, logo_url: logoUrl }
-            : null,
-          // Propagate meal onto each detail so the existing card UI can read flight?.meal
-          details: (g.details || []).map((d) => ({ ...d, meal: g.meal })),
-        };
+        const override = overrideMap[String(g.id)];
+        return { ...g, individualMargin: override?.individualMargin ?? null };
       });
 
-    return res.json({ success: true, data: normalizedGroups });
+    return res.json({ success: true, data: publicGroups });
   } catch (error) {
     console.error("Error fetching Sabaoon groups:", error?.message);
-    return res
-      .status(500)
-      .json({ success: false, message: "Failed to fetch groups from Sabaoon" });
+    return res.status(500).json({ success: false, message: "Failed to fetch groups from Sabaoon" });
+  }
+};
+
+// ─────────────────────────────────────────────────────────
+// GET ALL GROUPS (admin — includes hidden + override data)
+// ─────────────────────────────────────────────────────────
+
+export const getAdminSabaoonGroups = async (req, res) => {
+  try {
+    const groups = await fetchNormalisedSabaoonGroups(req.query.type);
+
+    const overrides = await SabaoonGroupOverride.find({}).lean();
+    const overrideMap = Object.fromEntries(overrides.map((o) => [String(o.groupId), o]));
+
+    const adminGroups = groups.map((g) => {
+      const override = overrideMap[String(g.id)];
+      return {
+        ...g,
+        isHidden: override?.isHidden ?? false,
+        individualMargin: override?.individualMargin ?? null,
+      };
+    });
+
+    return res.json({ success: true, data: adminGroups });
+  } catch (error) {
+    console.error("Error fetching admin Sabaoon groups:", error?.message);
+    return res.status(500).json({ success: false, message: "Failed to fetch groups from Sabaoon" });
+  }
+};
+
+// ─────────────────────────────────────────────────────────
+// UPSERT GROUP OVERRIDE (admin)
+// ─────────────────────────────────────────────────────────
+
+export const upsertGroupOverride = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const { isHidden, individualMargin } = req.body;
+
+    const update = {};
+    if (isHidden !== undefined) update.isHidden = Boolean(isHidden);
+    if (individualMargin !== undefined) {
+      // empty string or explicit null clears the margin
+      update.individualMargin =
+        individualMargin === "" || individualMargin === null
+          ? null
+          : Number(individualMargin);
+    }
+
+    const override = await SabaoonGroupOverride.findOneAndUpdate(
+      { groupId: String(groupId) },
+      { $set: update },
+      { upsert: true, new: true }
+    );
+
+    return res.json({ success: true, data: override });
+  } catch (error) {
+    console.error("Error upserting group override:", error?.message);
+    return res.status(500).json({ success: false, message: "Failed to update group override" });
   }
 };
 

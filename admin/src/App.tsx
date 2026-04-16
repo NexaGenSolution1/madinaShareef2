@@ -41,6 +41,7 @@ import SpecialOffers from "./pages/SpecialOffers/SpecialOffers";
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import ManageSectors from "./pages/ManageSectors/ManageSectors";
+import ApiGroups from "./pages/ApiGroups/ApiGroups";
 
 export default function App() {
   return (
@@ -72,6 +73,7 @@ export default function App() {
                 <Route path="/view-payment-voucher/edit/:id" element={<EditPaymentVoucher />} />
                 <Route path="/special-offers" element={<SpecialOffers />} />
                 <Route path="/manage-sectors" element={<ManageSectors />} />
+                <Route path="/api-groups" element={<ApiGroups />} />
                 <Route path="/view-accounts" element={<ViewAccounts />} />
                 <Route path="/ledger/:id" element={<Ledger />} />
 

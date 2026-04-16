@@ -4,7 +4,8 @@ import {
   getAllGroupTicketings,
   getGroupTicketingById,
   updateGroupTicketing,
-  deleteGroupTicketing
+  deleteGroupTicketing,
+  getPublicGroupTicketings
 } from "../controllers/groupTicketing.controller.js";
 
 const router = express.Router();
@@ -16,6 +17,9 @@ const router = express.Router();
 router.post("/", createGroupTicketing);
 
 router.get("/", getAllGroupTicketings);
+
+// Public endpoint — no auth required, only returns groups with internalStatus "Public"
+router.get("/public", getPublicGroupTicketings);
 
 router.get("/:id", getGroupTicketingById);
 
