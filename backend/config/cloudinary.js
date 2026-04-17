@@ -52,10 +52,27 @@ const storage = new CloudinaryStorage({
   },
 });
 
+// Configure storage for passenger documents (passports, visas, etc.)
+const passengerDocStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => {
+    const isPdf = file.mimetype === "application/pdf";
+    return {
+      folder: "passenger-documents",
+      allowed_formats: ["jpg", "jpeg", "png", "webp", "pdf"],
+      resource_type: isPdf ? "raw" : "image",
+    };
+  },
+});
+
 const upload = multer({ storage: storage });
 const uploadBankLogo = multer({ storage: bankStorage });
 const uploadAirlineLogo = multer({ storage: airlineStorage });
 const uploadProfileLogo = multer({ storage: profileStorage });
+const uploadPassengerDoc = multer({
+  storage: passengerDocStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+});
 
 export {
   cloudinary,
@@ -63,4 +80,5 @@ export {
   uploadBankLogo,
   uploadAirlineLogo,
   uploadProfileLogo,
+  uploadPassengerDoc,
 };

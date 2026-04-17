@@ -35,9 +35,17 @@ const passengerSchema = new mongoose.Schema({
     type: Date,
     required: false,
   },
+  passportIssue: {
+    type: Date,
+    required: false,
+  },
   nationality: {
     type: String,
     required: true,
+  },
+  documentUrl: {
+    type: String,
+    default: null,
   },
 });
 

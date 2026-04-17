@@ -234,7 +234,7 @@ const Register = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full py-3 rounded text-base font-semibold mt-2
+                className={`w-full py-3! rounded text-base font-semibold mt-2
                     ${
                       loading
                         ? "bg-gray-400 text-white cursor-not-allowed"
@@ -242,7 +242,7 @@ const Register = () => {
                     }
                     transition-all duration-200`}
               >
-                {loading ? "Creating Account..." : "Sign In"}
+                {loading ? "Creating Account..." : "Sign Up"}
               </button>
             </form>
           </div>

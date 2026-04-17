@@ -1,10 +1,11 @@
-import axios from "axios";
 import Airline from "../models/Airline.js";
 import GroupTicketing from "../models/GroupTicketing.js";
 import Sector from "../models/Sector.js";
 import UnifiedGroupCache from "../models/UnifiedGroupCache.js";
 import Booking from "../models/Booking.js";
 import Margin from "../models/Margin.js";
+import SabaoonGroupOverride from "../models/SabaoonGroupOverride.js";
+import { fetchNormalisedSabaoonGroups } from "./sabaoon.controller.js";
 
 const normalizeSector = (sector) => {
   if (!sector) return null;
@@ -298,76 +299,7 @@ export const getUnifiedGroups = async (req, res) => {
       sectorOrderMap[normalizeSector(s.sectorTitle)] = s.order ?? 999;
     });
     /* ===============================
-       4️⃣ Fetch Ali Haider Groups
-    =============================== */
-    const token = process.env.ALI_HAIDER_API_TOKEN;
-
-    let aliHaiderGroups = [];
-
-    try {
-      // const response = await axios.get(
-      //   `${process.env.ALI_HAIDER_API_URL}api/available/groups?type=0&airline_id=0`,
-      //   {
-      //     headers: {
-      //       Authorization: `Bearer ${token}`,
-      //     },
-      //   },
-      // );
-
-      // aliHaiderGroups = response?.data?.groups || [];
-      aliHaiderGroups = [];
-
-      /* ===============================
-         4.1️⃣ Auto-Store Missing Sectors
-      =============================== */
-      const uniqueSectors = [...new Set(aliHaiderGroups.map((g) => g.sector))];
-      const existingSectorTitles = sectors.map((s) => s.sectorTitle);
-
-      const newSectors = uniqueSectors.filter(
-        (sector) => sector && !existingSectorTitles.includes(sector),
-      );
-
-      if (newSectors.length > 0) {
-        const typeMap = {
-          UAE: "UAE Groups",
-          "KSA ONEWAY": "KSA Groups",
-          "KSA RETURN": "KSA Groups",
-          BAHRAIN: "Bahrain Groups",
-          MASCAT: "Mascat Groups",
-          QATAR: "Qatar Groups",
-          UK: "UK Groups",
-          UMRAH: "Umrah Groups",
-        };
-
-        const sectorsToInsert = newSectors.map((sector) => {
-          const group = aliHaiderGroups.find((g) => g.sector === sector);
-          const groupType = typeMap[group?.type] || "KSA Groups";
-
-          return {
-            sectorTitle: sector,
-            fullSector: sector,
-            groupType,
-            order: 999,
-          };
-        });
-
-        await Sector.insertMany(sectorsToInsert, { ordered: false }).catch(
-          () => {},
-        );
-
-        // Refresh sectors and map
-        const updatedSectors = await Sector.find().lean();
-        sectorOrderMap.length = 0;
-        updatedSectors.forEach((s) => {
-          sectorOrderMap[normalizeSector(s.sectorTitle)] = s.order ?? 999;
-        });
-      }
-    } catch (err) {
-      console.log("Ali Haider API Failed:", err.message);
-    }
-
-    /* ===============================
-       5️⃣ Transform Admin Groups → Unified
+       4️⃣ Transform Admin Groups → Unified
     =============================== */
     const transformedAdmin = adminGroups.map((g) => {
       const airline = airlines.find((a) => a.airlineName === g.airline);
@@ -375,6 +307,7 @@ export const getUnifiedGroups = async (req, res) => {
       return {
         id: g._id,
         source: "admin",
+        isOwnGroup: true,
 
         sector: normalizeSector(g.sector),
         sectorKey: normalizeSector(g.sector), // for sorting only
@@ -415,18 +348,9 @@ export const getUnifiedGroups = async (req, res) => {
     });
 
     /* ===============================
-       6️⃣ Transform Ali Haider Groups
+       6️⃣ Merge & Fix Dates
     =============================== */
-    const transformedAliHaider = aliHaiderGroups.map((g) => ({
-      ...g,
-      sector: normalizeSector(g.sector),
-      source: "ali-haider",
-    }));
-
-    /* ===============================
-   7️⃣ Merge All Groups & Fix Dates
-=============================== */
-    let unifiedGroups = [...transformedAliHaider, ...transformedAdmin];
+    let unifiedGroups = [...transformedAdmin];
 
     unifiedGroups = unifiedGroups.map((g) => {
       const formatDate = (dateValue) => {
@@ -435,7 +359,6 @@ export const getUnifiedGroups = async (req, res) => {
         return isNaN(d.getTime()) ? null : d.toISOString().split("T")[0];
       };
 
-      // Important: Ali Haider data uses 'dept_date' but details use 'flight_date' or 'dep_date'
       const finalDeptDate = formatDate(g.dept_date || g.dep_date);
       const finalArvDate = formatDate(g.arv_date);
 
@@ -446,7 +369,6 @@ export const getUnifiedGroups = async (req, res) => {
         arv_date: finalArvDate,
 
         details: g.details?.map((d) => {
-          // 1. Check for flight_date (Ali Haider) or dep_date (Admin)
           const detailDepDate = formatDate(
             d.dep_date || d.flight_date || finalDeptDate,
           );
@@ -559,12 +481,64 @@ export const getUnifiedGroups = async (req, res) => {
     }
 
     /* ===============================
-       1️⃣1️⃣ Response
+       1️⃣1️⃣ Fetch Sabaoon Groups (live, not cached)
     =============================== */
+    let sabaoonGroups = [];
+    try {
+      const rawSabaoon = await fetchNormalisedSabaoonGroups();
+
+      // Load overrides for individualMargin + hidden flag
+      const overrides = await SabaoonGroupOverride.find({}).lean();
+      const overrideMap = Object.fromEntries(
+        overrides.map((o) => [String(o.groupId), o]),
+      );
+
+      // Build airline name → shortCode map from our DB airlines
+      const airlineShortMap = {};
+      for (const a of airlines) {
+        if (a.airlineName) airlineShortMap[a.airlineName.trim()] = a.shortCode || null;
+      }
+
+      // Filter hidden groups, attach individualMargin + short_name
+      sabaoonGroups = rawSabaoon
+        .filter((g) => !overrideMap[String(g.id)]?.isHidden)
+        .map((g) => {
+          const override = overrideMap[String(g.id)];
+          const airlineName = g.airline?.airline_name || "";
+          return {
+            ...g,
+            source: "sabaoon",
+            isOwnGroup: false,
+            individualMargin: override?.individualMargin ?? null,
+            airline: g.airline
+              ? {
+                  ...g.airline,
+                  short_name:
+                    airlineShortMap[airlineName] ||
+                    g.airline.short_name ||
+                    null,
+                }
+              : g.airline,
+          };
+        });
+    } catch (sabaoonErr) {
+      // Non-fatal — admin groups are still returned
+      console.error(
+        "Sabaoon fetch for unified groups failed:",
+        sabaoonErr.message,
+      );
+    }
+
+    /* ===============================
+       1️⃣2️⃣ Response
+    =============================== */
+    const adminGroupsData = cacheDoc.data.map((g) => ({ ...g, isOwnGroup: true }));
+    const combinedData = [...adminGroupsData, ...sabaoonGroups];
+
     res.status(200).json({
       success: true,
-      total: cacheDoc.data.length,
-      data: cacheDoc.data,
+      total: combinedData.length,
+      data: combinedData,
     });
   } catch (error) {
     console.error("Unified API Error:", error);

@@ -523,7 +523,7 @@ import Register from "../models/Register.js";
 import { deductSeatsFromCache } from "../utils/cacheHelpers.js";
 import { createSabaoonBooking } from "./sabaoon.controller.js";
 
-const HOLD_DURATION = 2 * 60 * 60 * 1000; // 2 hours
+const HOLD_DURATION = 30 * 60 * 1000; // 30 minutes
 
 // -------------------------
 // Helper Functions
@@ -970,5 +970,22 @@ export const bulkTogglePriceOnCall = async (req, res) => {
       success: false,
       message: error.message || "Failed to Bulk toggle price on call",
     });
+  }
+};
+
+// -------------------------
+// UPLOAD PASSENGER DOCUMENT
+// -------------------------
+export const uploadPassengerDocument = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res
+        .status(400)
+        .json({ success: false, message: "No file uploaded" });
+    }
+    // req.file.path is the Cloudinary secure URL
+    res.json({ success: true, url: req.file.path });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };

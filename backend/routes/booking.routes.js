@@ -10,8 +10,10 @@ import {
   deleteBooking,
   getBookingStatistics,
   bulkTogglePriceOnCall,
+  uploadPassengerDocument,
 } from "../controllers/booking.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
+import { uploadPassengerDoc } from "../config/cloudinary.js";
 
 const router = express.Router();
 
@@ -20,6 +22,13 @@ router.use(protect);
 
 // Create a new booking
 router.post("/", createBooking);
+
+// Upload a passenger document (image or PDF)
+router.post(
+  "/upload-document",
+  uploadPassengerDoc.single("document"),
+  uploadPassengerDocument,
+);
 
 // Get all bookings (with filters)
 router.get("/", getAllBookings);

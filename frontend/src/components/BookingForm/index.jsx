@@ -49,13 +49,15 @@ export default function BookingForm({ user }) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingBooking, setLoadingBooking] = useState(isEditMode);
-  const [existingBooking, setExistingBooking] = useState(null);
+  // const [existingBooking, setExistingBooking] = useState(null);
   const [groupData, setGroupData] = useState(location.state?.groupData || null);
-  const [totalSeats, setTotalSeats] = useState(null);
+  // const [totalSeats, setTotalSeats] = useState(null);
 
   const [mrzModal, setMrzModal] = useState({ open: false, index: null });
   const [mrzInput, setMrzInput] = useState("");
   const [mrzError, setMrzError] = useState("");
+  // pendingDocs: { [passengerIndex]: File } — held locally until booking is submitted
+  const [pendingDocs, setPendingDocs] = useState({});
 
   // --- NEW STATE FOR MODAL ---
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -66,6 +68,7 @@ export default function BookingForm({ user }) {
     if (isEditMode && bookingId) {
       fetchBookingForEdit();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingId, isEditMode]);
 
   const fetchBookingForEdit = async () => {
@@ -82,7 +85,21 @@ export default function BookingForm({ user }) {
           return;
         }
 
-        setExistingBooking(booking);
+        // setExistingBooking(booking);
+
+        // Fetch the actual group to get real available seats
+        let availableSeats = 0;
+        const isLocalGroup = /^[0-9a-fA-F]{24}$/.test(booking.groupId);
+        if (isLocalGroup) {
+          try {
+            const groupRes = await axiosInstance.get(`/group-ticketing/${booking.groupId}`);
+            if (groupRes.data.success) {
+              availableSeats = groupRes.data.data.totalSeats ?? 0;
+            }
+          } catch {
+            // non-fatal — leave as 0
+          }
+        }
 
         const reconstructedGroupData = {
           id: booking.groupId,
@@ -112,7 +129,7 @@ export default function BookingForm({ user }) {
               baggage: flight.baggage,
               meal: flight.meal,
             })) || [],
-          available_no_of_pax: 50,
+          available_no_of_pax: availableSeats,
         };
 
         setGroupData(reconstructedGroupData);
@@ -126,6 +143,10 @@ export default function BookingForm({ user }) {
             passportExpiry: passenger.passportExpiry
               ? new Date(passenger.passportExpiry)
               : "",
+            passportIssue: passenger.passportIssue
+              ? new Date(passenger.passportIssue)
+              : "",
+            documentUrl: passenger.documentUrl || "",
           })) || [];
 
         setFormData({
@@ -232,7 +253,7 @@ export default function BookingForm({ user }) {
     }
 
     setFormData(updated);
-    setTotalSeats(totalSeatsRequired);
+    // setTotalSeats(totalSeatsRequired);
   };
   const handlePassengerBlur = (e) => {
     const { name, value } = e.target;
@@ -278,6 +299,57 @@ export default function BookingForm({ user }) {
     });
   };
 
+  // Store a file locally for a passenger — actual upload happens at booking submit
+  const handleDocSelect = (index, file) => {
+    if (!file) return;
+    const allowed = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+    if (!allowed.includes(file.type)) {
+      toast.error("Only JPG, PNG, WEBP, or PDF files are allowed");
+      return;
+    }
+    setPendingDocs((prev) => ({ ...prev, [index]: file }));
+    // Clear any previously stored URL so the pending file takes precedence
+    handlePassengerChange(index, "documentUrl", "");
+  };
+
+  // Remove a pending or already-uploaded document for a passenger
+  const handleDocRemove = (index) => {
+    setPendingDocs((prev) => {
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
+    handlePassengerChange(index, "documentUrl", "");
+  };
+
+  // Upload all pending docs; returns an updated passengers array with real URLs filled in
+  const uploadPendingDocs = async (passengers) => {
+    const updated = passengers.map((p) => ({ ...p }));
+    const entries = Object.entries(pendingDocs);
+    if (entries.length === 0) return updated;
+
+    await Promise.all(
+      entries.map(async ([idxStr, file]) => {
+        const idx = parseInt(idxStr, 10);
+        if (idx >= updated.length) return;
+        const fd = new FormData();
+        fd.append("document", file);
+        try {
+          const res = await axiosInstance.post("/bookings/upload-document", fd, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+          if (res.data.success) {
+            updated[idx].documentUrl = res.data.url;
+          }
+        } catch (err) {
+          console.error(`Doc upload failed for passenger ${idx}:`, err);
+          // Non-fatal — booking proceeds without doc for this passenger
+        }
+      }),
+    );
+    return updated;
+  };
+
   const handleMrzScan = (index) => {
     setMrzModal({ open: true, index });
     setMrzInput("");
@@ -285,32 +357,48 @@ export default function BookingForm({ user }) {
   };
 
   const handleMrzParse = () => {
-    const result = parseMRZ(mrzInput);
-    if (!result) {
+    // Parse multiple MRZ blocks: try blank-line separation first, then consecutive pairs
+    const rawBlocks = mrzInput.trim().split(/\n[ \t]*\n/);
+    let results = [];
+    if (rawBlocks.length > 1) {
+      results = rawBlocks.map((block) => parseMRZ(block.trim())).filter(Boolean);
+    } else {
+      const lines = mrzInput.trim().split("\n").map((l) => l.trim()).filter((l) => l.length > 0);
+      for (let i = 0; i + 1 < lines.length; i += 2) {
+        const result = parseMRZ(lines[i] + "\n" + lines[i + 1]);
+        if (result) results.push(result);
+      }
+    }
+
+    if (results.length === 0) {
       setMrzError(
         "Invalid MRZ code. Please paste the complete 2-line MRZ from the passport.",
       );
       return;
     }
 
-    const idx = mrzModal.index;
+    const startIdx = mrzModal.index;
     setFormData((prev) => {
       const newPassengers = [...prev.passengers];
-      newPassengers[idx] = {
-        ...newPassengers[idx],
-        surName: result.surName || newPassengers[idx].surName,
-        givenName: result.givenName || newPassengers[idx].givenName,
-        passport: result.passport || newPassengers[idx].passport,
-        nationality: result.nationality || newPassengers[idx].nationality,
-        dateOfBirth: result.dateOfBirth || newPassengers[idx].dateOfBirth,
-        passportExpiry:
-          result.passportExpiry || newPassengers[idx].passportExpiry,
-        title: result.title || newPassengers[idx].title,
-      };
+      results.forEach((result, offset) => {
+        const idx = startIdx + offset;
+        if (idx >= newPassengers.length) return;
+        newPassengers[idx] = {
+          ...newPassengers[idx],
+          surName: result.surName || newPassengers[idx].surName,
+          givenName: result.givenName || newPassengers[idx].givenName,
+          passport: result.passport || newPassengers[idx].passport,
+          nationality: result.nationality || newPassengers[idx].nationality,
+          dateOfBirth: result.dateOfBirth || newPassengers[idx].dateOfBirth,
+          passportExpiry: result.passportExpiry || newPassengers[idx].passportExpiry,
+          title: result.title || newPassengers[idx].title,
+        };
+      });
       return { ...prev, passengers: newPassengers };
     });
 
-    toast.success("Passport details filled successfully!");
+    const filled = Math.min(results.length, formData.passengers.length - startIdx);
+    toast.success(`${filled} passport${filled > 1 ? "s" : ""} scanned successfully!`);
     setMrzModal({ open: false, index: null });
     setMrzInput("");
   };
@@ -373,6 +461,9 @@ export default function BookingForm({ user }) {
     setShowReviewModal(false); // Close modal
 
     try {
+      // Upload any locally-held documents before creating the booking
+      const passengersWithDocs = await uploadPendingDocs(formData.passengers);
+
       const bookingData = {
         groupId: groupData.id,
         groupType: groupData.type,
@@ -397,7 +488,7 @@ export default function BookingForm({ user }) {
           infantTotal: Math.round(calculateInfantTotal()),
           grandTotal: Math.round(calculateTotalPrice()),
         },
-        passengers: formData.passengers,
+        passengers: passengersWithDocs,
         flights:
           groupData.details?.map((flight) => ({
             flightNo: flight.flight_no,
@@ -441,12 +532,15 @@ export default function BookingForm({ user }) {
     setIsSubmitting(true);
 
     try {
+      // Upload any locally-held documents before updating the booking
+      const passengersWithDocs = await uploadPendingDocs(formData.passengers);
+
       const updateData = {
         contactPersonName: formData.contactPersonName,
         adultsCount: parseInt(formData.adults),
         childrenCount: parseInt(formData.children),
         infantsCount: parseInt(formData.infants),
-        passengers: formData.passengers,
+        passengers: passengersWithDocs,
         pricing: {
           adultPrice: calculateB2BPrice(groupData?.price) || 0,
           childPrice: calculateB2BPrice(groupData?.childPrice) || 0,
@@ -825,8 +919,11 @@ export default function BookingForm({ user }) {
                   <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20">
                     Passport Expiry
                   </th>
-                  <th className="px-3 py-2 text-left text-xs font-bold">
+                  <th className="px-3 py-2 text-left text-xs font-bold border-r border-white/20">
                     Nationality
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-bold">
+                    Document
                   </th>
                 </tr>
               </thead>
@@ -987,7 +1084,7 @@ export default function BookingForm({ user }) {
                           />
                         </div>
                       </td>
-                      <td className="px-3 py-2">
+                      <td className="px-3 py-2 border-r border-gray-200">
                         <input
                           type="text"
                           value={passenger.nationality || ""}
@@ -1001,6 +1098,69 @@ export default function BookingForm({ user }) {
                           className="w-full min-w-30  px-2 py-1 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                           placeholder="Nationality"
                         />
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="flex flex-col gap-1 min-w-28">
+                          {/* Show preview: pending local file takes priority over stored URL */}
+                          {(pendingDocs[index] || passenger.documentUrl) ? (
+                            <div className="flex items-center gap-1.5">
+                              {pendingDocs[index] ? (
+                                // Local file preview (not yet uploaded)
+                                pendingDocs[index].type === "application/pdf" ? (
+                                  <span className="text-[10px] text-amber-600 font-semibold border border-amber-300 bg-amber-50 px-1.5 py-0.5 rounded">
+                                    PDF ready
+                                  </span>
+                                ) : (
+                                  <img
+                                    src={URL.createObjectURL(pendingDocs[index])}
+                                    alt="doc preview"
+                                    className="h-8 w-12 object-cover rounded border border-amber-300"
+                                    title="Pending — will upload on submit"
+                                  />
+                                )
+                              ) : passenger.documentUrl.match(/\.(jpg|jpeg|png|webp)/i) ? (
+                                <a href={passenger.documentUrl} target="_blank" rel="noreferrer">
+                                  <img
+                                    src={passenger.documentUrl}
+                                    alt="doc"
+                                    className="h-8 w-12 object-cover rounded border border-gray-300"
+                                  />
+                                </a>
+                              ) : (
+                                <a
+                                  href={passenger.documentUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-[10px] text-blue-600 underline truncate max-w-20"
+                                >
+                                  PDF
+                                </a>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => handleDocRemove(index)}
+                                className="text-red-400 hover:text-red-600"
+                                title="Remove"
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
+                          ) : null}
+                          <label className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer border transition-all duration-200 bg-[#3d6a8f]/10 hover:bg-[#3d6a8f] text-[#3d6a8f] hover:text-white border-[#3d6a8f]/30">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                              <polyline points="17 8 12 3 7 8" />
+                              <line x1="12" y1="3" x2="12" y2="15" />
+                            </svg>
+                            {(pendingDocs[index] || passenger.documentUrl) ? "Replace" : "Upload"}
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp,application/pdf"
+                              className="hidden"
+                              onChange={(e) => handleDocSelect(index, e.target.files?.[0])}
+                            />
+                          </label>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -1125,8 +1285,7 @@ export default function BookingForm({ user }) {
                   </svg>
                 </div>
                 <div className="text-xs text-blue-700 leading-relaxed">
-                  💡 The MRZ is the two lines of machine-readable text at the
-                  bottom of the main passport page.
+                  💡 The MRZ is the two lines of machine-readable text at the bottom of the main passport page. To fill multiple passengers at once, paste each passport's MRZ one after the other (separated by a blank line or just consecutively).
                 </div>
               </div>
 
@@ -1145,7 +1304,7 @@ export default function BookingForm({ user }) {
                   onKeyDown={(e) => {
                     if (e.ctrlKey && e.key === "Enter") handleMrzParse();
                   }}
-                  placeholder={`P<PAKNAME<<GIVEN<NAME<<<<<<<<<<<<<<<<<<<<<\nAB1234567PAK8501011M2601014<<<<<<<<<<<<<<<6`}
+                  placeholder={`P<PAKNAME<<GIVEN<NAME<<<<<<<<<<<<<<<<<<<<<\nAB1234567PAK8501011M2601014<<<<<<<<<<<<<<<6\n\nP<PAKSECOND<<PASSENGER<<<<<<<<<<<<<<<<<<<<\nCD9876543PAK9001011F2801014<<<<<<<<<<<<<<8`}
                   rows={4}
                   className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-[#3d6a8f]/30 focus:border-[#3d6a8f] resize-none bg-gray-50 placeholder-gray-300 leading-6"
                 />
@@ -1198,8 +1357,8 @@ export default function BookingForm({ user }) {
                 onClick={handleMrzParse}
                 disabled={!mrzInput.trim()}
                 className={`px-6 py-2 text-sm font-bold rounded-lg transition-all ${mrzInput.trim()
-                    ? "bg-[#3d6a8f] text-white hover:bg-[#2d5a8f] shadow-sm hover:shadow-md"
-                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  ? "bg-[#3d6a8f] text-white hover:bg-[#2d5a8f] shadow-sm hover:shadow-md"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
                   }`}
               >
                 Scan
@@ -1262,8 +1421,11 @@ export default function BookingForm({ user }) {
                         <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">
                           Passport Expiry
                         </th>
-                        <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider">
+                        <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider border-r border-white/20">
                           Nationality
+                        </th>
+                        <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider">
+                          Document
                         </th>
                       </tr>
                     </thead>
@@ -1294,7 +1456,44 @@ export default function BookingForm({ user }) {
                           <td className="px-4 py-3 border-r border-gray-100">
                             {formatDateForDisplay(p.passportExpiry)}
                           </td>
-                          <td className="px-4 py-3">{p.nationality}</td>
+                          <td className="px-4 py-3 border-r border-gray-100">{p.nationality}</td>
+                          <td className="px-4 py-3">
+                            {pendingDocs[i] ? (
+                              pendingDocs[i].type === "application/pdf" ? (
+                                <span className="text-xs text-amber-600 font-semibold border border-amber-300 bg-amber-50 px-2 py-0.5 rounded">
+                                  PDF — pending upload
+                                </span>
+                              ) : (
+                                <img
+                                  src={URL.createObjectURL(pendingDocs[i])}
+                                  alt="doc"
+                                  className="h-8 w-12 object-cover rounded border border-amber-300"
+                                  title="Will be uploaded on submit"
+                                />
+                              )
+                            ) : p.documentUrl ? (
+                              p.documentUrl.match(/\.(jpg|jpeg|png|webp)/i) ? (
+                                <a href={p.documentUrl} target="_blank" rel="noreferrer">
+                                  <img
+                                    src={p.documentUrl}
+                                    alt="doc"
+                                    className="h-8 w-12 object-cover rounded border border-gray-300"
+                                  />
+                                </a>
+                              ) : (
+                                <a
+                                  href={p.documentUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-xs text-blue-600 underline"
+                                >
+                                  PDF
+                                </a>
+                              )
+                            ) : (
+                              <span className="text-gray-400 text-xs">—</span>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>

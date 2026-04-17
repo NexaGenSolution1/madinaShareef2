@@ -23,7 +23,7 @@ const formatDate = (value) => {
  * Fetches and normalises all available Sabaoon groups from the external API.
  * Throws on token or network failure.
  */
-const fetchNormalisedSabaoonGroups = async (type) => {
+export const fetchNormalisedSabaoonGroups = async (type) => {
   let tokenRecord;
   try {
     tokenRecord = await getValidSabaoonToken();
@@ -206,15 +206,22 @@ export const createSabaoonBooking = async ({
   form.append("group_id", String(groupId));
   form.append("pnr_1", pnr_1);
   form.append("pnr_2", pnr_2);
+  // Explicit passenger type counts so Sabaoon tallies correctly
+  form.append("api_adults", String(adultsCount));
+  form.append("api_childs", String(childrenCount));
+  form.append("api_infants", String(infantsCount));
+
+  // Sabaoon expects numeric human_type: 1=adult, 2=child, 3=infant
+  const humanTypeMap = { adult: "1", child: "2", infant: "3" };
 
   for (const p of passengers) {
     form.append("pax_title[]", p.title || "Mr");
-    form.append("human_type[]", (p.type || "Adult").toLowerCase());
+    form.append("human_type[]", humanTypeMap[(p.type || "Adult").toLowerCase()] || "1");
     form.append("sur_name[]", p.surName || "");
     form.append("given_name[]", p.givenName || "");
     form.append("pass_no[]", p.passport || "");
     form.append("dob[]", formatDate(p.dateOfBirth));
-    form.append("doi[]", ""); // We don't collect passport issue date
+    form.append("doi[]", ""); // passport issue date not collected
     form.append("doe[]", formatDate(p.passportExpiry));
   }
 

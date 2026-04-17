@@ -151,6 +151,7 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
     useEffect(() => {
         fetchMargin(); // Fetch margin on component mount
         fetchGroups();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
     const fetchGroups = async () => {
@@ -300,6 +301,7 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
 
     useEffect(() => {
         applyFilters();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filters, allGroups]);
 
     const LoadingSkeleton = () => (
@@ -542,179 +544,145 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                                             </div>
                                         </div>
 
-                                        {/* Flight Cards */}
-                                        <div className="bg-gray-50 py-3">
-                                            {data.groups
-                                                .sort(
-                                                    (a, b) =>
-                                                        new Date(a.dept_date) - new Date(b.dept_date),
-                                                )
-                                                .map((group) => {
-                                                    const flight = group.details?.[0];
-
-                                                    return (
-                                                        <div
-                                                            key={group.id}
-                                                            className="bg-white border border-neutral-100 overflow-hidden"
-                                                        >
-                                                            {/* Main Card Content: Stack on mobile, Row on Tablet/Desktop */}
-                                                            <div className="flex flex-col lg:flex-row items-center p-2 px-3 lg:px-5 gap-4 lg:gap-6">
-                                                                {/* Left: Date & Flight Info */}
-                                                                <div className="w-full lg:w-auto flex lg:flex-col items-center lg:items-start justify-between lg:justify-center border-b lg:border-b-0 pb-3 lg:pb-0 border-gray-100">
-                                                                    <div className="text-xs font-medium text-gray-500">
+                                        {/* Flight Table */}
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full border-collapse">
+                                                <thead>
+                                                    <tr className="text-white text-xs font-bold" style={{ background: "linear-gradient(90deg, #21397C 0%, #2CA3B4 100%)" }}>
+                                                        <th className="px-4 py-2.5 text-left whitespace-nowrap">Date</th>
+                                                        <th className="px-4 py-2.5 text-left whitespace-nowrap">Flight</th>
+                                                        <th className="px-4 py-2.5 text-center whitespace-nowrap">Sector</th>
+                                                        <th className="px-4 py-2.5 text-center whitespace-nowrap">Bag</th>
+                                                        <th className="px-4 py-2.5 text-center whitespace-nowrap">Meal</th>
+                                                        <th className="px-4 py-2.5 text-center whitespace-nowrap">Seats</th>
+                                                        <th className="px-4 py-2.5 text-center whitespace-nowrap">Fare</th>
+                                                        <th className="px-4 py-2.5"></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {data.groups
+                                                        .sort((a, b) => new Date(a.dept_date) - new Date(b.dept_date))
+                                                        .map((group) => {
+                                                            const flight = group.details?.[0];
+                                                            const lastFlight = group.details?.[group.details.length - 1];
+                                                            return (
+                                                                <tr key={group.id} className="border-b border-gray-100 bg-white hover:bg-blue-50/40 transition-colors">
+                                                                    {/* Date */}
+                                                                    <td className="px-4 py-3 text-xs font-medium text-gray-600 whitespace-nowrap">
                                                                         {flight
-                                                                            ? new Date(
-                                                                                flight.flight_date,
-                                                                            ).toLocaleDateString("en-GB", {
+                                                                            ? new Date(flight.flight_date).toLocaleDateString("en-GB", {
                                                                                 day: "2-digit",
                                                                                 month: "short",
                                                                                 year: "numeric",
                                                                             })
                                                                             : "—"}
-                                                                    </div>
-                                                                    <div className="flex items-center gap-1.5 mt-0.5">
-                                                                        <FaPlane
-                                                                            className="text-sm"
-                                                                            style={{
-                                                                                color: theme.colors.ublGradientStart,
-                                                                            }}
-                                                                        />
-                                                                        <span className="font-semibold text-sm">
-                                                                            {flight?.flight_no || "—"}
-                                                                        </span>
-                                                                    </div>
-                                                                    {/* {group.isOwnGroup && (
-                                    <div className="mt-1 flex flex-col gap-0.5">
-                                      <span className="inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold bg-green-100 text-green-700">
-                                        Direct
-                                      </span>
-                                      {group.groupName && (
-                                        <span className="text-[10px] text-gray-400 max-w-20 truncate">
-                                          {group.groupName}
-                                        </span>
-                                      )}
-                                    </div>
-                                  )} */}
-                                                                </div>
+                                                                    </td>
 
-                                                                {/* Center: Route Path */}
-                                                                <div className="flex-1 flex items-center justify-center w-full gap-4 px-1">
-                                                                    <div className="text-center">
-                                                                        <div className="text-lg font-bold">
-                                                                            {origin}
+                                                                    {/* Flight */}
+                                                                    <td className="px-4 py-3">
+                                                                        <div className="flex items-center gap-1.5">
+                                                                            <FaPlane className="text-xs shrink-0" style={{ color: theme.colors.ublGradientStart }} />
+                                                                            <span className="font-semibold text-sm whitespace-nowrap">
+                                                                                {flight?.flight_no?.toUpperCase() || "—"}
+                                                                            </span>
                                                                         </div>
-                                                                        <div className="text-xs text-gray-500 font-medium">
-                                                                            {flight?.dept_time?.substring(0, 5) ||
-                                                                                "09:50"}
-                                                                        </div>
-                                                                    </div>
+                                                                    </td>
 
-                                                                    <div className="flex items-center flex-1 relative min-w-10 max-w-36">
-                                                                        <div
-                                                                            className="h-0.5 w-full"
-                                                                            style={{
-                                                                                background: theme.colors.ublGradient,
-                                                                            }}
-                                                                        />
-                                                                        <div className="absolute left-1/2 -translate-x-1/2 bg-white px-1">
-                                                                            <FaPlane
-                                                                                className="text-base"
-                                                                                style={{
-                                                                                    color: theme.colors.ublGradientStart,
-                                                                                }}
-                                                                            />
+                                                                    {/* Sector with route + time UI */}
+                                                                    <td className="px-4 py-3">
+                                                                        <div className="flex items-center justify-center gap-3">
+                                                                            <div className="text-center">
+                                                                                <div className="text-sm sm:text-base font-bold">{origin}</div>
+                                                                                <div className="text-xs text-gray-500 font-medium">
+                                                                                    {flight?.dept_time?.substring(0, 5) || "—"}
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="flex items-center relative min-w-12 w-26 md:w-48">
+                                                                                <div className="h-0.5 w-full" style={{ background: theme.colors.ublGradient }} />
+                                                                                <div className="absolute left-1/2 -translate-x-1/2 bg-white px-0.5">
+                                                                                    <FaPlane className="text-sm" style={{ color: theme.colors.ublGradientStart }} />
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="text-center">
+                                                                                <div className="text-sm sm:text-base font-bold">{destination}</div>
+                                                                                <div className="text-xs text-gray-500 font-medium">
+                                                                                    {(lastFlight?.arv_time || flight?.arv_time)?.substring(0, 5) || "—"}
+                                                                                </div>
+                                                                            </div>
                                                                         </div>
-                                                                    </div>
+                                                                    </td>
 
-                                                                    <div className="text-center">
-                                                                        <div className="text-lg font-bold">
-                                                                            {destination}
-                                                                        </div>
-                                                                        <div className="text-xs text-gray-500 font-medium">
-                                                                            {(group.details?.[group.details.length - 1]?.arv_time || flight?.arv_time)?.substring(0, 5) ||
-                                                                                "12:05"}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* Right: Features, Price & Button */}
-                                                                <div className="w-full lg:w-auto flex flex-col sm:flex-row lg:flex-row items-center gap-3 lg:gap-5 border-t lg:border-t-0 pt-3 lg:pt-0 border-gray-100">
-                                                                    {/* Baggage/Meal */}
-                                                                    <div className="flex items-center gap-1.5">
-                                                                        {flight?.baggage && (
-                                                                            <div className="flex items-center gap-1.5 bg-gray-100 rounded-lg px-2 py-1 text-xs font-medium">
-                                                                                <FaSuitcase
-                                                                                    className="text-xs"
-                                                                                    style={{
-                                                                                        color:
-                                                                                            theme.colors.ublGradientStart,
-                                                                                    }}
-                                                                                />
+                                                                    {/* Bag */}
+                                                                    <td className="px-4 py-3 text-center">
+                                                                        {flight?.baggage ? (
+                                                                            <div className="inline-flex items-center gap-1 text-xs font-medium">
+                                                                                <FaSuitcase className="shrink-0" style={{ color: theme.colors.ublGradientStart }} />
                                                                                 <span>{flight.baggage}KG</span>
                                                                             </div>
+                                                                        ) : (
+                                                                            <span className="text-gray-400 text-xs">—</span>
                                                                         )}
-                                                                        {flight?.meal && flight.meal !== "No" && (
-                                                                            <div className="flex items-center gap-1.5 bg-gray-100 rounded-lg px-2 py-1 text-xs font-medium">
-                                                                                <FaUtensils
-                                                                                    className="text-xs"
-                                                                                    style={{
-                                                                                        color:
-                                                                                            theme.colors.ublGradientStart,
-                                                                                    }}
-                                                                                />
-                                                                                <span>Meal</span>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
+                                                                    </td>
 
-                                                                    {/* Pricing */}
-                                                                    <div className="text-center sm:text-right min-w-20">
-                                                                        <div className="text-[9px] text-gray-500 uppercase">
-                                                                            Adult
-                                                                        </div>
-                                                                        <div
-                                                                            className="text-lg font-bold"
-                                                                            style={{
-                                                                                color: theme.colors.ublGradientStart,
-                                                                            }}
-                                                                        >
-                                                                            {user?.priceOnCall
-                                                                                ? "On Call"
-                                                                                : calculateB2BPrice(group.price, group)}
-                                                                        </div>
-                                                                        {!user?.priceOnCall && (
-                                                                            <div className="text-[9px] text-gray-400">
-                                                                                PKR
-                                                                            </div>
+                                                                    {/* Meal */}
+                                                                    <td className="px-4 py-3 text-center">
+                                                                        <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${flight?.meal && flight.meal !== "No" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                                                                            {flight?.meal && flight.meal !== "No" ? "Yes" : "No"}
+                                                                        </span>
+                                                                    </td>
+
+                                                                    {/* Seats */}
+                                                                    <td className="px-4 py-3 text-center">
+                                                                        {group.isOwnGroup ? (
+                                                                            group.showSeat ? (
+                                                                                <span className="text-sm font-bold" style={{ color: theme.colors.ublGradientStart }}>
+                                                                                    {group.available_no_of_pax}
+                                                                                </span>
+                                                                            ) : (
+                                                                                <span className="text-gray-400 text-xs">—</span>
+                                                                            )
+                                                                        ) : (
+                                                                            <span className="text-sm font-bold" style={{ color: theme.colors.ublGradientStart }}>
+                                                                                {group.available_no_of_pax}
+                                                                            </span>
                                                                         )}
-                                                                    </div>
+                                                                    </td>
+
+                                                                    {/* Fare */}
+                                                                    <td className="px-4 py-3 text-center whitespace-nowrap">
+                                                                        {user?.priceOnCall ? (
+                                                                            <span className="text-sm font-bold text-red-500">On Call</span>
+                                                                        ) : (
+                                                                            <>
+                                                                                <div className="text-sm font-bold" style={{ color: theme.colors.ublGradientStart }}>
+                                                                                    PKR {calculateB2BPrice(group.price, group)}
+                                                                                </div>
+                                                                            </>
+                                                                        )}
+                                                                    </td>
 
                                                                     {/* Action */}
-                                                                    <button
-                                                                        onClick={() => handleBookNow(group)}
-                                                                        disabled={!user?.showHideButton}
-                                                                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 font-semibold text-sm transition-all shadow-sm hover:shadow active:scale-95"
-                                                                        style={{
-                                                                            borderRadius: "10px",
-                                                                            background: user?.showHideButton
-                                                                                ? theme.colors.ublGradient
-                                                                                : "#e5e7eb",
-                                                                            color: user?.showHideButton
-                                                                                ? "white"
-                                                                                : "#9ca3af",
-                                                                            cursor: user?.showHideButton
-                                                                                ? "pointer"
-                                                                                : "not-allowed",
-                                                                        }}
-                                                                    >
-                                                                        <Ticket size={15} />
-                                                                        <span>Book Now</span>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
+                                                                    <td className="px-4 py-3 flex justify-center">
+                                                                        <button
+                                                                            onClick={() => handleBookNow(group)}
+                                                                            disabled={!user?.showHideButton}
+                                                                            className="flex items-center justify-center gap-1.5 px-3 py-2 font-semibold text-xs transition-all shadow-sm hover:shadow active:scale-95 whitespace-nowrap"
+                                                                            style={{
+                                                                                borderRadius: "8px",
+                                                                                background: user?.showHideButton ? theme.colors.ublGradient : "#e5e7eb",
+                                                                                color: user?.showHideButton ? "white" : "#9ca3af",
+                                                                                cursor: user?.showHideButton ? "pointer" : "not-allowed",
+                                                                            }}
+                                                                        >
+                                                                            <Ticket size={13} />
+                                                                            <span>Book Now</span>
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 );

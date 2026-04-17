@@ -323,7 +323,13 @@ export default function BookingDetail() {
                           Passport
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                          Passport Expiry
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
                           DOB
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                          Document
                         </th>
                       </tr>
                     </thead>
@@ -351,11 +357,43 @@ export default function BookingDetail() {
                             {passenger.passport || "N/A"}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-600">
+                            {passenger.passportExpiry
+                              ? new Date(
+                                  passenger.passportExpiry,
+                                ).toLocaleDateString("en-GB")
+                              : "N/A"}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-600">
                             {passenger.dateOfBirth
                               ? new Date(
                                   passenger.dateOfBirth,
                                 ).toLocaleDateString("en-GB")
                               : "N/A"}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {passenger.documentUrl ? (
+                              passenger.documentUrl.match(/\.(jpg|jpeg|png|webp)/i) ? (
+                                <a href={passenger.documentUrl} target="_blank" rel="noreferrer">
+                                  <img
+                                    src={passenger.documentUrl}
+                                    alt="document"
+                                    className="h-10 w-16 object-cover rounded border border-gray-300 hover:opacity-80 transition-opacity"
+                                  />
+                                </a>
+                              ) : (
+                                <a
+                                  href={passenger.documentUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 rounded text-xs font-medium hover:bg-blue-100 transition-colors"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                  PDF
+                                </a>
+                              )
+                            ) : (
+                              <span className="text-gray-400 text-xs">—</span>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -391,11 +429,11 @@ export default function BookingDetail() {
                         </div>
                         <div>
                           <span className="font-medium">Departure:</span>{" "}
-                          {formatDate(flight.depDate)} {flight.depTime}
+                          {flight.depTime}
                         </div>
                         <div>
                           <span className="font-medium">Arrival:</span>{" "}
-                          {formatDate(flight.arrDate)} {flight.arrTime}
+                          {flight.arrTime}
                         </div>
                         <div>
                           <span className="font-medium">Baggage:</span>{" "}

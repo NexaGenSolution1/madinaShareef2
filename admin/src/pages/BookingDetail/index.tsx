@@ -15,7 +15,7 @@ interface Booking {
     pnr?: string
     departureDate: string
     arrivalDate?: string
-    userId?: any
+    userId?: string | { _id: string }
     status: string
     adultsCount: number
     childrenCount: number
@@ -38,6 +38,7 @@ interface Booking {
         passport: string
         passportExpiry?: string
         dateOfBirth: string
+        documentUrl?: string
     }>
     flights?: Array<{
         flightNo: string
@@ -240,7 +241,7 @@ export default function BookingDetail() {
                                 </div>
                                 <div>
                                     <label className="text-sm text-gray-600">Booked By (User ID)</label>
-                                    <p className="text-gray-900 font-medium text-xs">{safeBooking.userId?._id || safeBooking.userId || 'N/A'}</p>
+                                    <p className="text-gray-900 font-medium text-xs">{typeof safeBooking.userId === 'string' ? safeBooking.userId : safeBooking.userId?._id || 'N/A'}</p>
                                 </div>
                             </div>
                         </div>
@@ -325,6 +326,7 @@ export default function BookingDetail() {
                                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Passport</th>
                                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Passport Expiry</th>
                                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DOB</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Document</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-200">
@@ -343,6 +345,31 @@ export default function BookingDetail() {
                                                     <td className="px-4 py-3 text-sm text-gray-600">{formatDate(passenger.passportExpiry)}</td>
                                                     <td className="px-4 py-3 text-sm text-gray-600">
                                                         {formatDate(passenger.dateOfBirth)}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm">
+                                                        {passenger.documentUrl ? (
+                                                            /\.(jpg|jpeg|png|webp)/i.test(passenger.documentUrl) ? (
+                                                                <a href={passenger.documentUrl} target="_blank" rel="noreferrer">
+                                                                    <img
+                                                                        src={passenger.documentUrl}
+                                                                        alt="document"
+                                                                        className="h-10 w-16 object-cover rounded border border-gray-300 hover:opacity-80 transition-opacity"
+                                                                    />
+                                                                </a>
+                                                            ) : (
+                                                                <a
+                                                                    href={passenger.documentUrl}
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 rounded text-xs font-medium hover:bg-blue-100 transition-colors"
+                                                                >
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+                                                                    PDF
+                                                                </a>
+                                                            )
+                                                        ) : (
+                                                            <span className="text-gray-400 text-xs">—</span>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             ))}
@@ -363,8 +390,8 @@ export default function BookingDetail() {
                                             <div className="grid grid-cols-2 gap-2 mt-2 text-sm text-gray-600">
                                                 <div><span className="font-medium">Origin:</span> {flight.origin}</div>
                                                 <div><span className="font-medium">Destination:</span> {flight.destination}</div>
-                                                <div><span className="font-medium">Departure:</span> {formatDate(flight.depDate)} {flight.depTime}</div>
-                                                <div><span className="font-medium">Arrival:</span> {formatDate(flight.arrDate)} {flight.arrTime}</div>
+                                                <div><span className="font-medium">Departure:</span> {flight.depTime}</div>
+                                                <div><span className="font-medium">Arrival:</span> {flight.arrTime}</div>
                                                 <div><span className="font-medium">Baggage:</span> {flight.baggage || 'N/A'}</div>
                                                 <div><span className="font-medium">Meal:</span> {flight.meal || 'N/A'}</div>
                                             </div>

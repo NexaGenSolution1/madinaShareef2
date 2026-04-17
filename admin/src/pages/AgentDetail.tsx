@@ -84,8 +84,8 @@ const AgentDetail = () => {
             password: "",
           });
         }
-      } catch (err: any) {
-        setError(err?.response?.data?.message || "Failed to load agent details");
+      } catch (err: unknown) {
+        setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to load agent details");
       } finally {
         setLoading(false);
       }
@@ -96,6 +96,17 @@ const AgentDetail = () => {
 
   const handleChange = (field: keyof FormState, value: string | number) => {
     if (!formState) return;
+
+    if (field === "marginType") {
+      setFormState({
+        ...formState,
+        marginType: value as FormState["marginType"],
+        flightMarginPercent: value === "Percentage" ? formState.flightMarginPercent : 0,
+        flightMarginAmount: value === "Amount" ? formState.flightMarginAmount : 0,
+      });
+      return;
+    }
+
     setFormState({ ...formState, [field]: value });
   };
 
@@ -131,8 +142,8 @@ const AgentDetail = () => {
         // Reset password field to blank after save
         setFormState({ ...formState, password: "" });
       }
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to update agent");
+    } catch (err: unknown) {
+      setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to update agent");
     } finally {
       setSaving(false);
     }
@@ -188,15 +199,14 @@ const AgentDetail = () => {
 
       {(error || success) && (
         <div
-          className={`mb-4 rounded px-4 py-3 text-sm ${
-            error ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"
-          }`}
+          className={`mb-4 rounded px-4 py-3 text-sm ${error ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"
+            }`}
         >
           {error || success}
         </div>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.02]">
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/2">
         <div className="bg-blue-600 px-6 py-4 text-white">
           <div className="text-lg font-semibold">Agent Details</div>
           <div className="text-sm text-blue-100">Code: {agent.agencyCode || "N/A"}</div>
@@ -279,7 +289,11 @@ const AgentDetail = () => {
                   type="number"
                   value={formState.flightMarginPercent}
                   onChange={(e) => handleChange("flightMarginPercent", Number(e.target.value))}
-                  className="w-full rounded border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  disabled={formState.marginType !== "Percentage"}
+                  className={`w-full rounded border px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 ${formState.marginType !== "Percentage"
+                    ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "border-gray-300"
+                    }`}
                 />
               </FormRow>
               <FormRow label="Flight Margin Amount PKR">
@@ -287,7 +301,11 @@ const AgentDetail = () => {
                   type="number"
                   value={formState.flightMarginAmount}
                   onChange={(e) => handleChange("flightMarginAmount", Number(e.target.value))}
-                  className="w-full rounded border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  disabled={formState.marginType !== "Amount"}
+                  className={`w-full rounded border px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 ${formState.marginType !== "Amount"
+                    ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "border-gray-300"
+                    }`}
                 />
               </FormRow>
             </div>

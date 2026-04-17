@@ -268,16 +268,15 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                 </td>
 
                                 {/* Sabaoon Status */}
-                                {booking.sabaoonBookingStatus && booking.sabaoonBookingStatus !== 'not_applicable' && (
+                                {booking.sabaoonBookingStatus && booking.sabaoonBookingStatus !== 'not_applicable' ? (
                                     <td className="px-3 py-4 align-top text-center border-r border-gray-300">
                                         <div className="flex flex-col items-center gap-1">
-                                            <span className={`inline-block px-2 py-1 rounded text-[10px] font-semibold ${
-                                                booking.sabaoonBookingStatus === 'success'
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : booking.sabaoonBookingStatus === 'failed'
-                                                        ? 'bg-red-100 text-red-700'
-                                                        : 'bg-yellow-100 text-yellow-700'
-                                            }`}>
+                                            <span className={`inline-block px-2 py-1 rounded text-[10px] font-semibold ${booking.sabaoonBookingStatus === 'success'
+                                                ? 'bg-green-100 text-green-700'
+                                                : booking.sabaoonBookingStatus === 'failed'
+                                                    ? 'bg-red-100 text-red-700'
+                                                    : 'bg-yellow-100 text-yellow-700'
+                                                }`}>
                                                 Sabaoon: {booking.sabaoonBookingStatus.charAt(0).toUpperCase() + booking.sabaoonBookingStatus.slice(1)}
                                             </span>
                                             {booking.sabaoonTransactionId && (
@@ -285,7 +284,13 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                             )}
                                         </div>
                                     </td>
-                                )}
+                                ) :
+                                    <td className="px-3 py-4 align-top text-center border-r border-gray-300">
+                                        <span className={`inline-block px-2 py-1 rounded text-[10px] font-semibold bg-gray-100 text-gray-500`}>
+                                            Own
+                                        </span>
+                                    </td>
+                                }
 
                                 {/* Action */}
                                 <td className="py-4 align-middle text-center">
@@ -378,9 +383,9 @@ const BookingsTable = memo(({ bookings, getStatusBadge, formatDate, navigate, ti
                                                                             (b: Booking) => b._id !== booking._id,
                                                                         ),
                                                                     );
-                                                                } catch (err: any) {
+                                                                } catch (err: unknown) {
                                                                     toast.error(
-                                                                        err.response?.data?.message ||
+                                                                        (err as { response?: { data?: { message?: string } } }).response?.data?.message ||
                                                                         "Failed to delete booking",
                                                                     );
                                                                 } finally {
