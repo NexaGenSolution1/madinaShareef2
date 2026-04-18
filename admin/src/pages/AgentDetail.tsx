@@ -287,7 +287,8 @@ const AgentDetail = () => {
               <FormRow label="Flight Margin%">
                 <input
                   type="number"
-                  value={formState.flightMarginPercent}
+                  value={formState.flightMarginPercent > 0 ? formState.flightMarginPercent : ""}
+                  placeholder="0"
                   onChange={(e) => handleChange("flightMarginPercent", Number(e.target.value))}
                   disabled={formState.marginType !== "Percentage"}
                   className={`w-full rounded border px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 ${formState.marginType !== "Percentage"
@@ -299,7 +300,8 @@ const AgentDetail = () => {
               <FormRow label="Flight Margin Amount PKR">
                 <input
                   type="number"
-                  value={formState.flightMarginAmount}
+                  value={formState.flightMarginAmount > 0 ? formState.flightMarginAmount : ""}
+                  placeholder="0"
                   onChange={(e) => handleChange("flightMarginAmount", Number(e.target.value))}
                   disabled={formState.marginType !== "Amount"}
                   className={`w-full rounded border px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 ${formState.marginType !== "Amount"

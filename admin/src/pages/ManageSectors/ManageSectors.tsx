@@ -28,161 +28,120 @@ interface UnifiedGroup {
     pnr: string;
 }
 
-const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-    'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+const MONTHS_TITLE = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-// function buildCopyText(groups: UnifiedGroup[]): string {
-//     const today = new Date();
-//     const day = today.getDate();
-//     const month = MONTHS[today.getMonth()];
-//     const header = `=====${day} ${month} UPDATES=====`;
+function trimTime(t: string): string {
+    if (!t) return "";
+    return t.slice(0, 5);
+}
 
-//     const divider = '=====================';
-
-//     const lines = groups.map(g => {
-//         const d = new Date(g.dept_date);
-//         const dd = String(d.getDate()).padStart(2, '0');
-//         const mon = MONTHS[d.getMonth()];
-//         const sec = g.sector.replace('-', ' ');
-
-//         return `${g.airline.short_name} ${dd} ${mon} ${sec}...FARE ${g.price}`;
-//     });
-
-//     const footer = `ALL GROUPS ARE NON REFUNDABLE AND NON CHANGEABLE
-// =======================
-//        Aizaz Ur Rahman
-// Mobile. 03478885551-
-// Brother's International Travels  
-// Address.. Main Bazar Batkhela.  
-//         Ptcl. . .0932 412499
-// EMAIL. worldflytravelisb@gmail.com`;
-
-//     return [header, lines.join(`\n${divider}\n`), divider, footer].join('\n');
-// }
+function extractIATA(terminal: string): string {
+    if (!terminal) return "";
+    const match = terminal.match(/\(([A-Z]{3})\)/);
+    return match ? match[1] : terminal.trim();
+}
 
 function buildCopyText(groups: UnifiedGroup[]): string {
     if (!groups.length) return "";
 
     const today = new Date();
-    const header = `=====${String(today.getDate()).padStart(2, "0")} ${MONTHS[today.getMonth()]
-        } UPDATES=====`;
+    today.setHours(0, 0, 0, 0);
 
-    const divider = "=====================";
+    const header = `                *=====${String(today.getDate()).padStart(2, "0")} ${MONTHS_TITLE[today.getMonth()].toUpperCase()} UPDATES=====*`;
 
-    type Entry = {
-        airline: string;
-        sector: string;
-        price: number;
-        date: Date;
-        available_no_of_pax?: number;
-    };
-
-    const sectorMap = new Map<string, Entry[]>();
+    // ── Step A: Build sector-grouped map (preserving API sector order) ──
+    const sectorMap = new Map<string, { group: any; date: Date; price: number; line: string }[]>();
     const sectorOrder: string[] = [];
 
-    // 🔹 Step 1: Expand + group by sector
     groups.forEach((g: any) => {
-        const addEntry = (dateStr: string) => {
-            const entry: Entry = {
-                airline: g.airline?.short_name || "",
-                sector: g.sector,
-                price: g.price,
-                date: new Date(dateStr),
-                available_no_of_pax: g.available_no_of_pax,
-            };
+        if (g.available_no_of_pax !== undefined && g.available_no_of_pax <= 0) return;
 
-            if (!sectorMap.has(g.sector)) {
-                sectorMap.set(g.sector, []);
-                sectorOrder.push(g.sector); // maintain API order
-            }
+        const sector = g.sector || "UNKNOWN";
+        const price = g.price || 0;
 
-            sectorMap.get(g.sector)!.push(entry);
-        };
+        if (!sectorMap.has(sector)) {
+            sectorMap.set(sector, []);
+            sectorOrder.push(sector);
+        }
 
         if (g.details && g.details.length > 0) {
-            g.details.forEach((d: any) => {
-                const flightDate = d.flight_date || d.dep_date || g.dept_date;
-                addEntry(flightDate);
-            });
+            const d = g.details[0];
+            const rawDate = d.dep_date || d.flight_date || g.dept_date;
+            if (!rawDate) return;
+
+            const date = new Date(rawDate);
+            if (isNaN(date.getTime())) return;
+
+            const depDay = new Date(date);
+            depDay.setHours(0, 0, 0, 0);
+            if (depDay < today) return;
+
+            const dd = String(date.getDate()).padStart(2, "0");
+            const mon = MONTHS_TITLE[date.getMonth()];
+            const year = date.getFullYear();
+            const flightNo = (d.flight_no || d.flightNo || "").toUpperCase();
+            const origin = extractIATA(d.origin || d.from || "");
+            const dest = extractIATA(d.destination || d.to || "");
+            const depTime = trimTime(d.dept_time || d.dep_time || d.depTime || "");
+            const arvTime = trimTime(d.arv_time || d.arr_time || d.arrTime || "");
+            const depPart = depTime ? ` (${depTime})` : "";
+            const arvPart = arvTime ? ` (${arvTime})` : "";
+
+            const line = `${flightNo} *${dd} ${mon} ${year}* ${origin}${depPart} ${dest}${arvPart}..... *PKR ${price}*`;
+
+            sectorMap.get(sector)!.push({ group: g, date, price, line });
+
         } else {
-            addEntry(g.dept_date);
+            // Fallback: no details
+            const rawDate = g.dept_date;
+            if (!rawDate) return;
+
+            const date = new Date(rawDate);
+            if (isNaN(date.getTime())) return;
+
+            const depDay = new Date(date);
+            depDay.setHours(0, 0, 0, 0);
+            if (depDay < today) return;
+
+            const dd = String(date.getDate()).padStart(2, "0");
+            const mon = MONTHS_TITLE[date.getMonth()];
+            const year = date.getFullYear();
+            const code = g.airline?.short_name || "";
+            const sec = (g.sector || "").replace("-", " ");
+
+            const line = `${code} *${dd} ${mon} ${year}* ${sec}..... *PKR ${price}*`;
+
+            sectorMap.get(sector)!.push({ group: g, date, price, line });
         }
     });
 
-    // 🔹 Step 2: Sort + same date pe sirf cheapest with seats
-    sectorMap.forEach((entries, sector) => {
-
-        // 1️⃣ Pehle sort karo (date → price)
+    // ── Step B: Sort each sector's entries by date → then price ──
+    sectorMap.forEach((entries) => {
         entries.sort((a, b) => {
-            const timeA = a.date.getTime();
-            const timeB = b.date.getTime();
-
-            if (timeA === timeB) {
-                return a.price - b.price; // same date → cheapest first
-            }
-
-            return timeA - timeB; // different date → earliest first
+            const timeDiff = a.date.getTime() - b.date.getTime();
+            if (timeDiff !== 0) return timeDiff;   // earlier date first
+            return a.price - b.price;              // same date → cheaper first
         });
-
-        // 2️⃣ Same date pe sirf pehla valid (seats > 0) entry rakho
-        const seenDates = new Set<string>();
-
-        const filtered = entries.filter((item: any) => {
-            const dateKey = item.date.toDateString();
-
-            // ❗ seats check yahan hoga
-            if (item.available_no_of_pax !== undefined && item.available_no_of_pax <= 0) {
-                return false;
-            }
-
-            if (seenDates.has(dateKey)) return false;
-
-            seenDates.add(dateKey);
-            return true;
-        });
-
-        sectorMap.set(sector, filtered);
     });
 
-    // 🔹 Step 3: Build output
-    let outputLines: string[] = [];
-    let lastMonth: number | null = null;
-    let lastSector: string | null = null;
-
+    // ── Step C: Build final output in sector order ──
+    const lines: string[] = [];
     sectorOrder.forEach((sector) => {
         const entries = sectorMap.get(sector)!;
-
-        entries.forEach((item) => {
-            const currentMonth = item.date.getMonth();
-
-            // Divider when month changes OR new sector starts
-            if (lastMonth !== null && (lastMonth !== currentMonth || lastSector !== sector)) {
-                outputLines.push(divider);
-            }
-
-            const dd = String(item.date.getDate()).padStart(2, "0");
-            const mon = MONTHS[currentMonth];
-            const sectorFormatted = item.sector.replace("-", " ");
-
-            outputLines.push(
-                `${item.airline} ${dd} ${mon} ${sectorFormatted}...FARE ${item.price}`
-            );
-
-            lastMonth = currentMonth;
-            lastSector = sector;
-        });
+        entries.forEach((e) => lines.push(e.line));
     });
 
-    const footer = `ALL GROUPS ARE NON REFUNDABLE AND NON CHANGEABLE
+    const footer =
+        `*ALL GROUPS ARE NON REFUNDABLE AND NON CHANGEABLE*
 =======================
-       Aizaz Ur Rahman
-Mobile. 0314-5266660-
-World Fly Ticket Travels  
-Address.. SHOP NO 03 G FLOOR G 13 SERVICES ROAD G 12 Islamabad.  
-        Ptcl. . .051-2154600
-EMAIL. worldflytravelisb@gmail.com`;
+World Fly Travel & Tours
+Mobile: 0314-5266660
+Address: Shop No 03 G Floor G 13 Services Road G 12 Islamabad.
+Ptcl: 051-2154600
+Website: worldflytickets.com`;
 
-    return [header, ...outputLines, divider, footer].join("\n");
+    return [header, ...lines, "=======================", footer].join("\n");
 }
 
 export default function ManageSectors() {

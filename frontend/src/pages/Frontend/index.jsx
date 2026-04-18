@@ -98,7 +98,7 @@ export default function Frontend() {
           <>
             <Header user={user} handleLogout={handleLogout} />
             <Home user={user} onLogin={handleLogin} />
-            <Footer />
+            <Footer user={user} />
           </>
         }
       />
@@ -108,7 +108,7 @@ export default function Frontend() {
           <>
             <Header user={user} handleLogout={handleLogout} />
             <Home user={user} onLogin={handleLogin} />
-            <Footer />
+            <Footer user={user} />
           </>
         }
       />
@@ -119,7 +119,7 @@ export default function Frontend() {
             <>
               <Header user={user} handleLogout={handleLogout} />
               <Register />
-              <Footer />
+              <Footer user={user} />
             </>
           ) : (
             <Navigate to="/dashboard" replace />
@@ -161,7 +161,7 @@ export default function Frontend() {
                   />
                 </div>
               </div>
-              <Footer />
+              <Footer user={user} />
             </>
           ) : (
             <Navigate to="/" replace />
@@ -175,7 +175,7 @@ export default function Frontend() {
             <>
               <Header user={user} handleLogout={handleLogout} />
               <Bank />
-              <Footer />
+              <Footer user={user} />
             </>
           ) : (
             <Navigate to="/" replace />
@@ -189,7 +189,7 @@ export default function Frontend() {
             <>
               <Header user={user} handleLogout={handleLogout} />
               <Payment />
-              <Footer />
+              <Footer user={user} />
             </>
           ) : (
             <Navigate to="/" replace />
@@ -222,12 +222,11 @@ export default function Frontend() {
                       to={`/dashboard/${type.path}`}
                       key={type.value}
                       onClick={() => handleGroupTypeChange(type.value)}
-                      className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
-                        (normalizeParams(searchParams.toString()) || "") ===
+                      className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${(normalizeParams(searchParams.toString()) || "") ===
                         normalizeParams(type.path.split("?")[1] || "")
-                          ? "bg-blue-600 text-white"
-                          : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-                      }`}
+                        ? "bg-blue-600 text-white"
+                        : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                        }`}
                     >
                       {type.label}
                     </Link>
@@ -257,7 +256,7 @@ export default function Frontend() {
             <>
               <Header user={user} handleLogout={handleLogout} />
               <Profile />
-              <Footer />
+              <Footer user={user} />
             </>
           ) : (
             <Navigate to="/" replace />
@@ -272,7 +271,7 @@ export default function Frontend() {
           <>
             <Header user={user} handleLogout={handleLogout} />
             <NoPage />
-            <Footer />
+            <Footer user={user} />
           </>
         }
       />

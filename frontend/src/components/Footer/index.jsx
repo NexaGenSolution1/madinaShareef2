@@ -8,76 +8,76 @@ import { theme } from "../../theme/theme";
 import footerBg from "../../assets/images/uae.webp";
 import { Plane } from "lucide-react";
 
-export default function Footer() {
+export default function Footer({ user }) {
   return (
     <>
       {/* TOP CTA */}
-      <div
-        className="py-24 px-4" // height barhane ke liye py-24 rakha
-        style={{
-          background: theme.colors.primary,
-        }}
-      >
-        <div className="max-w-4xl mx-auto flex flex-col items-center text-center gap-8">
-          {/* Icon & Text Section */}
-          <div className="flex flex-col items-center gap-3 text-white">
-            {/* Airplane Icon (urta hua feel) */}
-            <div className="relative">
-              {/* <Plane className="w-20 h-20 text-white opacity-90 -rotate-12" /> */}
-              <img
-                src="https://ex-coders.com/html/turmet/assets/img/plane-shape.png"
-                alt=""
+      {!user?._id &&
+        <div
+          className="py-24 px-4" // height barhane ke liye py-24 rakha
+          style={{
+            background: theme.colors.primary,
+          }}
+        >
+          <div className="max-w-4xl mx-auto flex flex-col items-center text-center gap-8">
+            {/* Icon & Text Section */}
+            <div className="flex flex-col items-center gap-3 text-white">
+              {/* Airplane Icon (urta hua feel) */}
+              <div className="relative">
+                {/* <Plane className="w-20 h-20 text-white opacity-90 -rotate-12" /> */}
+                <img
+                  src="https://ex-coders.com/html/turmet/assets/img/plane-shape.png"
+                  alt=""
+                  style={{
+                    height: "150px",
+                  }}
+                  srcset=""
+                />
+                {/* Optional: chhota glow ya trail feel ke liye */}
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-white/20 rounded-full blur-md" />
+              </div>
+
+              {/* Mail Icon (optional, agar dono chahte ho toh rakh sakte ho) */}
+              {/* <IoMail className="text-6xl opacity-90 -mt-4" /> */}
+
+              <div>
+                <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mb-3">
+                  Your Travel Journey Starts Here
+                </h2>
+                <p className="text-lg opacity-90 max-w-lg mx-auto">
+                  Sign up to get the best travel deals & offers and stay updated
+                  with our latest packages.
+                </p>
+              </div>
+            </div>
+
+            {/* Buttons Section */}
+            <div className="flex flex-wrap justify-center gap-4 mt-2">
+              <Link
+                to="/auth/register"
+                className="px-8 py-4 rounded-md font-semibold text-lg transition-all hover:bg-opacity-90 shadow-lg"
                 style={{
-                  height: "150px",
+                  background: "#fff",
+                  color: theme.colors.primary,
                 }}
-                srcset=""
-              />
-              {/* Optional: chhota glow ya trail feel ke liye */}
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-white/20 rounded-full blur-md" />
+              >
+                Signup Now
+              </Link>
+
+              <a
+                href="#login"
+                className="flex items-center gap-2 px-8 py-4 rounded-md border-2 font-semibold text-lg transition-all hover:bg-white hover:text-[#000] hover:border-white"
+                style={{
+                  borderColor: "#fff",
+                  // color: "#fff",
+                }}
+              >
+                Login <CiLogin className="text-xl" />
+              </a>
             </div>
-
-            {/* Mail Icon (optional, agar dono chahte ho toh rakh sakte ho) */}
-            {/* <IoMail className="text-6xl opacity-90 -mt-4" /> */}
-
-            <div>
-              <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mb-3">
-                Your Travel Journey Starts Here
-              </h2>
-              <p className="text-lg opacity-90 max-w-lg mx-auto">
-                Sign up to get the best travel deals & offers and stay updated
-                with our latest packages.
-              </p>
-            </div>
-          </div>
-
-          {/* Buttons Section */}
-          <div className="flex flex-wrap justify-center gap-4 mt-2">
-            <Link
-              to="/auth/register"
-              className="px-8 py-4 rounded-md font-semibold text-lg transition-all hover:bg-opacity-90 shadow-lg"
-              style={{
-                background: "#fff",
-                color: theme.colors.primary,
-              }}
-            >
-              Signup Now
-            </Link>
-
-            <a
-              href="#login"
-              className="flex items-center gap-2 px-8 py-4 rounded-md border-2 font-semibold text-lg transition-all hover:bg-white hover:text-[#000] hover:border-white"
-              style={{
-                borderColor: "#fff",
-                // color: "#fff",
-              }}
-            >
-              Login <CiLogin className="text-xl" />
-            </a>
           </div>
         </div>
-      </div>
-
-      <div className="bg-black h-10"></div>
+      }
 
       {/* MAIN FOOTER */}
       <footer

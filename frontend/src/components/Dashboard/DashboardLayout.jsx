@@ -338,7 +338,7 @@ const DashboardLayout = ({ user, handleLogout }) => {
                 style={{
                   width: sidebarOpen ? "100px" : "36px",
                   height: "100px",
-                  // objectFit: "contain",
+                  objectFit: "contain",
                   transition: "width 0.3s cubic-bezier(0.4,0,0.2,1)",
                   flexShrink: 0,
                 }}

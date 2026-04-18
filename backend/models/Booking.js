@@ -108,6 +108,7 @@ const bookingSchema = new mongoose.Schema(
 
     // Pricing Information
     pricing: {
+      // Final prices (base + margin applied) — what the agent pays
       adultPrice: {
         type: Number,
         required: true,
@@ -117,6 +118,19 @@ const bookingSchema = new mongoose.Schema(
         default: 0,
       },
       infantPrice: {
+        type: Number,
+        default: 0,
+      },
+      // Original base prices from the group (before any margin) — used for Sabaoon API & admin breakdown
+      adultBasePrice: {
+        type: Number,
+        default: 0,
+      },
+      childBasePrice: {
+        type: Number,
+        default: 0,
+      },
+      infantBasePrice: {
         type: Number,
         default: 0,
       },

@@ -13,6 +13,7 @@ export default function BookingDetail() {
 
   useEffect(() => {
     fetchBookingDetail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchBookingDetail = async () => {
@@ -103,7 +104,7 @@ export default function BookingDetail() {
 
   return (
     <div className="w-full min-h-screen bg-gray-50">
-      <TopBar title={`Booking Details :${booking.bookingReference}`} />
+      <TopBar title={`Booking Details: ${booking.bookingReference}`} />
       <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         {/* <div className="mb-8 flex justify-between items-start">
@@ -342,13 +343,12 @@ export default function BookingDetail() {
                           </td>
                           <td className="px-4 py-3 text-sm">
                             <span
-                              className={`px-2 py-1 rounded text-xs font-medium ${
-                                passenger.type === "Adult"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : passenger.type === "Child"
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-purple-100 text-purple-800"
-                              }`}
+                              className={`px-2 py-1 rounded text-xs font-medium ${passenger.type === "Adult"
+                                ? "bg-blue-100 text-blue-800"
+                                : passenger.type === "Child"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-purple-100 text-purple-800"
+                                }`}
                             >
                               {passenger.type}
                             </span>
@@ -359,15 +359,15 @@ export default function BookingDetail() {
                           <td className="px-4 py-3 text-sm text-gray-600">
                             {passenger.passportExpiry
                               ? new Date(
-                                  passenger.passportExpiry,
-                                ).toLocaleDateString("en-GB")
+                                passenger.passportExpiry,
+                              ).toLocaleDateString("en-GB")
                               : "N/A"}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-600">
                             {passenger.dateOfBirth
                               ? new Date(
-                                  passenger.dateOfBirth,
-                                ).toLocaleDateString("en-GB")
+                                passenger.dateOfBirth,
+                              ).toLocaleDateString("en-GB")
                               : "N/A"}
                           </td>
                           <td className="px-4 py-3 text-sm">
@@ -387,7 +387,7 @@ export default function BookingDetail() {
                                   rel="noreferrer"
                                   className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 rounded text-xs font-medium hover:bg-blue-100 transition-colors"
                                 >
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
                                   PDF
                                 </a>
                               )
@@ -429,11 +429,11 @@ export default function BookingDetail() {
                         </div>
                         <div>
                           <span className="font-medium">Departure:</span>{" "}
-                          {flight.depTime}
+                          {formatDate(booking.departureDate)} {flight.depTime}
                         </div>
                         <div>
                           <span className="font-medium">Arrival:</span>{" "}
-                          {flight.arrTime}
+                          {formatDate(booking.arrivalDate)} {flight.arrTime}
                         </div>
                         <div>
                           <span className="font-medium">Baggage:</span>{" "}
@@ -504,13 +504,12 @@ export default function BookingDetail() {
                     <div className="border-t border-gray-200 pt-4">
                       <label className="text-gray-600">Sabaoon Status</label>
                       <p
-                        className={`mt-1 inline-block px-2 py-1 rounded text-xs font-semibold ${
-                          booking.sabaoonBookingStatus === "success"
-                            ? "bg-green-100 text-green-700"
-                            : booking.sabaoonBookingStatus === "failed"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-yellow-100 text-yellow-700"
-                        }`}
+                        className={`mt-1 inline-block px-2 py-1 rounded text-xs font-semibold ${booking.sabaoonBookingStatus === "success"
+                          ? "bg-green-100 text-green-700"
+                          : booking.sabaoonBookingStatus === "failed"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-yellow-100 text-yellow-700"
+                          }`}
                       >
                         {booking.sabaoonBookingStatus.charAt(0).toUpperCase() +
                           booking.sabaoonBookingStatus.slice(1)}
@@ -524,21 +523,21 @@ export default function BookingDetail() {
             <div className="flex gap-4 mt-2">
               {(booking.status === "pending" ||
                 booking.status === "on hold") && (
-                <>
-                  <button
-                    onClick={() => navigate(`/dashboard/edit-booking/${id}`)}
-                    className="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Edit Booking
-                  </button>
-                  <button
-                    onClick={handleCancelBooking}
-                    className="flex-1 px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
-                  >
-                    Cancel Booking
-                  </button>
-                </>
-              )}
+                  <>
+                    <button
+                      onClick={() => navigate(`/dashboard/edit-booking/${id}`)}
+                      className="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Edit Booking
+                    </button>
+                    <button
+                      onClick={handleCancelBooking}
+                      className="flex-1 px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      Cancel Booking
+                    </button>
+                  </>
+                )}
               {booking.status === "cancelled" && (
                 <div className="w-full text-center py-3 bg-red-50 border border-red-200 rounded-lg">
                   <p className="text-red-700 font-medium">

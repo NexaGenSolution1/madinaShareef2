@@ -137,7 +137,8 @@ export default function Profile() {
         fetchUserProfile();
 
         // Clear success message after 3 seconds
-        setTimeout(() => setSuccess(""), 3000);
+        // setTimeout(() => setSuccess(""), 3000);
+        window.location.reload();
       }
     } catch (err) {
       setError(err.message || "Failed to update profile");

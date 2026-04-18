@@ -60,11 +60,11 @@ const navItems: NavItem[] = [
     name: "Manage Sectors",
     path: "/manage-sectors",
   },
-  // {
-  //   icon: <TableIcon />,
-  //   name: "API Groups",
-  //   path: "/api-groups",
-  // },
+  {
+    icon: <TableIcon />,
+    name: "API Groups",
+    path: "/api-groups",
+  },
   {
     icon: <TableIcon />,
     name: "Group Ticketing",

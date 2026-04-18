@@ -535,6 +535,13 @@ export const getUnifiedGroups = async (req, res) => {
     const adminGroupsData = cacheDoc.data.map((g) => ({ ...g, isOwnGroup: true }));
     const combinedData = [...adminGroupsData, ...sabaoonGroups];
 
+    // Apply sector order to the full combined dataset (admin + sabaoon)
+    combinedData.sort((a, b) => {
+      const orderA = sectorOrderMap[normalizeSector(a.sector)] ?? 999;
+      const orderB = sectorOrderMap[normalizeSector(b.sector)] ?? 999;
+      return orderA - orderB;
+    });
+
     res.status(200).json({
       success: true,
       total: combinedData.length,

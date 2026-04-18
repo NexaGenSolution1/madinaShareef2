@@ -132,7 +132,7 @@ export const upsertGroupOverride = async (req, res) => {
     if (individualMargin !== undefined) {
       // empty string or explicit null clears the margin
       update.individualMargin =
-        individualMargin === "" || individualMargin === null
+        individualMargin === "" || individualMargin === null || individualMargin == 0
           ? null
           : Number(individualMargin);
     }
@@ -225,13 +225,19 @@ export const createSabaoonBooking = async ({
     form.append("doe[]", formatDate(p.passportExpiry));
   }
 
-  // Price arrays — one entry per passenger of that type
+  // Price arrays — one entry per passenger of that type.
+  // Always send the original base price to Sabaoon (before any margin markup).
+  // Fall back to adultPrice if base prices are not stored (legacy bookings).
+  const sabaoonAdultPrice = pricing.adultBasePrice || pricing.adultPrice || 0;
+  const sabaoonChildPrice = pricing.childBasePrice || pricing.childPrice || 0;
+  const sabaoonInfantPrice = pricing.infantBasePrice || pricing.infantPrice || 0;
+
   for (let i = 0; i < adultsCount; i++)
-    form.append("adult_price[]", String(pricing.adultPrice || 0));
+    form.append("adult_price[]", String(sabaoonAdultPrice));
   for (let i = 0; i < childrenCount; i++)
-    form.append("child_price[]", String(pricing.childPrice || 0));
+    form.append("child_price[]", String(sabaoonChildPrice));
   for (let i = 0; i < infantsCount; i++)
-    form.append("infant_price[]", String(pricing.infantPrice || 0));
+    form.append("infant_price[]", String(sabaoonInfantPrice));
 
   const response = await axios.post(
     `${process.env.SABAOON_API_URL}/booking`,

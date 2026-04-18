@@ -15,28 +15,56 @@ export default function BookingForm({ user }) {
   const { id: bookingId } = useParams();
   const isEditMode = !!bookingId;
 
-  const calculateB2BPrice = (groupPrice) => {
-    if (!user) return groupPrice; // B2C case (handled separately)
+  const [dbMargin, setDbMargin] = useState(null);
 
-    // If user has priceOnCall flag, return "Price on Call"
+  useEffect(() => {
+    axiosInstance
+      .get("/sector/getMargin")
+      .then((res) => {
+        if (res.data?.success) setDbMargin(res.data.data);
+      })
+      .catch(() => {});
+  }, []);
+
+  // 3-tier margin priority:
+  // 1. Agent-specific margin (highest)
+  // 2. Individual group margin (Sabaoon API only, when no agent margin set)
+  // 3. Global/overall margin (fallback)
+  const calculateB2BPrice = (groupPrice, group = {}) => {
+    if (!user) return groupPrice; // B2C case (handled separately)
     if (user?.priceOnCall) return null;
 
+    let finalPrice = groupPrice;
+
+    // Priority 1: Agent-specific margin
     const marginType = user.marginType; // "Percentage" or "Amount"
     const marginPercent = user.flightMarginPercent;
     const marginAmount = user.flightMarginAmount;
 
-    let finalPrice = groupPrice;
-
     if (marginType === "Percentage" && marginPercent > 0) {
-      // Add percentage margin
-      const marginValue = (groupPrice * marginPercent) / 100;
-      finalPrice = groupPrice + marginValue;
+      finalPrice = groupPrice + (groupPrice * marginPercent) / 100;
     } else if (marginType === "Amount" && marginAmount > 0) {
-      // Add fixed amount margin
       finalPrice = groupPrice + marginAmount;
     }
 
-    return Math.round(finalPrice); // Round to nearest integer
+    // Priority 2: Individual group margin (only when no agent margin applied)
+    if (finalPrice === groupPrice) {
+      const indMargin = group?.individualMargin;
+      if (indMargin !== null && indMargin !== undefined) {
+        finalPrice = groupPrice + indMargin;
+      }
+    }
+
+    // Priority 3: Global/overall margin (fallback)
+    if (finalPrice === groupPrice && dbMargin) {
+      if (dbMargin.type === "percent" && dbMargin.value > 0) {
+        finalPrice = groupPrice + (groupPrice * dbMargin.value) / 100;
+      } else if (dbMargin.type === "amount" && dbMargin.value > 0) {
+        finalPrice = groupPrice + dbMargin.value;
+      }
+    }
+
+    return Math.round(finalPrice);
   };
 
   const [formData, setFormData] = useState({
@@ -405,15 +433,15 @@ export default function BookingForm({ user }) {
 
   const calculateAdultTotal = () =>
     (parseInt(formData.adults) || 0) *
-    (calculateB2BPrice(groupData?.price) || 0);
+    (calculateB2BPrice(groupData?.price, groupData) || 0);
 
   const calculateChildTotal = () =>
     (parseInt(formData.children) || 0) *
-    (calculateB2BPrice(groupData?.childPrice) || 0);
+    (calculateB2BPrice(groupData?.childPrice, groupData) || 0);
 
   const calculateInfantTotal = () =>
     (parseInt(formData.infants) || 0) *
-    (calculateB2BPrice(groupData?.infantPrice) || 0);
+    (calculateB2BPrice(groupData?.infantPrice, groupData) || 0);
 
   const calculateTotalPrice = () =>
     calculateAdultTotal() + calculateChildTotal() + calculateInfantTotal();
@@ -480,9 +508,14 @@ export default function BookingForm({ user }) {
         infantsCount: parseInt(formData.infants),
         totalPassengers: totalPassengers,
         pricing: {
-          adultPrice: calculateB2BPrice(groupData.price) || 0,
-          childPrice: calculateB2BPrice(groupData.childPrice) || 0,
-          infantPrice: calculateB2BPrice(groupData.infantPrice) || 0,
+          // Final prices including margin (stored in DB, shown to agent)
+          adultPrice: calculateB2BPrice(groupData.price, groupData) || 0,
+          childPrice: calculateB2BPrice(groupData.childPrice, groupData) || 0,
+          infantPrice: calculateB2BPrice(groupData.infantPrice, groupData) || 0,
+          // Original base prices (sent to Sabaoon API, used for margin breakdown)
+          adultBasePrice: groupData.price || 0,
+          childBasePrice: groupData.childPrice || 0,
+          infantBasePrice: groupData.infantPrice || 0,
           adultTotal: calculateAdultTotal(),
           childTotal: calculateChildTotal(),
           infantTotal: Math.round(calculateInfantTotal()),
@@ -542,9 +575,14 @@ export default function BookingForm({ user }) {
         infantsCount: parseInt(formData.infants),
         passengers: passengersWithDocs,
         pricing: {
-          adultPrice: calculateB2BPrice(groupData?.price) || 0,
-          childPrice: calculateB2BPrice(groupData?.childPrice) || 0,
-          infantPrice: calculateB2BPrice(groupData?.infantPrice) || 0,
+          // Final prices including margin
+          adultPrice: calculateB2BPrice(groupData?.price, groupData) || 0,
+          childPrice: calculateB2BPrice(groupData?.childPrice, groupData) || 0,
+          infantPrice: calculateB2BPrice(groupData?.infantPrice, groupData) || 0,
+          // Original base prices
+          adultBasePrice: groupData?.price || 0,
+          childBasePrice: groupData?.childPrice || 0,
+          infantBasePrice: groupData?.infantPrice || 0,
           adultTotal: calculateAdultTotal(),
           childTotal: calculateChildTotal(),
           infantTotal: Math.round(calculateInfantTotal()),
@@ -685,7 +723,7 @@ export default function BookingForm({ user }) {
                   >
                     {user?.priceOnCall
                       ? "Price on Call"
-                      : `PKR ${calculateB2BPrice(groupData.price)?.toLocaleString()}`}
+                      : `PKR ${calculateB2BPrice(groupData.price, groupData)?.toLocaleString()}`}
                     {/* 
                                       {groupData?.price?.toLocaleString() || 0} */}
                   </p>
@@ -695,7 +733,7 @@ export default function BookingForm({ user }) {
                     Child
                   </p>
                   <p className="text-sm font-extrabold text-[#3d6a8f] bg-blue-50 px-2 py-1 rounded-2xl">
-                    {calculateB2BPrice(groupData?.childPrice)?.toLocaleString() || "N/A"}
+                    {calculateB2BPrice(groupData?.childPrice, groupData)?.toLocaleString() || "N/A"}
                   </p>
                 </div>
 
@@ -705,7 +743,7 @@ export default function BookingForm({ user }) {
                   </p>
                   <p
                     className={`text-sm font-extrabold px-2 py-1 rounded-2xl whitespace-nowrap ${isInfantPriceAvailable() ? "text-[#3d6a8f] bg-blue-50" : "text-white bg-red-600"}`}
-                  >{`${isInfantPriceAvailable() ? `PKR ${calculateB2BPrice(groupData.infantPrice)?.toLocaleString()}` : "Price On Call"}`}</p>
+                  >{`${isInfantPriceAvailable() ? `PKR ${calculateB2BPrice(groupData.infantPrice, groupData)?.toLocaleString()}` : "Price On Call"}`}</p>
                 </div>
               </div>
             </div>
@@ -763,7 +801,7 @@ export default function BookingForm({ user }) {
                     >
                       {user?.priceOnCall
                         ? "Price on Call"
-                        : `PKR ${calculateB2BPrice(groupData?.price)?.toLocaleString()}`}
+                        : `PKR ${calculateB2BPrice(groupData?.price, groupData)?.toLocaleString()}`}
                     </span>
                   </td>
                   <td className="px-3 py-2 text-center text-xs font-bold text-gray-900 border-r border-gray-200">
@@ -806,6 +844,7 @@ export default function BookingForm({ user }) {
                         PKR{" "}
                         {calculateB2BPrice(
                           groupData?.childPrice,
+                          groupData,
                         )?.toLocaleString() || 0}
                       </span>
                     ) : (
@@ -848,6 +887,7 @@ export default function BookingForm({ user }) {
                         PKR{" "}
                         {calculateB2BPrice(
                           groupData?.infantPrice,
+                          groupData,
                         )?.toLocaleString()}
                       </span>
                     ) : (

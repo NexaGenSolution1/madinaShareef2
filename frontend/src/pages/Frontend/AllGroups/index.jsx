@@ -25,61 +25,6 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
     const [dbMargin, setDbMargin] = useState(null);
 
-    // Extract "YYYY-MM-DD" from any date value (ISO datetime or date-only string)
-    const toDateOnly = (dateVal) => {
-        if (!dateVal) return "";
-        return String(dateVal).slice(0, 10);
-    };
-
-    // Normalize our own GroupTicketing records to match the Sabaoon group shape
-    const normalizeOwnGroup = (group, airlineLogoMap = {}) => {
-        const firstFlight = group.flights?.[0] || {};
-        const lastFlight = group.flights?.[group.flights.length - 1] || {};
-
-        const sectorFrom = (firstFlight.sectorFrom || "").toUpperCase().trim();
-        const sectorTo = (lastFlight.sectorTo || "").toUpperCase().trim();
-        const sector =
-            sectorFrom && sectorTo
-                ? `${sectorFrom}-${sectorTo}`
-                : (group.sector || "").toUpperCase().trim();
-
-        const airlineName = (group.airline || "").trim();
-        const logoUrl = airlineLogoMap[airlineName] || null;
-
-        return {
-            id: group._id,
-            isOwnGroup: true,
-            groupName: group.groupName || "",
-            airline: {
-                airline_name: airlineName,
-                logo_url: logoUrl,
-            },
-            sector,
-            price: group.price?.sellingAdultPriceB2B || 0,
-            childPrice: group.price?.sellingChildPriceB2B || 0,
-            infantPrice: group.price?.sellingInfantPriceB2B || 0,
-            pnr: group.pnr || "",
-            type: group.groupType,
-            available_no_of_pax: group.totalSeats || 0,
-            showSeat: group.showSeat,
-            // Use date-only string to match Sabaoon format and avoid timezone issues
-            dept_date: toDateOnly(firstFlight.depDate),
-            arv_date: toDateOnly(lastFlight.arrDate),
-            details: (group.flights || []).map((f) => ({
-                flight_no: f.flightNo,
-                flight_date: toDateOnly(f.depDate),
-                dep_date: toDateOnly(f.depDate),
-                dept_time: f.depTime,
-                arv_date: toDateOnly(f.arrDate),
-                arv_time: f.arrTime,
-                origin: (f.sectorFrom || "").toUpperCase().trim(),
-                destination: (f.sectorTo || "").toUpperCase().trim(),
-                baggage: f.baggage,
-                meal: f.meal,
-            })),
-        };
-    };
-
     const [filters, setFilters] = useState({
         sectors: [],
         airlines: [],
@@ -91,56 +36,41 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
     const [airlines, setAirlines] = useState([]);
     const [sectors, setSectors] = useState([]);
 
-    // Fetch margin from database
-    const fetchMargin = async () => {
-        try {
-            const response = await axiosInstance.get("/sector/getMargin");
-            if (response.data.success) {
-                setDbMargin(response.data.data);
-            }
-        } catch (err) {
-            console.error("Error fetching margin:", err);
-        }
-    };
-
     const calculateB2BPrice = (groupPrice, group = {}) => {
         if (!user) return groupPrice; // B2C case (handled separately)
 
         // If user has priceOnCall flag, return "Price on Call"
         if (user.priceOnCall) return null;
 
-        // Priority 0: Individual group margin (admin-set per Sabaoon group).
-        // When set, this fixed PKR amount is the ONLY margin applied — agent and
-        // global margins are completely ignored for this group.
-        const indMargin = group?.individualMargin;
-        if (indMargin !== null && indMargin !== undefined) {
-            return Math.round(groupPrice + indMargin).toLocaleString();
-        }
-
         let finalPrice = groupPrice;
 
-        // Priority 1: Use user-specific margin if available
+        // Priority 1: Agent-specific margin (highest priority)
         const marginType = user.marginType; // "Percentage" or "Amount"
         const marginPercent = user.flightMarginPercent;
         const marginAmount = user.flightMarginAmount;
 
         if (marginType === "Percentage" && marginPercent > 0) {
-            // Add percentage margin
             const marginValue = (groupPrice * marginPercent) / 100;
             finalPrice = groupPrice + marginValue;
         } else if (marginType === "Amount" && marginAmount > 0) {
-            // Add fixed amount margin
             finalPrice = groupPrice + marginAmount;
         }
 
-        // Priority 2: Fallback to database margin if user margin not set
+        // Priority 2: Individual group margin (admin-set per Sabaoon API group)
+        // Only applied when no agent margin was set
+        if (finalPrice === groupPrice) {
+            const indMargin = group?.individualMargin;
+            if (indMargin !== null && indMargin !== undefined) {
+                finalPrice = groupPrice + indMargin;
+            }
+        }
+
+        // Priority 3: Overall/global margin (fallback when neither agent nor individual margin applied)
         if (finalPrice === groupPrice && dbMargin) {
             if (dbMargin.type === "percent" && dbMargin.value > 0) {
-                // value is already in percentage (e.g., 100 = 100%)
                 const marginValue = (groupPrice * dbMargin.value) / 100;
                 finalPrice = groupPrice + marginValue;
             } else if (dbMargin.type === "amount" && dbMargin.value > 0) {
-                // Add fixed amount margin
                 finalPrice = groupPrice + dbMargin.value;
             }
         }
@@ -149,7 +79,7 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
     };
 
     useEffect(() => {
-        fetchMargin(); // Fetch margin on component mount
+        window.scrollTo(0, 0);
         fetchGroups();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
@@ -159,46 +89,32 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
             setLoading(true);
 
             const groupType = searchParams.get("group_type") || "";
-            const params = {};
-            if (groupType) params.type = groupType;
 
-            // Map Sabaoon group_type value to our own MongoDB groupType enum value
-            const ownGroupType = groupType
-                ? (groupTypes.find((g) => g.value === groupType)?.ownGroupType || "")
-                : "";
-            const ownParams = {};
-            if (ownGroupType) ownParams.groupType = ownGroupType;
-
-            // Fetch Sabaoon groups, own groups, and airlines in parallel
-            const [sabaoonRes, ownRes, airlinesRes] = await Promise.allSettled([
-                axiosInstance.get("/sabaoon/groups", { params }),
-                axiosInstance.get("/group-ticketing/public", { params: ownParams }),
-                axiosInstance.get("/airline"),
+            // Single unified call (admin + sabaoon, sector-sorted, past-filtered) + margin in parallel
+            const [unifiedRes, marginRes] = await Promise.allSettled([
+                axiosInstance.get("/sector/getUnifiedGroups"),
+                axiosInstance.get("/sector/getMargin"),
             ]);
 
-            const sabaoonGroups =
-                sabaoonRes.status === "fulfilled" && sabaoonRes.value.data?.success
-                    ? sabaoonRes.value.data.data || []
-                    : [];
-
-            // Build airline name → logo_url map from our own airline records
-            const airlineLogoMap = {};
-            if (airlinesRes.status === "fulfilled" && airlinesRes.value.data?.success) {
-                for (const airline of airlinesRes.value.data.data || []) {
-                    if (airline.airlineName && airline.logo) {
-                        airlineLogoMap[airline.airlineName.trim()] = airline.logo;
-                    }
-                }
+            if (marginRes.status === "fulfilled" && marginRes.value.data?.success) {
+                setDbMargin(marginRes.value.data.data);
             }
 
-            const ownGroupsRaw =
-                ownRes.status === "fulfilled" && ownRes.value.data?.success
-                    ? ownRes.value.data.data || []
+            let fetchedGroups =
+                unifiedRes.status === "fulfilled" && unifiedRes.value.data?.success
+                    ? unifiedRes.value.data.data || []
                     : [];
 
-            const ownGroups = ownGroupsRaw.map((g) => normalizeOwnGroup(g, airlineLogoMap));
-
-            const fetchedGroups = [...sabaoonGroups, ...ownGroups];
+            // Client-side filter by group type if a specific type is selected
+            if (groupType) {
+                const gtEntry = groupTypes.find((g) => g.value === groupType);
+                fetchedGroups = fetchedGroups.filter((g) => {
+                    if (g.isOwnGroup) {
+                        return gtEntry?.ownGroupType ? g.type === gtEntry.ownGroupType : true;
+                    }
+                    return g.type === groupType;
+                });
+            }
 
             const uniqueAirlines = [
                 ...new Set(
@@ -318,10 +234,15 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
         </div>
     );
 
+    // Track the first time each sector is encountered (preserves backend sector-order)
+    const sectorFirstSeen = {};
     const groupedData = groups.reduce((acc, group) => {
         const airlineName = group.airline?.airline_name || "Unknown";
         const sector = (group.sector || "Unknown").toUpperCase().trim();
         const key = `${airlineName}-${sector}`;
+        if (!(sector in sectorFirstSeen)) {
+            sectorFirstSeen[sector] = Object.keys(sectorFirstSeen).length;
+        }
         if (!acc[key]) {
             acc[key] = {
                 airline: airlineName,
@@ -333,6 +254,19 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
         acc[key].groups.push(group);
         return acc;
     }, {});
+
+    // Sort cards: preserve sector order from backend, then sort same-sector cards by earliest dept_date
+    const getMinDate = (card) => {
+        const dates = card.groups.map((g) => g.dept_date).filter(Boolean).sort();
+        return dates[0] || "9999-99-99";
+    };
+    const sortedGroupedEntries = Object.entries(groupedData).sort(([, a], [, b]) => {
+        const sectorOrderA = sectorFirstSeen[a.sector] ?? 999;
+        const sectorOrderB = sectorFirstSeen[b.sector] ?? 999;
+        if (sectorOrderA !== sectorOrderB) return sectorOrderA - sectorOrderB;
+        // Same sector → card with earliest departure first
+        return getMinDate(a).localeCompare(getMinDate(b));
+    });
 
     // Shared Filter UI Component for Sidebar and Mobile Drawer
     const FilterContent = () => (
@@ -387,14 +321,14 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
 
     return (
         <>
-            <TopBar title={"All Group Tickets"} />
+            <TopBar title={"Group Tickets"} />
             <div
                 className="w-full min-h-screen"
                 style={{ background: theme.colors.background }}
             >
                 {/* Responsive Header Container */}
                 <div
-                    className={`flex flex-col xl:flex-row xl:items-center xl:justify-between gap-2 px-3 py-2 bg-white border-b border-b-neutral-200 shadow-sm ${headerType === "dashboard" ? "rounded-t-2xl" : ""}`}
+                    className={`flex flex-col xl:flex-row xl:items-center xl:justify-between gap-2 py-2 ${headerType === "dashboard" ? "rounded-t-2xl" : ""}`}
                 >
                     <div className="w-full xl:w-auto">{header}</div>
 
@@ -503,7 +437,7 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                                 No groups available at the moment
                             </div>
                         ) : (
-                            Object.entries(groupedData).map(([key, data]) => {
+                            sortedGroupedEntries.map(([key, data]) => {
                                 const sectorParts = data.sector?.split("-") || [];
                                 const origin = sectorParts[0] || "";
                                 const destination = sectorParts[sectorParts.length - 1] || data.sector;
@@ -511,7 +445,7 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                                 return (
                                     <div
                                         key={key}
-                                        className="rounded-2xl overflow-hidden bg-white"
+                                        className="rounded-2xl overflow-hidden bg-white border border-neutral-200"
                                     >
                                         {/* Sector Header Bar */}
                                         <div className="bg-linear-to-r from-blue-50 via-transparent to-blue-50 flex justify-center items-center gap-6 py-2.5 border-b border-neutral-200">
@@ -556,12 +490,16 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                                                         <th className="px-4 py-2.5 text-center whitespace-nowrap">Meal</th>
                                                         <th className="px-4 py-2.5 text-center whitespace-nowrap">Seats</th>
                                                         <th className="px-4 py-2.5 text-center whitespace-nowrap">Fare</th>
-                                                        <th className="px-4 py-2.5"></th>
+                                                        <th className="w-36 px-4 py-2.5"></th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {data.groups
-                                                        .sort((a, b) => new Date(a.dept_date) - new Date(b.dept_date))
+                                                        .sort((a, b) => {
+                                                            const dateDiff = new Date(a.dept_date) - new Date(b.dept_date);
+                                                            if (dateDiff !== 0) return dateDiff;
+                                                            return (a.price || 0) - (b.price || 0);
+                                                        })
                                                         .map((group) => {
                                                             const flight = group.details?.[0];
                                                             const lastFlight = group.details?.[group.details.length - 1];
@@ -570,7 +508,7 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                                                                     {/* Date */}
                                                                     <td className="px-4 py-3 text-xs font-medium text-gray-600 whitespace-nowrap">
                                                                         {flight
-                                                                            ? new Date(flight.flight_date).toLocaleDateString("en-GB", {
+                                                                        ? new Date(flight.dep_date || flight.flight_date).toLocaleDateString("en-GB", {
                                                                                 day: "2-digit",
                                                                                 month: "short",
                                                                                 year: "numeric",
@@ -662,7 +600,7 @@ export default function AllGroups({ headerType, header, searchParams, user }) {
                                                                     </td>
 
                                                                     {/* Action */}
-                                                                    <td className="px-4 py-3 flex justify-center">
+                                                                    <td className="w-36 px-4 py-3 flex justify-center">
                                                                         <button
                                                                             onClick={() => handleBookNow(group)}
                                                                             disabled={!user?.showHideButton}

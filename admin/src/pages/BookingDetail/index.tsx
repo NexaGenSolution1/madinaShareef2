@@ -23,10 +23,13 @@ interface Booking {
     totalPassengers: number
     pricing?: {
         adultPrice: number
+        adultBasePrice?: number
         adultTotal: number
         childPrice?: number
+        childBasePrice?: number
         childTotal?: number
         infantPrice?: number
+        infantBasePrice?: number
         infantTotal?: number
         grandTotal: number
     }
@@ -67,6 +70,7 @@ export default function BookingDetail() {
 
     useEffect(() => {
         fetchBookingDetail()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id])
 
     const fetchBookingDetail = async () => {
@@ -272,18 +276,48 @@ export default function BookingDetail() {
                         <div className="bg-white rounded-lg shadow p-6">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Pricing Breakdown</h3>
                             <div className="space-y-3">
+                                {/* Adults */}
                                 <div className="flex justify-between items-center">
-                                    <span className="text-gray-700">Adult Price (x{safeBooking.adultsCount})</span>
+                                    <span className="text-gray-700">Adult Base Price (x{safeBooking.adultsCount})</span>
+                                    <span className="font-medium">PKR {(safeBooking.pricing?.adultBasePrice || safeBooking.pricing?.adultPrice || 0).toLocaleString()}</span>
+                                </div>
+                                {safeBooking.pricing?.adultBasePrice !== undefined &&
+                                    safeBooking.pricing.adultPrice !== safeBooking.pricing.adultBasePrice && (
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-amber-700">↑ Margin per Adult</span>
+                                            <span className="font-medium text-amber-700">
+                                                +PKR {(safeBooking.pricing.adultPrice - safeBooking.pricing.adultBasePrice).toLocaleString()}
+                                            </span>
+                                        </div>
+                                    )}
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-700">Adult Final Price (x{safeBooking.adultsCount})</span>
                                     <span className="font-medium">PKR {(safeBooking.pricing?.adultPrice || 0).toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-gray-700">Adult Total</span>
                                     <span className="font-medium text-blue-600">PKR {(safeBooking.pricing?.adultTotal || 0).toLocaleString()}</span>
                                 </div>
+
+                                {/* Children */}
                                 {safeBooking.childrenCount > 0 && (
                                     <>
+                                        <div className="border-t border-gray-100 pt-2" />
                                         <div className="flex justify-between items-center">
-                                            <span className="text-gray-700">Child Price (x{safeBooking.childrenCount})</span>
+                                            <span className="text-gray-700">Child Base Price (x{safeBooking.childrenCount})</span>
+                                            <span className="font-medium">PKR {(safeBooking.pricing?.childBasePrice || safeBooking.pricing?.childPrice || 0).toLocaleString()}</span>
+                                        </div>
+                                        {safeBooking.pricing?.childBasePrice !== undefined &&
+                                            (safeBooking.pricing?.childPrice || 0) !== (safeBooking.pricing?.childBasePrice || 0) && (
+                                                <div className="flex justify-between items-center text-sm">
+                                                    <span className="text-amber-700">↑ Margin per Child</span>
+                                                    <span className="font-medium text-amber-700">
+                                                        +PKR {((safeBooking.pricing?.childPrice || 0) - (safeBooking.pricing?.childBasePrice || 0)).toLocaleString()}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-gray-700">Child Final Price (x{safeBooking.childrenCount})</span>
                                             <span className="font-medium">PKR {(safeBooking.pricing?.childPrice || 0).toLocaleString()}</span>
                                         </div>
                                         <div className="flex justify-between items-center">
@@ -292,10 +326,26 @@ export default function BookingDetail() {
                                         </div>
                                     </>
                                 )}
+
+                                {/* Infants */}
                                 {safeBooking.infantsCount > 0 && (
                                     <>
+                                        <div className="border-t border-gray-100 pt-2" />
                                         <div className="flex justify-between items-center">
-                                            <span className="text-gray-700">Infant Price (x{safeBooking.infantsCount})</span>
+                                            <span className="text-gray-700">Infant Base Price (x{safeBooking.infantsCount})</span>
+                                            <span className="font-medium">PKR {(safeBooking.pricing?.infantBasePrice || safeBooking.pricing?.infantPrice || 0).toLocaleString()}</span>
+                                        </div>
+                                        {safeBooking.pricing?.infantBasePrice !== undefined &&
+                                            (safeBooking.pricing?.infantPrice || 0) !== (safeBooking.pricing?.infantBasePrice || 0) && (
+                                                <div className="flex justify-between items-center text-sm">
+                                                    <span className="text-amber-700">↑ Margin per Infant</span>
+                                                    <span className="font-medium text-amber-700">
+                                                        +PKR {((safeBooking.pricing?.infantPrice || 0) - (safeBooking.pricing?.infantBasePrice || 0)).toLocaleString()}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-gray-700">Infant Final Price (x{safeBooking.infantsCount})</span>
                                             <span className="font-medium">PKR {(safeBooking.pricing?.infantPrice || 0).toLocaleString()}</span>
                                         </div>
                                         <div className="flex justify-between items-center">
@@ -304,6 +354,7 @@ export default function BookingDetail() {
                                         </div>
                                     </>
                                 )}
+
                                 <div className="border-t border-gray-200 pt-3 mt-3">
                                     <div className="flex justify-between items-center">
                                         <span className="text-lg font-semibold text-gray-900">Grand Total</span>
@@ -390,8 +441,8 @@ export default function BookingDetail() {
                                             <div className="grid grid-cols-2 gap-2 mt-2 text-sm text-gray-600">
                                                 <div><span className="font-medium">Origin:</span> {flight.origin}</div>
                                                 <div><span className="font-medium">Destination:</span> {flight.destination}</div>
-                                                <div><span className="font-medium">Departure:</span> {flight.depTime}</div>
-                                                <div><span className="font-medium">Arrival:</span> {flight.arrTime}</div>
+                                                <div><span className="font-medium">Departure:</span> {formatDate(safeBooking.departureDate)} {flight.depTime}</div>
+                                                <div><span className="font-medium">Arrival:</span> {formatDate(safeBooking.arrivalDate)} {flight.arrTime}</div>
                                                 <div><span className="font-medium">Baggage:</span> {flight.baggage || 'N/A'}</div>
                                                 <div><span className="font-medium">Meal:</span> {flight.meal || 'N/A'}</div>
                                             </div>
@@ -432,13 +483,12 @@ export default function BookingDetail() {
                                 {safeBooking.sabaoonBookingStatus && safeBooking.sabaoonBookingStatus !== 'not_applicable' && (
                                     <div className="border-t border-gray-200 pt-4">
                                         <label className="text-gray-600">Sabaoon Status</label>
-                                        <p className={`mt-1 inline-block px-2 py-1 rounded text-xs font-semibold ${
-                                            safeBooking.sabaoonBookingStatus === 'success'
+                                        <p className={`mt-1 inline-block px-2 py-1 rounded text-xs font-semibold ${safeBooking.sabaoonBookingStatus === 'success'
                                                 ? 'bg-green-100 text-green-700'
                                                 : safeBooking.sabaoonBookingStatus === 'failed'
                                                     ? 'bg-red-100 text-red-700'
                                                     : 'bg-yellow-100 text-yellow-700'
-                                        }`}>
+                                            }`}>
                                             {safeBooking.sabaoonBookingStatus.charAt(0).toUpperCase() + safeBooking.sabaoonBookingStatus.slice(1)}
                                         </p>
                                     </div>
