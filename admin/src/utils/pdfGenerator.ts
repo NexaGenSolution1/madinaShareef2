@@ -60,12 +60,12 @@ interface Booking {
     passport?: string;
   }>;
   userId?:
-    | string
-    | {
-        name?: string;
-        companyName?: string;
-        phone?: string;
-      };
+  | string
+  | {
+    name?: string;
+    companyName?: string;
+    phone?: string;
+  };
 }
 
 export const generateBookingPDF = async (booking: Booking): Promise<void> => {
@@ -84,9 +84,9 @@ export const generateBookingPDF = async (booking: Booking): Promise<void> => {
   element.style.left = "-9999px";
 
   const colors = {
-    bluePrimary: "#177cb0",
-    orange: "#ff9f00",
-    tableHeader: "#0e7eac",
+    bluePrimary: "#1a365d",
+    sectorHeader: "#2d3748",
+    tableHeader: "#1a365d",
     textGray: "#333",
   };
 
@@ -160,7 +160,7 @@ export const generateBookingPDF = async (booking: Booking): Promise<void> => {
             Electronic Ticket Reservation
         </h2>
 
-        <div style="background-color: ${colors.bluePrimary}; color: white; padding: 15px 20px; border-radius: 20px; margin-bottom: 20px;">
+        <div style="background-color: ${colors.bluePrimary}; color: white; padding: 15px 20px 24px; margin-bottom: 20px;">
             <div style="display: flex; justify-content: space-between;">
                 <div style="flex: 1;">
                     <div style="font-size: 13px; margin-bottom: 6px; opacity: 0.9;">Booking Reference (PNR)</div>
@@ -179,16 +179,16 @@ export const generateBookingPDF = async (booking: Booking): Promise<void> => {
             </div>
         </div>
 
-        <div style="background-color: ${colors.orange}; color: white; padding: 10px 20px; font-weight: bold; font-size: 20px; border-radius: 4px 4px 0 0;">
+        <div style="background-color: ${colors.sectorHeader}; color: white; padding: 6px 20px 24px; font-weight: bold; font-size: 20px;">
             Flight 1 - ${sector}
         </div>
 
         <div style="margin-bottom: 30px; padding: 20px 0; border-bottom: 1px solid #ddd;">
             <div style="display: flex; font-weight: bold; font-size: 15px; margin-bottom: 15px; color: #000;">
-                <div style="width: 18%;">AIRLINE</div>
-                <div style="width: 20%;">FLIGHT #</div>
-                <div style="width: 31%;">DEPARTURE</div>
-                <div style="width: 31%;">ARRIVAL</div> 
+                <div style="width: 18%; padding-bottom: 15px;">AIRLINE</div>
+                <div style="width: 20%; padding-bottom: 15px;">FLIGHT #</div>
+                <div style="width: 31%; padding-bottom: 15px;">DEPARTURE</div>
+                <div style="width: 31%; padding-bottom: 15px;">ARRIVAL</div> 
             </div>
 
             <div style="display: flex; align-items: flex-start; position: relative; color: #000;">
@@ -228,11 +228,10 @@ export const generateBookingPDF = async (booking: Booking): Promise<void> => {
                 </tr>
             </thead>
             <tbody>
-                ${
-                  booking.passengers && booking.passengers.length > 0
-                    ? booking.passengers
-                        .map(
-                          (p, idx) => `
+                ${booking.passengers && booking.passengers.length > 0
+      ? booking.passengers
+        .map(
+          (p, idx) => `
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 10px; font-size: 13px;">${idx + 1}</td>
                         <td style="padding: 10px; font-size: 13px; text-transform: uppercase;">
@@ -242,10 +241,10 @@ export const generateBookingPDF = async (booking: Booking): Promise<void> => {
                         <td style="padding: 10px; font-size: 13px;">Yes</td>
                     </tr>
                 `,
-                        )
-                        .join("")
-                    : `<tr><td colspan="4" style="padding: 10px; text-align: center;">No passengers found</td></tr>`
-                }
+        )
+        .join("")
+      : `<tr><td colspan="4" style="padding: 10px; text-align: center;">No passengers found</td></tr>`
+    }
             </tbody>
         </table>
 

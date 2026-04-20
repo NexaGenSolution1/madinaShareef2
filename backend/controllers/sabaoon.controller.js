@@ -129,6 +129,7 @@ export const upsertGroupOverride = async (req, res) => {
 
     const update = {};
     if (isHidden !== undefined) update.isHidden = Boolean(isHidden);
+
     if (individualMargin !== undefined) {
       // empty string or explicit null clears the margin
       update.individualMargin =
@@ -142,6 +143,11 @@ export const upsertGroupOverride = async (req, res) => {
       { $set: update },
       { upsert: true, new: true }
     );
+
+    await SabaoonGroupOverride.deleteMany({
+      isHidden: false,
+      individualMargin: null,
+    });
 
     return res.json({ success: true, data: override });
   } catch (error) {
