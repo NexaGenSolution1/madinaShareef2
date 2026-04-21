@@ -5,7 +5,7 @@ dotenv.config();
 
 const api = axios.create({
   baseURL: process.env.ZIP_ACCOUNTS_API_URL,
-  timeout: 10000,
+  timeout: 30000,
 });
 
 api.interceptors.request.use(

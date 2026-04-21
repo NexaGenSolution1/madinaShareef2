@@ -135,13 +135,12 @@ export const printGDSBooking = (booking: any): void => {
                     font-size: 24px;
                     font-weight: 400;
                     margin: 20px 0;
-                    border-bottom: 2px solid #000;
+                    border-bottom: 1px solid #000;
                     padding-bottom: 10px;
                 }
                 .info-box {
-                    border: 2px solid #000;
+                    border: 1px solid #000;
                     padding: 15px;
-                    border-radius: 10px;
                     margin-bottom: 20px;
                 }
                 .info-col { display: flex; flex-direction: column; align-items: flex-start; }
@@ -153,13 +152,11 @@ export const printGDSBooking = (booking: any): void => {
                     padding: 10px 15px;
                     font-weight: bold;
                     font-size: 16px;
-                    border: 2px solid #000;
-                    border-top-left-radius: 12px;
-                    border-top-right-radius: 12px;
+                    border: 1px solid #000;
                     margin-top: 20px;
                 }
                 .flight-details {
-                    border: 2px solid #000;
+                    border: 1px solid #000;
                     border-top: none;
                     padding: 20px 10px;
                     margin-bottom: 30px;
@@ -174,8 +171,8 @@ export const printGDSBooking = (booking: any): void => {
                 .col-4 { width: 31%; }
                 .plane-icon { position: absolute; left: 56%; top: 15px; opacity: 0.5; }
                 table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                th { background-color: #eee; color: #000; padding: 8px; text-align: left; font-weight: bold; border: 2px solid #000; }
-                td { padding: 8px; border: 2px solid #000; font-size: 13px; }
+                th { background-color: #eee; color: #000; padding: 8px; text-align: left; font-weight: bold; border: 1px solid #000; }
+                td { padding: 8px; border: 1px solid #000; font-size: 13px; }
                 .terms { font-size: 11px; margin-top: 20px; border-top: 1px dashed #000; padding-top: 10px; }
                 .footer-note { margin-top: 20px; font-size: 10px; text-align: center; color: #555; }
             </style>
@@ -314,12 +311,12 @@ const getAgencyName = (booking: any): string => {
   if (typeof booking.userId === "object" && booking.userId?.companyName) {
     return booking.userId.companyName;
   }
-  return "SUPRA TRAVEL & TOURS";
+  return "World Fly Travel & Tours";
 };
 
 const getName = (booking: any): string => {
   if (typeof booking.userId === "object" && booking.userId?.name) {
     return booking.userId.name;
   }
-  return "SUPRA TRAVEL & TOURS";
+  return "World Fly Travel & Tours";
 };

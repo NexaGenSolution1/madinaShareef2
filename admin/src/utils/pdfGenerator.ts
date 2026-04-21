@@ -218,13 +218,13 @@ export const generateBookingPDF = async (booking: Booking): Promise<void> => {
             </div>
         </div>
 
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;"
             <thead>
                 <tr style="background-color: ${colors.tableHeader}; color: white;">
-                    <th style="padding: 10px; text-align: left; font-size: 14px; font-weight: bold; width: 50px;">Sr #</th>
-                    <th style="padding: 10px; text-align: left; font-size: 14px; font-weight: bold;">Passenger Name</th>
-                    <th style="padding: 10px; text-align: left; font-size: 14px; font-weight: bold;">Passport #</th>
-                    <th style="padding: 10px; text-align: left; font-size: 14px; font-weight: bold;">Meal</th>
+                    <th style="padding: 10px 10px 24px; text-align: left; font-size: 14px; font-weight: bold; width: 50px;">Sr #</th>
+                    <th style="padding: 10px 10px 24px; text-align: left; font-size: 14px; font-weight: bold;">Passenger Name</th>
+                    <th style="padding: 10px 10px 24px; text-align: left; font-size: 14px; font-weight: bold;">Passport #</th>
+                    <th style="padding: 10px 10px 24px; text-align: left; font-size: 14px; font-weight: bold;">Meal</th>
                 </tr>
             </thead>
             <tbody>
@@ -323,21 +323,21 @@ const getAgencyName = (booking: Booking): string => {
   if (typeof booking.userId === "object" && booking.userId?.companyName) {
     return booking.userId.companyName;
   }
-  return "SUPRA TRAVEL & TOURS";
+  return "World Fly Travel & Tours";
 };
 
 const getName = (booking: Booking): string => {
   if (typeof booking.userId === "object" && booking.userId?.name) {
     return booking.userId.name;
   }
-  return "SUPRA TRAVEL & TOURS";
+  return "World Fly Travel & Tours";
 };
 
 const getPhone = (booking: Booking): string => {
   if (typeof booking.userId === "object" && booking.userId?.phone) {
     return booking.userId.phone;
   }
-  return "SUPRA TRAVEL & TOURS";
+  return "World Fly Travel & Tours";
 };
 
 const sanitizeFilename = (str: string): string => {

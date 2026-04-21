@@ -23,11 +23,12 @@ export const generateBookingPDF = async (booking) => {
 
   // Colors
   const colors = {
-    bluePrimary: "#177cb0",
-    orange: "#ff9f00",
-    tableHeader: "#0e7eac",
+    bluePrimary: "#1a365d",
+    sectorHeader: "#2d3748",
+    tableHeader: "#1a365d",
     textGray: "#333",
   };
+
 
   const planeIconBase64 =
     "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzY2NiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBzdHlsZT0idHJhbnNmb3JtOiByb3RhdGUoOTBkZWcpOyI+PHBhdGggZD0iTTIxIDE2di0ybC04LTVWMy41YzAtLjgzLS42Ny0xLjUtMS41LTEuNVMxMCAyLjY3IDEwIDMuNVY5TDIgMTR2Mmw4LTIuNVYxOWwtMiAxLjVWMjJsMy41LTEgMy41IDF2LTEuNUwxMyAxOXYtNS41bDggMi41eiIvPjwvc3ZnPg==";
@@ -122,7 +123,7 @@ export const generateBookingPDF = async (booking) => {
         </h2>
 
         <!-- 2. Blue Booking Info Box -->
-            <div style="background-color: ${colors.bluePrimary}; color: white; padding: 15px 20px; border-radius: 20px; margin-bottom: 20px;">
+            <div style="background-color: ${colors.bluePrimary}; color: white; padding: 15px 20px 24px; margin-bottom: 20px;">
         <div style="display: flex; justify-content: space-between;">
             <div style="flex: 1;">
             <div style="font-size: 13px; margin-bottom: 6px; opacity: 0.9;">Booking Reference (PNR)</div>
@@ -143,7 +144,7 @@ export const generateBookingPDF = async (booking) => {
         </div>
 
         <!-- 3. Orange Flight Strip -->
-        <div style="background-color: ${colors.orange}; color: white; padding: 10px 20px; font-weight: bold; font-size: 20px; border-radius: 4px 4px 0 0;">
+        <div style="background-color: ${colors.sectorHeader}; color: white; padding: 10px 20px 24px; font-weight: bold; font-size: 20px;">
             Flight 1 - ${sector}
         </div>
 
@@ -212,10 +213,10 @@ export const generateBookingPDF = async (booking) => {
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
             <thead>
                 <tr style="background-color: ${colors.tableHeader}; color: white;">
-                    <th style="padding: 10px; text-align: left; font-size: 14px; font-weight: bold; width: 50px;">Sr #</th>
-                    <th style="padding: 10px; text-align: left; font-size: 14px; font-weight: bold;">Passenger Name</th>
-                    <th style="padding: 10px; text-align: left; font-size: 14px; font-weight: bold;">Passport #</th>
-                    <th style="padding: 10px; text-align: left; font-size: 14px; font-weight: bold;">Meal</th>
+                    <th style="padding: 10px 10px 24px; text-align: left; font-size: 14px; font-weight: bold; width: 50px;">Sr #</th>
+                    <th style="padding: 10px 10px 24px; text-align: left; font-size: 14px; font-weight: bold;">Passenger Name</th>
+                    <th style="padding: 10px 10px 24px; text-align: left; font-size: 14px; font-weight: bold;">Passport #</th>
+                    <th style="padding: 10px 10px 24px; text-align: left; font-size: 14px; font-weight: bold;">Meal</th>
                 </tr>
             </thead>
             <tbody>
@@ -336,7 +337,7 @@ const getAgencyName = (booking) => {
   if (typeof booking.userId === "object" && booking.userId?.companyName) {
     return booking.userId.companyName;
   }
-  return "SUPRA TRAVEL & TOURS";
+  return "World Fly Travel & Tours";
 };
 
 
@@ -344,14 +345,14 @@ const getName = (booking) => {
   if (typeof booking.userId === "object" && booking.userId?.name) {
     return booking.userId.name;
   }
-  return "SUPRA TRAVEL & TOURS";
+  return "World Fly Travel & Tours";
 };
 
 const getPhone = (booking) => {
   if (typeof booking.userId === "object" && booking.userId?.phone) {
     return booking.userId.phone;
   }
-  return "SUPRA TRAVEL & TOURS";
+  return "World Fly Travel & Tours";
 };
 // Make filenames filesystem-safe
 const sanitizeFilename = (str) => {

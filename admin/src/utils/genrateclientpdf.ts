@@ -71,9 +71,9 @@ export const generateClientPDF = async (booking: Booking): Promise<void> => {
 
   // Colors
   const colors = {
-    bluePrimary: "#177cb0",
-    orange: "#ff9f00",
-    tableHeader: "#0e7eac",
+    bluePrimary: "#1a365d",
+    sectorHeader: "#2d3748",
+    tableHeader: "#1a365d",
     textGray: "#333",
   };
 
@@ -152,7 +152,7 @@ export const generateClientPDF = async (booking: Booking): Promise<void> => {
             Electronic Ticket Reservation
         </h2>
 
-        <div style="background-color: ${colors.bluePrimary}; color: white; padding: 15px 20px; border-radius: 20px; margin-bottom: 20px;">
+        <div style="background-color: ${colors.bluePrimary}; color: white; padding: 15px 20px 24px; margin-bottom: 20px;">
             <div style="display: flex; justify-content: space-between;">
                 <div style="flex: 1;">
                     <div style=" margin-bottom: 6px; opacity: 0.9;">Booking Reference (PNR)</div>
@@ -166,7 +166,7 @@ export const generateClientPDF = async (booking: Booking): Promise<void> => {
             </div>
         </div>
 
-        <div style="background-color: ${colors.orange}; color: white; padding: 10px 20px; font-weight: bold; font-size: 20px; border-radius: 4px 4px 0 0;">
+        <div style="background-color: ${colors.sectorHeader}; color: white; padding: 6px 20px 24px; font-weight: bold; font-size: 20px;">
             Flight 1 - ${sector}
         </div>
 
@@ -211,18 +211,17 @@ export const generateClientPDF = async (booking: Booking): Promise<void> => {
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
             <thead>
                 <tr style="background-color: ${colors.tableHeader}; color: white;">
-                    <th style="padding: 10px; text-align: left; font-size: 14px; font-weight: bold; width: 50px;">Sr #</th>
-                    <th style="padding: 10px; text-align: left; font-size: 14px; font-weight: bold;">Passenger Name</th>
-                    <th style="padding: 10px; text-align: left; font-size: 14px; font-weight: bold;">Passport #</th>
-                    <th style="padding: 10px; text-align: left; font-size: 14px; font-weight: bold;">Meal</th>
+                    <th style="padding: 10px 10px 24px; text-align: left; font-size: 14px; font-weight: bold; width: 50px;">Sr #</th>
+                    <th style="padding: 10px 10px 24px; text-align: left; font-size: 14px; font-weight: bold;">Passenger Name</th>
+                    <th style="padding: 10px 10px 24px; text-align: left; font-size: 14px; font-weight: bold;">Passport #</th>
+                    <th style="padding: 10px 10px 24px; text-align: left; font-size: 14px; font-weight: bold;">Meal</th>
                 </tr>
             </thead>
             <tbody>
-                ${
-                  booking.passengers && booking.passengers.length > 0
-                    ? booking.passengers
-                        .map(
-                          (p, idx) => `
+                ${booking.passengers && booking.passengers.length > 0
+      ? booking.passengers
+        .map(
+          (p, idx) => `
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 10px; font-size: 13px;">${idx + 1}</td>
                         <td style="padding: 10px; font-size: 13px; text-transform: uppercase;">
@@ -232,10 +231,10 @@ export const generateClientPDF = async (booking: Booking): Promise<void> => {
                         <td style="padding: 10px; font-size: 13px;">Yes</td>
                     </tr>
                 `,
-                        )
-                        .join("")
-                    : `<tr><td colspan="4" style="padding: 10px; text-align: center;">No passengers found</td></tr>`
-                }
+        )
+        .join("")
+      : `<tr><td colspan="4" style="padding: 10px; text-align: center;">No passengers found</td></tr>`
+    }
             </tbody>
         </table>
 
