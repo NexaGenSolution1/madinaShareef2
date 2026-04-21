@@ -520,8 +520,10 @@ import Booking from "../models/Booking.js";
 import GroupTicketing from "../models/GroupTicketing.js";
 import mongoose from "mongoose";
 import Register from "../models/Register.js";
+import axios from "axios";
 import { deductSeatsFromCache } from "../utils/cacheHelpers.js";
 import { createSabaoonBooking } from "./sabaoon.controller.js";
+import zipAccountsService from "../services/zipAccounts.service.js";
 
 const HOLD_DURATION = 30 * 60 * 1000; // 30 minutes
 
@@ -655,13 +657,13 @@ export const createBooking = async (req, res) => {
       await adjustSeatsIfLocalGroup(
         normalizeGroupId(req.body.groupId),
         seatCount,
-      ).catch(() => {});
+      ).catch(() => { });
 
       // Rollback cache seats too
       await deductSeatsFromCache(
         normalizeGroupId(req.body.groupId),
         -seatCount, // negative = add back
-      ).catch(() => {});
+      ).catch(() => { });
     }
     res.status(400).json({ success: false, message: err.message });
   }
@@ -788,11 +790,84 @@ export const getBookingByReference = async (req, res) => {
 // -------------------------
 // UPDATE BOOKING STATUS
 // -------------------------
+
+
+const ledgerHiting = async (booking) => {
+  // Fetch all accounts from ZIP Accounts API
+  const accountsData = await zipAccountsService.getAllAccounts();
+  const accounts = Array.isArray(accountsData)
+    ? accountsData
+    : accountsData.results || [];
+
+  // Resolve the agent's company name
+  const agentUser = await Register.findById(booking.userId);
+  const agentName = agentUser?.companyName;
+
+  // Find the required account IDs
+  let customerAccount = "";
+  let supplierAccount = "";
+  let TicketIncomeAccount = "";
+
+  accounts.forEach((acc) => {
+    if (acc.account_name === agentName) customerAccount = acc._id;
+    if (acc.account_name === "Saboon") supplierAccount = acc._id;
+    if (acc.account_name === "Ticket Income") TicketIncomeAccount = acc._id;
+  });
+
+  // Build journal transaction rows from booking data
+  const grandTotal = booking.pricing.grandTotal;
+  const baseCost =
+    (booking.pricing.adultBasePrice || 0) * booking.adultsCount +
+    (booking.pricing.childBasePrice || 0) * booking.childrenCount +
+    (booking.pricing.infantBasePrice || 0) * booking.infantsCount;
+  const margin = grandTotal - baseCost;
+
+  const date = new Date().toISOString().split("T")[0];
+  const description = `Booking ${booking.bookingReference} - ${booking.sector}`;
+
+  const rows = [
+    { account: customerAccount, debit: grandTotal, credit: 0 },
+    ...(baseCost > 0
+      ? [{ account: supplierAccount, debit: 0, credit: baseCost }]
+      : []),
+    { account: TicketIncomeAccount, debit: 0, credit: baseCost > 0 ? margin : grandTotal },
+  ];
+
+  const formDataToSend = new FormData();
+  formDataToSend.append("type", "journal");
+  formDataToSend.append("date", date);
+  formDataToSend.append("created_by", "admin");
+
+  rows.forEach((txn, index) => {
+    formDataToSend.append(`transactions[${index}][metadata]`, JSON.stringify({ id: index }));
+    formDataToSend.append(`transactions[${index}][account]`, txn.account);
+    formDataToSend.append(`transactions[${index}][description]`, description);
+    formDataToSend.append(`transactions[${index}][credit]`, String(txn.credit));
+    formDataToSend.append(`transactions[${index}][debit]`, String(txn.debit));
+  });
+
+  const response = await axios.post(
+    `${process.env.ZIP_ACCOUNTS_API_URL}voucher/`,
+    formDataToSend,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.ZIP_ACCOUNTS_API_KEY}`,
+        dbprefix: process.env.ZIP_ACCOUNTS_DB_PREFIX,
+      },
+    }
+  );
+  return response.data;
+};
+
 export const updateBookingStatus = async (req, res) => {
   try {
     const { status, notes } = req.body;
     const booking = await Booking.findById(req.params.id);
     if (!booking) throw new Error("Booking not found");
+
+    if (status === "confirmed") {
+      await ledgerHiting(booking);
+    }
 
     const oldStatus = booking.status;
     const seats = booking.adultsCount + booking.childrenCount;
