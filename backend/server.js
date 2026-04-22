@@ -74,8 +74,15 @@ app.use("/api/specialOffer", specialOffer);
 
 /* 🔥 Start Expiry Cron Job */
 startBookingExpiryJob();
+
 // Serve static files from React apps
 app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+// Admin portal SPA route handler (must come before express.static for admin)
+app.get("/admin-portal/*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../admin/dist/index.html"));
+});
+
 app.use("/admin-portal", express.static(path.join(__dirname, "../admin/dist")));
 
 app.get("/", (req, res) => {
