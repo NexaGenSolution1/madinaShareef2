@@ -19,6 +19,11 @@ import specialOffer from "./routes/specialOffer.route.js";
 import { getValidSabaoonToken, initializeSabaoonToken } from "./utils/sabaoonToken.js";
 import testEmail from "./utils/testEmail.js";
 import { startBookingExpiryJob } from "./utils/bookingExpiryJob.js";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 dbConnection();
@@ -69,10 +74,30 @@ app.use("/api/specialOffer", specialOffer);
 
 /* 🔥 Start Expiry Cron Job */
 startBookingExpiryJob();
+// Serve static files from React apps
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
+app.use("/admin-portal", express.static(path.join(__dirname, "../admin/dist")));
 
 app.get("/", (req, res) => {
   res.send("World fly travel and tours (Pvt Ltd ) API is running");
 });
+
+// Catch-all handler: serve React app's index.html for any non-API routes
+// This must come AFTER all API routes
+app.use((req, res, next) => {
+  // Skip API routes - they should have been handled above
+  if (req.path.startsWith("/api/")) {
+    return res.status(404).json({ message: "API endpoint not found" });
+  }
+
+  // Check if the request is for admin portal
+  if (req.path.startsWith("/admin-portal")) {
+    res.sendFile(path.join(__dirname, "../admin/dist/index.html"));
+  } else {
+    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+  }
+});
+
 
 const PORT = process.env.PORT || 8007;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
