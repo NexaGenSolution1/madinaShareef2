@@ -77,24 +77,6 @@ startBookingExpiryJob();
 
 // Serve static files from React apps
 app.use(express.static(path.join(__dirname, "../frontend/dist")));
-
-// Admin portal SPA fallback - serve index.html for all non-file requests
-app.use("/admin-portal", (req, res, next) => {
-  // If it looks like a file request (has extension), let static middleware handle it
-  if (req.path.includes('.')) {
-    return express.static(path.join(__dirname, "../admin/dist"))(req, res, next);
-  }
-  // Otherwise, serve index.html for SPA client-side routing
-  const indexPath = path.join(__dirname, "../admin/dist/index.html");
-  res.sendFile(indexPath, (err) => {
-    if (err) {
-      console.error("Error serving admin index.html at", indexPath, err);
-      res.status(500).send("Internal Server Error");
-    }
-  });
-});
-
-// Also serve static assets for admin
 app.use("/admin-portal", express.static(path.join(__dirname, "../admin/dist")));
 
 app.get("/", (req, res) => {
@@ -109,14 +91,24 @@ app.use((req, res) => {
     return res.status(404).json({ message: "API endpoint not found" });
   }
 
-  // Serve frontend index.html for all other routes (client-side routing)
-  const frontendPath = path.join(__dirname, "../frontend/dist/index.html");
-  res.sendFile(frontendPath, (err) => {
-    if (err) {
-      console.error("Error serving frontend index.html:", err);
-      res.status(500).send("Internal Server Error");
-    }
-  });
+  // Check if the request is for admin portal
+  if (req.path.startsWith("/admin-portal")) {
+    const adminPath = path.join(__dirname, "../admin/dist/index.html");
+    res.sendFile(adminPath, (err) => {
+      if (err) {
+        console.error("Error serving admin index.html:", err);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+  } else {
+    const frontendPath = path.join(__dirname, "../frontend/dist/index.html");
+    res.sendFile(frontendPath, (err) => {
+      if (err) {
+        console.error("Error serving frontend index.html:", err);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+  }
 });
 
 
