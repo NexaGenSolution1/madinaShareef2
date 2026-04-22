@@ -77,12 +77,6 @@ startBookingExpiryJob();
 
 // Serve static files from React apps
 app.use(express.static(path.join(__dirname, "../frontend/dist")));
-
-// Admin portal SPA route handler (must come before express.static for admin)
-app.get(/^\/admin-portal\//, (req, res) => {
-  res.sendFile(path.join(__dirname, "../admin/dist/index.html"));
-});
-
 app.use("/admin-portal", express.static(path.join(__dirname, "../admin/dist")));
 
 app.get("/", (req, res) => {
@@ -90,8 +84,8 @@ app.get("/", (req, res) => {
 });
 
 // Catch-all handler: serve React app's index.html for any non-API routes
-// This must come AFTER all API routes
-app.use((req, res, next) => {
+// This must come AFTER all API routes and static middlewares
+app.use((req, res) => {
   // Skip API routes - they should have been handled above
   if (req.path.startsWith("/api/")) {
     return res.status(404).json({ message: "API endpoint not found" });
@@ -99,9 +93,21 @@ app.use((req, res, next) => {
 
   // Check if the request is for admin portal
   if (req.path.startsWith("/admin-portal")) {
-    res.sendFile(path.join(__dirname, "../admin/dist/index.html"));
+    const adminPath = path.join(__dirname, "../admin/dist/index.html");
+    res.sendFile(adminPath, (err) => {
+      if (err) {
+        console.error("Error serving admin index.html:", err);
+        res.status(500).send("Internal Server Error");
+      }
+    });
   } else {
-    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+    const frontendPath = path.join(__dirname, "../frontend/dist/index.html");
+    res.sendFile(frontendPath, (err) => {
+      if (err) {
+        console.error("Error serving frontend index.html:", err);
+        res.status(500).send("Internal Server Error");
+      }
+    });
   }
 });
 
