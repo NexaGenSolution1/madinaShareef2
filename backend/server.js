@@ -79,7 +79,7 @@ startBookingExpiryJob();
 app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
 // Admin portal SPA route handler (must come before express.static for admin)
-app.get("/admin-portal/*", (req, res) => {
+app.get(/^\/admin-portal\//, (req, res) => {
   res.sendFile(path.join(__dirname, "../admin/dist/index.html"));
 });
 
